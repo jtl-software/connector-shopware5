@@ -1,0 +1,15 @@
+build/**
+dist/**
+composer.lock
+composer
+vendor/**
+*.sublime-project
+*.sublime-workspace
+build.xml
+phing.phar
+stub.php
+plugins/*
+!plugins/.gitkeep
+.idea/**
+logs/**
+!logs/.gitkeep
