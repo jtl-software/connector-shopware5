@@ -53,6 +53,7 @@ class CrossSelling extends DataMapper
 
     public function save(CrossSellingModel $crossSelling)
     {
+        $this->delete($crossSelling);
         foreach ($crossSelling->getItems() as $item) {
             if (count($item->getProductIds()) > 0) {
                 $sql = 'INSERT INTO s_articles_relationships VALUES ';
