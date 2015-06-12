@@ -233,12 +233,12 @@ class Product extends DataController
                     false
                 );
 
-                $specialPrice = Mmc::getModel('SpecialPrice');
-                $specialPrice->setCustomerGroupId(new Identity($discount['customerGroupId']))
+                $productSpecialPriceItem = Mmc::getModel('ProductSpecialPriceItem');
+                $productSpecialPriceItem->setCustomerGroupId(new Identity($discount['customerGroupId']))
                     ->setProductSpecialPriceId(new Identity($discount['groupId']))
                     ->setPriceNet($discountPriceNet);
 
-                $productSpecialPrice->addSpecialPrice($specialPrice);
+                $productSpecialPrice->addItem($productSpecialPriceItem);
                 $exists = true;
             }
 

@@ -15,7 +15,11 @@ class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Acti
 
         try {
             if (file_exists(CONNECTOR_DIR . '/connector.phar')) {
-                include_once('phar://' . CONNECTOR_DIR . '/connector.phar/src/bootstrap.php');
+                if (is_writable(sys_get_temp_dir())) {
+                    include_once('phar://' . CONNECTOR_DIR . '/connector.phar/src/bootstrap.php');
+                } else {
+                    echo sprintf('Directory %s is not writeable. Please contact your administrator or hoster.', sys_get_temp_dir());
+                }
             } else {
                 include_once(CONNECTOR_DIR . '/src/bootstrap.php');
             }
