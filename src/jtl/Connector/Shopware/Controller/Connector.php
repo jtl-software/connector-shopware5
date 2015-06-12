@@ -75,6 +75,7 @@ class Connector extends DataController
             'Category',
             'Customer',
             'CustomerOrder',
+            'CrossSelling',
             'DeliveryNote',
             'Image',
             'Product',

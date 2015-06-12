@@ -256,10 +256,10 @@
             "push": false,
             "delete": false
         },
-        "ProductCrossSelling": {
-            "pull": false,
-            "push": false,
-            "delete": false
+        "CrossSelling": {
+            "pull": true,
+            "push": true,
+            "delete": true
         },
         "ProductFileDownload": {
             "pull": false,
