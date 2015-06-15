@@ -48,9 +48,11 @@ class Customer extends DataController
                     $country = Shopware()->Models()->getRepository('Shopware\Models\Country\Country')
                         ->findOneById($customerSW['billing']['countryId']);
 
+                    $iso = ($country !== null) ? $country->getIso() : 'DE';
+
                     // Salutation
                     $customer->setSalutation(Salutation::toConnector($customer->getSalutation()))
-                        ->setCountryIso($country->getIso());
+                        ->setCountryIso($iso);
 
                     // Attributes
                     if (isset($customerSW['billing']['attribute']) && is_array($customerSW['billing']['attribute'])) {

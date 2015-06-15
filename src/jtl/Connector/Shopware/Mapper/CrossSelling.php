@@ -7,7 +7,8 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Model\CrossSelling as CrossSellingModel;
-use jtl\Connector\Model\Identity;
+use \jtl\Connector\Model\Identity;
+use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 
 class CrossSelling extends DataMapper
 {
@@ -57,18 +58,29 @@ class CrossSelling extends DataMapper
         foreach ($crossSelling->getItems() as $item) {
             if (count($item->getProductIds()) > 0) {
                 $sql = 'INSERT INTO s_articles_relationships VALUES ';
+                $isValid = false;
                 foreach ($item->getProductIds() as $i => $identity) {
-                    if ($i > 0) {
-                        $sql .= ', ';
-                    }
+                    if (strlen($crossSelling->getProductId()->getEndpoint()) > 0 && strlen($identity->getEndpoint()) > 0) {
+                        $isValid = true;
 
-                    $sql .= sprintf('(null, %s, %s)',
-                        $crossSelling->getProductId()->getEndpoint(),
-                        $identity->getEndpoint()
-                    );
+                        if ($i > 0) {
+                            $sql .= ', ';
+                        }
+
+                        // s = source - d = destination
+                        list ($sDetailId, $sProductId) = IdConcatenator::unlink($crossSelling->getProductId()->getEndpoint());
+                        list ($dDetailId, $dProductId) = IdConcatenator::unlink($identity->getEndpoint());
+
+                        $sql .= sprintf('(null, %s, %s)',
+                            $sProductId,
+                            $dProductId
+                        );
+                    }
                 }
 
-                Shopware()->Db()->query($sql);
+                if (!$isValid) {
+                    Shopware()->Db()->query($sql);
+                }
             }
         }
     }

@@ -33,7 +33,10 @@ class Payment extends DataController
             $mapper = Mmc::getMapper('Payment');
             $payments = $mapper->findAll($limit);
 
-            foreach ($payments as $payment) {
+            foreach ($payments as $paymentSW) {
+                $payment = Mmc::getModel('Payment');
+                $payment->map(true, DataConverter::toObject($paymentSW, true));
+
                 $result[] = $payment;
             }
 

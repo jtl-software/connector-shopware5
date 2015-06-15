@@ -6,13 +6,14 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
-use jtl\Connector\Core\Logger\Logger;
-use jtl\Connector\Core\Model\QueryFilter;
-use jtl\Connector\Core\Rpc\Error;
-use jtl\Connector\Formatter\ExceptionFormatter;
-use jtl\Connector\Model\Identity;
-use jtl\Connector\Result\Action;
-use jtl\Connector\Shopware\Utilities\Mmc;
+use \jtl\Connector\Core\Logger\Logger;
+use \jtl\Connector\Core\Model\QueryFilter;
+use \jtl\Connector\Core\Rpc\Error;
+use \jtl\Connector\Formatter\ExceptionFormatter;
+use \jtl\Connector\Model\Identity;
+use \jtl\Connector\Result\Action;
+use \jtl\Connector\Shopware\Utilities\Mmc;
+use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 
 class CrossSelling extends DataController
 {
@@ -38,8 +39,8 @@ class CrossSelling extends DataController
                 $lastProductId = null;
                 $crossSelling = null;
                 foreach ($crossSellingSWs as $crossSellingSW) {
-                    $productId = (int) $crossSellingSW['articleID'];
-                    $relatedId = (int) $crossSellingSW['relatedarticle'];
+                    $productId = IdConcatenator::link(array($crossSellingSW['detailId'], $crossSellingSW['articleID']));
+                    $relatedId = IdConcatenator::link(array($crossSellingSW['relatedDetailId'], $crossSellingSW['relatedarticle']));
 
                     if ($lastProductId !== $productId) {
                         $crossSelling = Mmc::getModel('CrossSelling');

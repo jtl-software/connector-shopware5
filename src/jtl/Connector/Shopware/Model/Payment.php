@@ -6,18 +6,22 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductFileDownloadI18n as ProductFileDownloadI18nModel;
+use \jtl\Connector\Model\Payment as PaymentModel;
 
 /**
- * ProductFileDownloadI18n Model
+ * Payment Model
  * @access public
  */
-class ProductFileDownloadI18n extends ProductFileDownloadI18nModel
+class Payment extends PaymentModel
 {
     protected $fields = array(
-        'description' => '',
-        'languageISO' => '',
-        'name' => 'name'
+        'customerOrderId' => 'customerOrderId',
+        'id' => 'id',
+        'billingInfo' => 'billingInfo',
+        'creationDate' => 'creationDate',
+        'paymentModuleCode' => 'paymentModuleCode',
+        'totalSum' => 'totalSum',
+        'transactionId' => 'transactionId'
     );
 
     /**

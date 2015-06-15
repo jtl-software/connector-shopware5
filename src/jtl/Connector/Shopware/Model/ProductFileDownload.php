@@ -15,11 +15,11 @@ use \jtl\Connector\Model\ProductFileDownload as ProductFileDownloadModel;
 class ProductFileDownload extends ProductFileDownloadModel
 {
     protected $fields = array(
-        'productId' => '',
+        'productId' => 'articleId',
         'creationDate' => '',
         'maxDays' => '',
         'maxDownloads' => '',
-        'path' => '',
+        'path' => 'file',
         'previewPath' => '',
         'sort' => ''
     );
