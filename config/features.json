@@ -262,9 +262,9 @@
             "delete": true
         },
         "ProductFileDownload": {
-            "pull": false,
-            "push": false,
-            "delete": false
+            "pull": true,
+            "push": true,
+            "delete": true
         },
         "ProductI18n": {
             "pull": true,
