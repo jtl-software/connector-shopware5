@@ -878,7 +878,8 @@ class Product extends DataMapper
         foreach ($product->getFileDownloads() as $fileDownload) {
             $download = new DownloadSW();
             $download->setArticle($productSW)
-                ->setFile($fileDownload->getPath());
+                ->setFile($fileDownload->getPath())
+                ->setSize(0);
 
             foreach ($fileDownload->getI18ns() as $i18n) {
                 if ($i18n->getLanguageIso() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
