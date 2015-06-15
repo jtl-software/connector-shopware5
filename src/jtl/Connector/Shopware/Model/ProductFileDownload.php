@@ -16,7 +16,12 @@ class ProductFileDownload extends ProductFileDownloadModel
 {
     protected $fields = array(
         'productId' => '',
-        'fileDownloadId' => ''
+        'creationDate' => '',
+        'maxDays' => '',
+        'maxDownloads' => '',
+        'path' => '',
+        'previewPath' => '',
+        'sort' => ''
     );
     
     /**
