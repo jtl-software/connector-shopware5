@@ -12,7 +12,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getLabel()
     {
-        return 'JTL Shopware Connector';
+        return 'JTL Shopware 5 Connector';
     }
  
     public function getVersion()
@@ -34,10 +34,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
  
     public function install()
     {
-        if (!$this->assertVersionGreaterThen('4.2.3')) {
+        if (!$this->assertVersionGreaterThen('5.0.0')) {
             return array(
                 'success' => false,
-                'message' => 'Das Plugin benötigt mindestens die Shopware Version 4.2.3'
+                'message' => 'Das Plugin benötigt mindestens die Shopware Version 5.0.0'
             );
         }
 
@@ -136,6 +136,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->createManufacturerMappingTable();
         $this->createSpecificMappingTable();
         $this->createSpecificValueMappingTable();
+        $this->createCrossSellingMappingTable();
         $this->createPaymentTable();
         $this->createPaymentMappingTable();
         $this->createUnitTable();
@@ -204,6 +205,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createParentDummies()
     {
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE ordernumber LIKE '%.jtlcon.0'");
+        
         // Dirty inject parent and insert in db work around
         $res = Shopware()->Db()->query('SELECT d.*, a.configurator_set_id
                                             FROM s_articles_details d
@@ -556,6 +559,22 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ALTER TABLE `jtl_connector_payment` ADD INDEX(`customerOrderId`);
             ALTER TABLE `jtl_connector_payment`
             ADD CONSTRAINT `jtl_connector_payment_1` FOREIGN KEY (`customerOrderId`) REFERENCES `s_order` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+        ';
+
+        Shopware()->Db()->query($sql);
+    }
+
+    private function createCrossSellingMappingTable()
+    {
+        $sql = '
+            CREATE TABLE IF NOT EXISTS `jtl_connector_crossselling` (
+              `product_id` int(11) unsigned NOT NULL,
+              `host_id` int(10) unsigned NOT NULL,
+              PRIMARY KEY (`product_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+            ALTER TABLE `jtl_connector_crossselling`
+            ADD CONSTRAINT `jtl_connector_crossselling_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ALTER TABLE `jtl_connector_crossselling` ADD INDEX(`host_id`);
         ';
 
         Shopware()->Db()->query($sql);

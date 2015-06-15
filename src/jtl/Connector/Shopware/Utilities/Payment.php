@@ -15,6 +15,7 @@ final class Payment
         PaymentTypes::TYPE_CASH => 'cash',
         PaymentTypes::TYPE_INVOICE => 'invoice',
         PaymentTypes::TYPE_PREPAYMENT => 'prepayment',
+        PaymentTypes::TYPE_PAYPAL_EXPRESS => 'paypal'
     );
 
     public static function map($paymentModuleCode = null, $swCode = null)

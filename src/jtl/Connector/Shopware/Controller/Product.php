@@ -18,6 +18,7 @@ use \jtl\Connector\Core\Exception\ControllerException;
 use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use \jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 
 /**
@@ -233,12 +234,12 @@ class Product extends DataController
                     false
                 );
 
-                $specialPrice = Mmc::getModel('SpecialPrice');
-                $specialPrice->setCustomerGroupId(new Identity($discount['customerGroupId']))
+                $productSpecialPriceItem = Mmc::getModel('ProductSpecialPriceItem');
+                $productSpecialPriceItem->setCustomerGroupId(new Identity($discount['customerGroupId']))
                     ->setProductSpecialPriceId(new Identity($discount['groupId']))
                     ->setPriceNet($discountPriceNet);
 
-                $productSpecialPrice->addSpecialPrice($specialPrice);
+                $productSpecialPrice->addItem($productSpecialPriceItem);
                 $exists = true;
             }
 
@@ -394,7 +395,25 @@ class Product extends DataController
             }
         }
 
-        //return $product->getPublic();
+        // Downloads
+        if (!$isDetail) {
+            $proto = ShopUtil::getProtocol();
+            foreach ($data['downloads'] as $downloadSW) {
+                $productFileDownload = Mmc::getModel('ProductFileDownload');
+                $productFileDownload->map(true, DataConverter::toObject($downloadSW));
+                $productFileDownload->setProductId($product->getId())
+                    ->setPath(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $downloadSW['file']));
+
+                $productFileDownloadI18n = Mmc::getModel('ProductFileDownloadI18n');
+                $productFileDownloadI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                    ->setName($downloadSW['name']);
+
+                $productFileDownload->addI18n($productFileDownloadI18n);
+
+                $product->addFileDownload($productFileDownload);
+            }
+        }
+        
         return $product;
     }
 }
