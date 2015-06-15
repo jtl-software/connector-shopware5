@@ -17,7 +17,7 @@ class ProductFileDownloadI18n extends ProductFileDownloadI18nModel
     protected $fields = array(
         'description' => '',
         'languageISO' => '',
-        'name' => ''
+        'name' => 'name'
     );
 
     /**

@@ -19,6 +19,7 @@ use \Doctrine\Common\Collections\ArrayCollection;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use \Shopware\Models\Article\Detail as DetailSW;
 use \Shopware\Models\Article\Article as ArticleSW;
+use \Shopware\Models\Article\Download as DownloadSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use \jtl\Connector\Shopware\Model\Helper\ProductNameHelper;
@@ -242,6 +243,7 @@ class Product extends DataMapper
                     $this->preparePriceAssociatedData($product, $productSW, $detailSW);
                     $this->prepareUnitAssociatedData($product, $productSW, $detailSW);
                     $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
+                    $this->prepareFileDownloadAssociatedData($product, $productSW);
 
                     if (!($detailSW->getId() > 0)) {
                         $kind = $detailSW->getKind();
@@ -868,6 +870,26 @@ class Product extends DataMapper
                 $detailSW->setUnit($measurementUnitSW);
             }
         }
+    }
+
+    protected function prepareFileDownloadAssociatedData(ProductModel $product, ArticleSW &$productSW)
+    {
+        $collection = array();
+        foreach ($product->getFileDownloads() as $fileDownload) {
+            $download = new DownloadSW();
+            $download->setArticle($productSW)
+                ->setFile($fileDownload->getPath());
+
+            foreach ($fileDownload->getI18ns() as $i18n) {
+                if ($i18n->getLanguageIso() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    $download->setName($i18n->getName());
+                }
+            }
+
+            $collection[] = $download;
+        }
+
+        $productSW->setDownloads($collection);
     }
 
     protected function deleteTranslationData(ArticleSW $productSW)

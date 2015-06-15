@@ -15,6 +15,7 @@ use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Model\Statistic;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 /**
  * Image Controller
@@ -55,6 +56,7 @@ class Image extends DataController
                 }
             }
 
+            $proto = ShopUtil::getProtocol();
             foreach ($modelContainer as $relationType => $models) {
                 foreach ($models as $modelSW) {
                     switch ($relationType) {
@@ -77,8 +79,8 @@ class Image extends DataController
                             $model->setId(new Identity($id));
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($foreignKey))
-                                ->setFilename(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $path))
-                                ->setRemoteUrl(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $path))
+                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $path))
+                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $path))
                                 ->setSort($modelSW['position']);
 
                             $result[] = $model;
@@ -90,8 +92,8 @@ class Image extends DataController
 
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
-                                ->setFilename(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $modelSW['path']))
-                                ->setRemoteUrl(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $modelSW['path']));
+                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $modelSW['path']))
+                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $modelSW['path']));
 
                             $result[] = $model;
                             break;
@@ -102,8 +104,8 @@ class Image extends DataController
                             
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
-                                ->setFilename(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $modelSW['path']))
-                                ->setRemoteUrl(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $modelSW['path']));
+                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $modelSW['path']))
+                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $modelSW['path']));
 
                             $result[] = $model;
                             break;
