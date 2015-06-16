@@ -223,7 +223,7 @@ class Product extends DataMapper
 
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
-                $this->Manager()->flush();
+                $this->Manager()->flush($productSW);
                 
                 $this->prepareDetailVariationAssociatedData($product, $productSW, $detailSW);
                 
@@ -265,7 +265,7 @@ class Product extends DataMapper
                 // Save Product
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
-                $this->Manager()->flush();
+                $this->Manager()->flush($productSW);
 
                 if ($this->isParent($product) && $productSW !== null) {
                     self::$masterProductIds[$product->getId()->getHost()] = IdConcatenator::link(array($productSW->getMainDetail()->getId(), $productSW->getId()));
