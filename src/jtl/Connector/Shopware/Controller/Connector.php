@@ -36,7 +36,8 @@ class Connector extends DataController
         $identification = new ConnectorIdentification;
         $identification->setEndpointVersion($plugin_controller->getVersion())
             ->setPlatformName('Shopware')
-            ->setPlatformVersion($sw::VERSION);
+            ->setPlatformVersion($sw::VERSION)
+            ->setProtocolVersion(Application()->getProtocolVersion());
 
         $action->setResult($identification);
 
