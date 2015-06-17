@@ -6,19 +6,22 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\MediaFileI18n as MediaFileI18nModel;
+use \jtl\Connector\Model\ProductMediaFile as ProductMediaFileModel;
 
 /**
- * MediaFileI18n Model
+ * ProductMediaFile Model
  * @access public
  */
-class MediaFileI18n extends MediaFileI18nModel
+class ProductMediaFile extends ProductMediaFileModel
 {
     protected $fields = array(
-        'mediaFileId' => '',
-        'languageISO' => '',
-        'name' => '',
-        'description' => ''
+        'id' => '',
+        'productId' => '',
+        'path' => '',
+        'url' => '',
+        'mediaFileCategory' => '',
+        'type' => '',
+        'sort' => ''
     );
     
     /**
