@@ -243,7 +243,7 @@ class Product extends DataMapper
                     $this->preparePriceAssociatedData($product, $productSW, $detailSW);
                     $this->prepareUnitAssociatedData($product, $productSW, $detailSW);
                     $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
-                    $this->prepareFileDownloadAssociatedData($product, $productSW);
+                    $this->prepareMediaFileAssociatedData($product, $productSW);
 
                     if (!($detailSW->getId() > 0)) {
                         $kind = $detailSW->getKind();
@@ -872,20 +872,22 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareFileDownloadAssociatedData(ProductModel $product, ArticleSW &$productSW)
+    protected function prepareMediaFileAssociatedData(ProductModel $product, ArticleSW &$productSW)
     {
         $collection = array();
-        foreach ($product->getFileDownloads() as $fileDownload) {
+        foreach ($product->getMediaFiles() as $mediaFile) {
             $download = new DownloadSW();
             $download->setArticle($productSW)
-                ->setFile($fileDownload->getPath())
+                ->setFile($mediaFile->getPath())
                 ->setSize(0);
 
-            foreach ($fileDownload->getI18ns() as $i18n) {
+            foreach ($mediaFile->getI18ns() as $i18n) {
                 if ($i18n->getLanguageIso() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                     $download->setName($i18n->getName());
                 }
             }
+
+            $this->Manager()->persist($download);
 
             $collection[] = $download;
         }

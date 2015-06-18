@@ -12,10 +12,9 @@ use \jtl\Connector\Model\ProductMediaFileAttrI18n as ProductMediaFileAttrI18nAtt
  * ProductMediaFileAttrI18nAttr Model
  * @access public
  */
-class ProductMediaFileAttrI18nAttr extends ProductMediaFileAttrI18nAttrModel
+class ProductMediaFileAttrI18n extends ProductMediaFileAttrI18nAttrModel
 {
     protected $fields = array(
-        'productMediaFileAttrId' => '',
         'languageISO' => '',
         'name' => '',
         'value' => ''

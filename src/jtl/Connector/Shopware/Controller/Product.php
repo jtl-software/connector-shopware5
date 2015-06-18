@@ -396,19 +396,18 @@ class Product extends DataController
 
         // Downloads
         if (!$isDetail) {
-            $proto = ShopUtil::getProtocol();
             foreach ($data['downloads'] as $downloadSW) {
-                $productFileDownload = Mmc::getModel('ProductFileDownload');
-                $productFileDownload->map(true, DataConverter::toObject($downloadSW));
-                $productFileDownload->setProductId($product->getId());
+                $productMediaFile = Mmc::getModel('ProductMediaFile');
+                $productMediaFile->map(true, DataConverter::toObject($downloadSW));
+                $productMediaFile->setProductId($product->getId());
 
-                $productFileDownloadI18n = Mmc::getModel('ProductFileDownloadI18n');
-                $productFileDownloadI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
+                $productMediaFileI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($downloadSW['name']);
 
-                $productFileDownload->addI18n($productFileDownloadI18n);
+                $productMediaFile->addI18n($productMediaFileI18n);
 
-                $product->addFileDownload($productFileDownload);
+                $product->addMediaFile($productMediaFile);
             }
         }
         
