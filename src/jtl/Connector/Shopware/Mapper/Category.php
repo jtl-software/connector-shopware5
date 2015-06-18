@@ -318,16 +318,22 @@ class Category extends DataMapper
 
     public function updateCategoryLevelTable(array $parentIds = null, $level = 0)
     {
-        $where = 'WHERE parent IS NULL';
+        $where = 'WHERE s.parent IS NULL';
         if ($parentIds === null) {
             $parentIds = array();
             Shopware()->Db()->query('TRUNCATE TABLE jtl_connector_category_level');
         } else {
-            $where = 'WHERE parent IN (' . implode(',', $parentIds) . ')';
+            $where = 'WHERE s.parent IN (' . implode(',', $parentIds) . ')';
             $parentIds = array();
         }
 
-        $categories = Shopware()->Db()->fetchAssoc('SELECT id FROM s_categories ' . $where);
+        $categories = Shopware()->Db()->fetchAssoc(
+            "SELECT s.id
+             FROM s_categories s
+             LEFT JOIN jtl_connector_category m ON m.category_id = s.id
+             {$where}
+                AND m.category_id IS NULL"
+        );
 
         if (count($categories) > 0) {
             foreach ($categories as $category) {

@@ -45,7 +45,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         require_once (dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
 
-        $json = new ConfigJson(Path::combine(__DIR__, 'config', 'config.json'));
+        $configFile = Path::combine(__DIR__, 'config', 'config.json');
+        if (!file_exists($configFile)) {
+            file_put_contents($configFile, '{}');
+        }
+
+        $json = new ConfigJson($configFile);
         $this->config = new Config(array($json));
 
         if (!$this->assertVersionGreaterThen('5.0.0')) {
@@ -181,6 +186,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_unit_i18n`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_unit`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_payment`');
+        Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_crossselling`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_category`');
     }
 
@@ -340,6 +346,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $shopCategories = Shopware()->Db()->fetchAssoc(
             'SELECT s.id, s.category_id, l.locale
              FROM s_core_shops s
+             JOIN s_categories c ON c.id = s.category_id
              JOIN s_core_locales l ON l.id = s.locale_id
              ORDER BY s.default DESC'
         );
