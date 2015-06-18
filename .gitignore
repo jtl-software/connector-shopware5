@@ -8,8 +8,10 @@ vendor/**
 build.xml
 phing.phar
 stub.php
-plugins/*
+plugins/**
 !plugins/.gitkeep
 .idea/**
 logs/**
 !logs/.gitkeep
+config/**
+!config/.gitkeep

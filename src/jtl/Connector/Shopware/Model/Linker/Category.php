@@ -24,6 +24,11 @@ class Category extends \Shopware\Models\Category\Category
     protected $categoryLevel;
 
     /**
+     * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\CategoryMapping", mappedBy="category")
+     **/
+    protected $categoryMapping;
+
+    /**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\CategoryLinker", mappedBy="category")
      **/
     protected $linker;
@@ -44,9 +49,31 @@ class Category extends \Shopware\Models\Category\Category
      * @param CategoryLevel $catLevel
      * @return self
      */
-    public function SetCategoryLevel(CategoryLevel $categoryLevel)
+    public function setCategoryLevel(CategoryLevel $categoryLevel)
     {
         $this->categoryLevel = $categoryLevel;
+        return $this;
+    }
+
+    /**
+     * Gets the value of categoryMapping.
+     *
+     * @return CategoryMapping
+     */
+    public function getCategoryMapping()
+    {
+        return $this->categoryMapping;
+    }
+
+    /**
+     * Sets the value of $categoryMapping.
+     *
+     * @param CategoryMapping $categoryMapping
+     * @return self
+     */
+    public function setCategoryMapping(CategoryMapping $categoryMapping)
+    {
+        $this->categoryMapping = $categoryMapping;
         return $this;
     }
 

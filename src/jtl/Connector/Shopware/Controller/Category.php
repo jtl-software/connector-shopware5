@@ -141,6 +141,16 @@ class Category extends DataController
 
                     $this->addPos($category, 'addI18n', 'CategoryI18n', $categorySW);
 
+                    // Other languages
+                    if ($this->getConfig()->read('category_mapping')) {
+                        $mappings = $mapper->findAllCategoryMappingByParent($category->getId()->getEndpoint());
+                        foreach ($mappings as $mapping) {
+                            $mapping['category']['id'] = $category->getId()->getEndpoint();
+                            $mapping['category']['localeName'] = LanguageUtil::map(null, null, $mapping['lang']);
+                            $this->addPos($category, 'addI18n', 'CategoryI18n', $mapping['category']);
+                        }
+                    }
+
                     // Default locale hack
                     if ($categorySW['localeName'] != Shopware()->Shop()->getLocale()->getLocale()) {
                         $categorySW['localeName'] = Shopware()->Shop()->getLocale()->getLocale();
