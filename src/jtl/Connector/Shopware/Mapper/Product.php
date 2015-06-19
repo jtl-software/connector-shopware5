@@ -223,7 +223,7 @@ class Product extends DataMapper
 
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
-                $this->Manager()->flush($productSW);
+                $this->Manager()->flush();
                 
                 $this->prepareDetailVariationAssociatedData($product, $productSW, $detailSW);
                 
@@ -265,7 +265,7 @@ class Product extends DataMapper
                 // Save Product
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
-                $this->Manager()->flush($productSW);
+                $this->Manager()->flush();
 
                 if ($this->isParent($product) && $productSW !== null) {
                     self::$masterProductIds[$product->getId()->getHost()] = IdConcatenator::link(array($productSW->getMainDetail()->getId(), $productSW->getId()));
@@ -335,9 +335,10 @@ class Product extends DataMapper
             }
         }
 
+        $save = false;
         if ($productSW === null) {
             $productSW = new ArticleSW();
-            $this->Manager()->persist($productSW);
+            $save = true;
         }
 
         $productSW->setAdded($product->getCreationDate())
@@ -360,6 +361,11 @@ class Product extends DataMapper
 
         $helper = ProductNameHelper::build($product);
         $productSW->setName($helper->getProductName());
+
+        if ($save) {
+            $this->Manager()->persist($productSW);
+            $this->Manager()->flush();
+        }
     }
 
     protected function prepareCategoryAssociatedData(ProductModel $product, ArticleSW &$productSW)
@@ -524,7 +530,7 @@ class Product extends DataMapper
         // Detail
         if ($detailSW === null) {
             $detailSW = new DetailSW();
-            $this->Manager()->persist($detailSW);
+            //$this->Manager()->persist($detailSW);
         }
 
         $helper = ProductNameHelper::build($product);

@@ -207,7 +207,7 @@ class Category extends DataMapper
 
         // Save Category
         $this->Manager()->persist($categorySW);
-        $this->flush($categorySW);
+        $this->flush();
 
         $this->updateCategoryLevelTable();
 
