@@ -379,7 +379,7 @@ class Product extends DataMapper
                             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                                 $categoryMapping = $categoryMapper->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
                                 if ($categoryMapping !== null) {
-                                    $collection->add($categorySW);
+                                    $collection->add($categoryMapping);
                                 }
                             }
                         }
@@ -891,7 +891,7 @@ class Product extends DataMapper
         foreach ($product->getMediaFiles() as $mediaFile) {
             $download = new DownloadSW();
             $download->setArticle($productSW)
-                ->setFile($mediaFile->getPath())
+                ->setFile($mediaFile->getUrl())
                 ->setSize(0);
 
             foreach ($mediaFile->getI18ns() as $i18n) {

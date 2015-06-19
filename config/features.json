@@ -201,25 +201,25 @@
             "push": true,
             "delete": true
         },
-        "MediaFile": {
-            "pull": false,
-            "push": false,
-            "delete": false
+        "ProductMediaFile": {
+          "pull": true,
+          "push": true,
+          "delete": true
         },
-        "MediaFileAttr": {
-            "pull": false,
-            "push": false,
-            "delete": false
+        "ProductMediaFileAttr": {
+          "pull": true,
+          "push": true,
+          "delete": true
         },
-        "MediaFileAttrI18n": {
-            "pull": false,
-            "push": false,
-            "delete": false
+        "ProductMediaFileAttrI18n": {
+          "pull": true,
+          "push": true,
+          "delete": true
         },
-        "MediaFileI18n": {
-            "pull": false,
-            "push": false,
-            "delete": false
+        "ProductMediaFileI18n": {
+          "pull": true,
+          "push": true,
+          "delete": true
         },
         "PartsList": {
             "pull": false,
