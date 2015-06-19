@@ -56,6 +56,25 @@ class Category extends DataMapper
         return $this->find($categoryId);
     }
 
+    public function findAllCategoriesByMappingParent($parentId)
+    {
+        $result = array();
+
+        $categoryIds = Shopware()->Db()->fetchAll(
+            'SELECT category_id FROM jtl_connector_category WHERE parent_id = ?',
+            array($parentId)
+        );
+
+        foreach ($categoryIds as $categoryId) {
+            $categorySW = $this->find((int) $categoryId['category_id']);
+            if ($categorySW) {
+                $result[] = $categorySW;
+            }
+        }
+
+        return $result;
+    }
+
     /**
      * @param integer $parentId
      * @return jtl\Connector\Shopware\Model\Linker\CategoryMapping[]
@@ -154,6 +173,10 @@ class Category extends DataMapper
     {
         $result = new CategoryModel;
 
+        if (Application()->getConfig()->read('category_mapping')) {
+            $this->deleteCategoryMappingData($category);
+        }
+
         $this->deleteCategoryData($category);
 
         // Result
@@ -224,6 +247,14 @@ class Category extends DataMapper
                 $this->Manager()->remove($categorySW);
                 $this->Manager()->flush($categorySW);
             }
+        }
+    }
+
+    protected function deleteCategoryMappingData(CategoryModel $category)
+    {
+        foreach ($this->findAllCategoriesByMappingParent($category->getId()->getEndpoint()) as $categorySW) {
+            $this->Manager()->remove($categorySW);
+            $this->Manager()->flush($categorySW);
         }
     }
 
@@ -382,6 +413,9 @@ class Category extends DataMapper
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
                 $categoryMappingSW->setCmsHeadline($i18n->getName());
                 $categoryMappingSW->setCmsText($i18n->getDescription());
+
+                $this->prepareAttributeAssociatedData($category, $categoryMappingSW);
+                $categoryMappingSW->setCustomerGroups($categorySW->getCustomerGroups());
 
                 $this->Manager()->persist($categoryMappingSW);
                 $this->Manager()->flush($categoryMappingSW);

@@ -366,11 +366,24 @@ class Product extends DataMapper
     {
         $collection = new ArrayCollection();
         $categoryMapper = Mmc::getMapper('Category');
+        $useMapping = Application()->getConfig()->read('category_mapping');
         foreach ($product->getCategories() as $category) {
             if (strlen($category->getCategoryId()->getEndpoint()) > 0) {
                 $categorySW = $categoryMapper->find(intval($category->getCategoryId()->getEndpoint()));
                 if ($categorySW) {
                     $collection->add($categorySW);
+
+                    // Category Mapping
+                    if ($useMapping) {
+                        foreach ($product->getI18ns() as $i18n) {
+                            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                                $categoryMapping = $categoryMapper->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
+                                if ($categoryMapping !== null) {
+                                    $collection->add($categorySW);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

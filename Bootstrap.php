@@ -328,12 +328,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         // Check Mapping activation
         $categoryMapper = Mmc::getMapper('Category');
+        $shopMapper = Mmc::getMapper('Shop');
         $categoryCount = $categoryMapper->fetchCountForLevel(2);
         $o = new \StdClass();
         $o->key = 'category_mapping';
         $o->value = true;
 
-        if ($categoryCount > 0) {
+        if ($categoryCount > 0 || $shopMapper->duplicateLocalizationsExist()) {
             $o->value = false;
             $this->config->write($o);
 
