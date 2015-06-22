@@ -18,7 +18,7 @@ class ProductMediaFile extends ProductMediaFileModel
         'id' => '',
         'productId' => '',
         'path' => '',
-        'url' => '',
+        'url' => 'file',
         'mediaFileCategory' => '',
         'type' => '',
         'sort' => ''

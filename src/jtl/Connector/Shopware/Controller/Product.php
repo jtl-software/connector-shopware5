@@ -396,10 +396,12 @@ class Product extends DataController
 
         // Downloads
         if (!$isDetail) {
-            foreach ($data['downloads'] as $downloadSW) {
+            foreach ($data['downloads'] as $i=> $downloadSW) {
                 $productMediaFile = Mmc::getModel('ProductMediaFile');
                 $productMediaFile->map(true, DataConverter::toObject($downloadSW));
-                $productMediaFile->setProductId($product->getId());
+                $productMediaFile->setProductId($product->getId())
+                    ->setSort($i)
+                    ->setType('.*');
 
                 $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
                 $productMediaFileI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
