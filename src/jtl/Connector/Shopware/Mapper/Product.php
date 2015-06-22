@@ -386,7 +386,7 @@ class Product extends DataMapper
                     // Category Mapping
                     if ($useMapping) {
                         foreach ($product->getI18ns() as $i18n) {
-                            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()) && strlen($i18n->getName()) > 0) {
                                 $categoryMapping = $categoryMapper->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
                                 if ($categoryMapping !== null) {
                                     $collection->add($categoryMapping);
