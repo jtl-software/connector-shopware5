@@ -345,8 +345,12 @@ class Product extends DataMapper
             ->setAvailableFrom($product->getAvailableFrom())
             ->setHighlight(intval($product->getIsTopProduct()))
             ->setActive(true);
-            
-        $inStock = $product->getPermitNegativeStock() ? 0 : 1;
+
+        $inStock = 0;
+        if ($product->getConsiderStock()) {
+            $inStock = $product->getPermitNegativeStock() ? 0 : 1;
+        }
+
         $productSW->setLastStock($inStock);
 
         // I18n
