@@ -335,10 +335,10 @@ class Product extends DataMapper
             }
         }
 
-        $save = false;
+        $isNew = false;
         if ($productSW === null) {
             $productSW = new ArticleSW();
-            $save = true;
+            $isNew = true;
         }
 
         $productSW->setAdded($product->getCreationDate())
@@ -366,7 +366,7 @@ class Product extends DataMapper
         $helper = ProductNameHelper::build($product);
         $productSW->setName($helper->getProductName());
 
-        if ($save) {
+        if ($isNew) {
             $this->Manager()->persist($productSW);
             $this->Manager()->flush();
         }

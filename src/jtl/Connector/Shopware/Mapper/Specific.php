@@ -7,7 +7,6 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Core\Logger\Logger;
-use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\Specific as SpecificModel;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;

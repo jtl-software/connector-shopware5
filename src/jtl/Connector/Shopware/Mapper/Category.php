@@ -291,9 +291,6 @@ class Category extends DataMapper
 
     protected function prepareI18nAssociatedData(CategoryModel $category, CategorySW &$categorySW)
     {
-        //$shopMapper = Mmc::getMapper('Shop');
-        //$shops = $shopMapper->findAll(null, null);
-
         // I18n
         foreach ($category->getI18ns() as $i18n) {
             if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) == Shopware()->Shop()->getLocale()->getLocale()) {
@@ -302,6 +299,9 @@ class Category extends DataMapper
                 $categorySW->setMetaKeywords($i18n->getMetaKeywords());
                 $categorySW->setCmsHeadline($i18n->getName());
                 $categorySW->setCmsText($i18n->getDescription());
+
+                $this->Manager()->persist($categorySW);
+                $this->Manager()->flush();
             }
         }
     }
