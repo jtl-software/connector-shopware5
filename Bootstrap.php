@@ -26,7 +26,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.0.3';
+        return '1.0.4';
     }
 
     public function getInfo()
@@ -142,6 +142,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.0.2':
                 $this->createCategoryTable();
                 $this->fillCategoryTable();
+                break;
+            case '1.0.3':
                 break;
             default:
                 return false;
