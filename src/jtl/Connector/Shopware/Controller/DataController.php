@@ -173,11 +173,15 @@ abstract class DataController extends CoreController
      * @param \jtl\Connector\Model\DataModel $model
      * @param string $setter
      * @param string $className
-     * @param multiple: mixed $kvs
-     * @param multiple: mixed $members
+     * @param multiple: mixed $data
+     * @param bool $isSeveral
      */
     protected function addPos(DataModel &$model, $setter, $className, $data, $isSeveral = false)
     {
+        if (!is_array($data)) {
+            return;
+        }
+
         $callableName = get_class($model) . '::' . $setter;
 
         if (!is_callable(array($model, $setter), false, $callableName)) {

@@ -41,6 +41,13 @@ class Shop extends DataMapper
         return $this->findAll($limit, true);
     }
 
+    public function duplicateLocalizationsExist()
+    {
+        $res = Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops GROUP BY locale_id HAVING count(*) > 1');
+
+        return ($res !== false);
+    }
+
     public function save(array $data, $namespace = '\Shopware\Models\Shop\Shop')
     {
         Logger::write(print_r($data, 1), Logger::DEBUG, 'database');

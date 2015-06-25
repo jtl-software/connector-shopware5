@@ -243,7 +243,7 @@ class Product extends DataMapper
                     $this->preparePriceAssociatedData($product, $productSW, $detailSW);
                     $this->prepareUnitAssociatedData($product, $productSW, $detailSW);
                     $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
-                    $this->prepareFileDownloadAssociatedData($product, $productSW);
+                    $this->prepareMediaFileAssociatedData($product, $productSW);
 
                     if (!($detailSW->getId() > 0)) {
                         $kind = $detailSW->getKind();
@@ -335,17 +335,22 @@ class Product extends DataMapper
             }
         }
 
+        $isNew = false;
         if ($productSW === null) {
             $productSW = new ArticleSW();
-            $this->Manager()->persist($productSW);
+            $isNew = true;
         }
 
         $productSW->setAdded($product->getCreationDate())
             ->setAvailableFrom($product->getAvailableFrom())
             ->setHighlight(intval($product->getIsTopProduct()))
             ->setActive(true);
-            
-        $inStock = $product->getPermitNegativeStock() ? 0 : 1;
+
+        $inStock = 0;
+        if ($product->getConsiderStock()) {
+            $inStock = $product->getPermitNegativeStock() ? 0 : 1;
+        }
+
         $productSW->setLastStock($inStock);
 
         // I18n
@@ -360,17 +365,35 @@ class Product extends DataMapper
 
         $helper = ProductNameHelper::build($product);
         $productSW->setName($helper->getProductName());
+
+        if ($isNew) {
+            $this->Manager()->persist($productSW);
+            $this->Manager()->flush();
+        }
     }
 
     protected function prepareCategoryAssociatedData(ProductModel $product, ArticleSW &$productSW)
     {
         $collection = new ArrayCollection();
         $categoryMapper = Mmc::getMapper('Category');
+        $useMapping = Application()->getConfig()->read('category_mapping');
         foreach ($product->getCategories() as $category) {
             if (strlen($category->getCategoryId()->getEndpoint()) > 0) {
                 $categorySW = $categoryMapper->find(intval($category->getCategoryId()->getEndpoint()));
                 if ($categorySW) {
                     $collection->add($categorySW);
+
+                    // Category Mapping
+                    if ($useMapping) {
+                        foreach ($product->getI18ns() as $i18n) {
+                            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()) && strlen($i18n->getName()) > 0) {
+                                $categoryMapping = $categoryMapper->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
+                                if ($categoryMapping !== null) {
+                                    $collection->add($categoryMapping);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -511,7 +534,7 @@ class Product extends DataMapper
         // Detail
         if ($detailSW === null) {
             $detailSW = new DetailSW();
-            $this->Manager()->persist($detailSW);
+            //$this->Manager()->persist($detailSW);
         }
 
         $helper = ProductNameHelper::build($product);
@@ -872,19 +895,22 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareFileDownloadAssociatedData(ProductModel $product, ArticleSW &$productSW)
+    protected function prepareMediaFileAssociatedData(ProductModel $product, ArticleSW &$productSW)
     {
         $collection = array();
-        foreach ($product->getFileDownloads() as $fileDownload) {
+        foreach ($product->getMediaFiles() as $mediaFile) {
             $download = new DownloadSW();
             $download->setArticle($productSW)
-                ->setFile($fileDownload->getPath());
+                ->setFile($mediaFile->getUrl())
+                ->setSize(0);
 
-            foreach ($fileDownload->getI18ns() as $i18n) {
+            foreach ($mediaFile->getI18ns() as $i18n) {
                 if ($i18n->getLanguageIso() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                     $download->setName($i18n->getName());
                 }
             }
+
+            $this->Manager()->persist($download);
 
             $collection[] = $download;
         }

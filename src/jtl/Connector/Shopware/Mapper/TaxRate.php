@@ -6,8 +6,6 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Core\Logger\Logger;
-use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\TaxRate as TaxRateModel;
 use \Shopware\Models\Tax\Tax as TaxRateSW;
 use \jtl\Connector\Model\Identity;

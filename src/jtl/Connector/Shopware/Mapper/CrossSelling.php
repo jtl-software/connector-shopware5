@@ -15,16 +15,21 @@ class CrossSelling extends DataMapper
     public function findAll($limit = 100)
     {
         return Shopware()->Db()->fetchAll(
-            'SELECT r.*
+            'SELECT r.*, ss.detailId, if (a.configurator_set_id > 0, d.id, a.main_detail_id) as relatedDetailId
              FROM s_articles_relationships r
              JOIN
              (
-                SELECT a.id
+                SELECT a.id, if (a.configurator_set_id > 0, d.id, a.main_detail_id) as detailId
                 FROM s_articles a
                 LEFT JOIN jtl_connector_crossselling c ON c.product_id = a.id
+                LEFT JOIN s_articles_details d ON d.articleID = a.id
+                    AND d.kind = 0
                 WHERE c.product_id IS NULL
                 LIMIT ' . intval($limit) . '
              ) as ss ON ss.id = r.articleID
+             JOIN s_articles a ON a.id = r.relatedarticle
+             LEFT JOIN s_articles_details d ON d.articleID = r.relatedarticle
+                 AND d.kind = 0
              ORDER BY r.articleID'
         );
     }
@@ -78,10 +83,12 @@ class CrossSelling extends DataMapper
                     }
                 }
 
-                if (!$isValid) {
+                if ($isValid) {
                     Shopware()->Db()->query($sql);
                 }
             }
         }
+
+        return $crossSelling;
     }
 }
