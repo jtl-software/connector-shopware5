@@ -43,7 +43,18 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function install()
     {
-        require_once (dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+        if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
+            if (is_writable(sys_get_temp_dir())) {
+                require_once('phar://' . dirname(__FILE__) . '/connector.phar/vendor/autoload.php');
+            } else {
+                return array(
+                    'success' => false,
+                    'message' => sprintf('Directory %s is not writeable. Please contact your administrator or hoster.', sys_get_temp_dir())
+                );
+            }
+        } else {
+            require_once (dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+        }
 
         $configFile = Path::combine(__DIR__, 'config', 'config.json');
         if (!file_exists($configFile)) {
