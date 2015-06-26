@@ -45,7 +45,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
             if (is_writable(sys_get_temp_dir())) {
-                require_once('phar://' . dirname(__FILE__) . '/connector.phar/vendor/autoload.php');
+                require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
             } else {
                 return array(
                     'success' => false,
@@ -145,6 +145,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.0.3':
                 break;
+            case '1.0.4':
+                Shopware()->Db()->query("UPDATE s_articles_details SET ordernumber = REPLACE(ordernumber, '.jtlcon.0', ''), kind = 0 WHERE ordernumber LIKE '%.jtlcon.0'");
+                break;
             default:
                 return false;
         }
@@ -207,7 +210,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public function uninstall()
     {
         $this->dropMappingTable();
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE ordernumber LIKE '%.jtlcon.0'");
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 0");
 
         return true;
     }
@@ -237,7 +240,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createParentDummies()
     {
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE ordernumber LIKE '%.jtlcon.0'");
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 0");
 
         // Dirty inject parent and insert in db work around
         $res = Shopware()->Db()->query('SELECT d.*, a.configurator_set_id
@@ -254,7 +257,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
                 $parentDetailSW = new \Shopware\Models\Article\Detail();
                 $parentDetailSW->setSupplierNumber($product['suppliernumber'])
-                    ->setNumber(sprintf('%s.%s', $product['ordernumber'], 'jtlcon.0'))
+                    ->setNumber(sprintf('%s.%s', $product['ordernumber'], '0'))
                     ->setActive(0)
                     ->setKind(0)
                     ->setStockMin($product['stockmin'])

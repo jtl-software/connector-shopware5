@@ -17,7 +17,7 @@ class Category extends CategoryModel
     protected $fields = array(
         'id' => 'id',
         'parentCategoryId' => 'parentId',
-        'sort' => '',
+        'sort' => 'position',
         'level' => array('categoryLevel', 'level'),
         'isActive' => 'active'
     );
