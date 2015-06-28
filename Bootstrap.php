@@ -21,12 +21,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getLabel()
     {
-        return 'JTL Shopware 4 Connector';
+        return 'JTL Shopware 5 Connector';
     }
 
     public function getVersion()
     {
-        return '1.0.4';
+        return '1.0.5';
     }
 
     public function getInfo()
