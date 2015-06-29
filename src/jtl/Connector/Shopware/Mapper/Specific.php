@@ -55,7 +55,7 @@ class Specific extends DataMapper
             //->getQuery();
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = false);
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
         //$options = $query->getResult(\Doctrine\ORM\Query::HYDRATE_ARRAY);
 
