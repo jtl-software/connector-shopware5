@@ -14,6 +14,8 @@ use \jtl\Connector\Core\Utilities\DataConverter;
 use \jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Core\Model\QueryFilter;
+use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 
 /**
  * GlobalData Controller
@@ -106,6 +108,44 @@ class GlobalData extends DataController
 
                 $unit->addI18n($unitI18n);
                 $globalData->addUnit($unit);
+            }
+
+            // Measurement Units
+            $mapper = Mmc::getMapper('MeasurementUnit');
+            $measurementUnitSWs = $mapper->findAll($limit);
+
+            $shopMapper = Mmc::getMapper('Shop');
+            $shops = $shopMapper->findAll(null, null);
+
+            $translationUtil = new TranslationUtil();
+            $translations = array();
+            foreach ($shops as $shop) {
+                $translation = $translationUtil->read($shop['locale']['id'], 'config_units');
+                if (!empty($translation)) {
+                    $translations[$shop['locale']['locale']] = $translation;
+                }
+            }
+
+            foreach ($measurementUnitSWs as $measurementUnitSW) {
+                $measurementUnit = Mmc::getModel('MeasurementUnit');
+                $measurementUnit->map(true, DataConverter::toObject($measurementUnitSW, true));
+
+                if (count($translations) > 0) {
+                    foreach ($translations as $localeName => $translation) {
+                        foreach ($translation as $id => $trans) {
+                            if ($id === $measurementUnitSW['id']) {
+                                $measurementUnitI18n = Mmc::getModel('MeasurementUnitI18n');
+                                $measurementUnitI18n->setLanguageISO(LanguageUtil::map($localeName))
+                                    ->setMeasurementUnitId($measurementUnit->getId())
+                                    ->setName($trans['description']);
+
+                                $measurementUnit->addI18n($measurementUnitI18n);
+                            }
+                        }
+                    }
+                }
+
+                $globalData->addMeasurementUnit($measurementUnit);
             }
 
             // TaxZones
