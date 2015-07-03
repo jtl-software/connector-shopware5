@@ -15,9 +15,9 @@ use \jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
 class MeasurementUnit extends MeasurementUnitModel
 {
     protected $fields = array(
-        'id' => '',
-        'code' => '',
-        'displayCode' => ''
+        'id' => 'id',
+        'code' => 'unit',
+        'displayCode' => 'name'
     );
     
     /**

@@ -30,7 +30,7 @@ class Locale extends DataMapper
             ->join('shop.locale', 'locale')
             ->getQuery();
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = false);
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
         if ($count) {
             return $paginator->count();

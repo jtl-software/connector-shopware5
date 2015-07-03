@@ -150,7 +150,7 @@ class Category extends DataMapper
             //->getQuery();
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = false);
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
         //$res = $query->getResult(\Doctrine\ORM\Query::HYDRATE_ARRAY);
 
@@ -297,7 +297,7 @@ class Category extends DataMapper
                 $categorySW->setName($i18n->getName());
                 $categorySW->setMetaDescription($i18n->getMetaDescription());
                 $categorySW->setMetaKeywords($i18n->getMetaKeywords());
-                $categorySW->setCmsHeadline($i18n->getName());
+                //$categorySW->setCmsHeadline($i18n->getName());
                 $categorySW->setCmsText($i18n->getDescription());
 
                 $this->Manager()->persist($categorySW);
