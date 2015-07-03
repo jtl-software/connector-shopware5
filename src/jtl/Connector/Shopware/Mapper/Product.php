@@ -60,7 +60,7 @@ class Product extends DataMapper
                 ->where('linker.hostId IS NULL')
                 ->getQuery();
 
-            $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = false);
+            $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
             return $paginator->count();
         }
@@ -71,7 +71,6 @@ class Product extends DataMapper
                 'unit',
                 'tax',
                 'categories',
-                //'details',
                 'maindetail',
                 'detailprices',
                 'prices',
@@ -79,7 +78,6 @@ class Product extends DataMapper
                 'attribute',
                 'downloads',
                 'supplier',
-                'related',
                 'pricegroup',
                 'discounts',
                 'customergroups',
@@ -88,7 +86,6 @@ class Product extends DataMapper
                 'propertyoptions',
                 'propertyvalues'
             )
-            //->from('Shopware\Models\Article\Detail', 'detail')
             ->from('jtl\Connector\Shopware\Model\Linker\Detail', 'detail')
             ->leftJoin('detail.linker', 'linker')
             ->leftJoin('detail.article', 'article')
@@ -96,14 +93,12 @@ class Product extends DataMapper
             ->leftJoin('detail.unit', 'unit')
             ->leftJoin('article.tax', 'tax')
             ->leftJoin('article.categories', 'categories')
-            //->leftJoin('article.details', 'details')
             ->leftJoin('article.mainDetail', 'maindetail')
             ->leftJoin('maindetail.prices', 'prices')            
             ->leftJoin('article.links', 'links')
-            ->leftJoin('article.attribute', 'attribute')
+            ->leftJoin('article.attribute', 'attribute', \Doctrine\ORM\Query\Expr\Join::WITH, 'attribute.articleDetailId = detail.id')
             ->leftJoin('article.downloads', 'downloads')
             ->leftJoin('article.supplier', 'supplier')
-            ->leftJoin('article.related', 'related')
             ->leftJoin('article.priceGroup', 'pricegroup')
             ->leftJoin('pricegroup.discounts', 'discounts')
             ->leftJoin('article.customerGroups', 'customergroups')
@@ -117,7 +112,7 @@ class Product extends DataMapper
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = false);
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
         $products = iterator_to_array($paginator);
 
@@ -140,8 +135,6 @@ class Product extends DataMapper
 
     public function fetchCount()
     {
-        //return $this->findAll(100, true);
-
         return (int) Shopware()->Db()->fetchOne(
             'SELECT count(*)
                 FROM s_articles_details d

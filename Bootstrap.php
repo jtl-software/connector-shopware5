@@ -21,12 +21,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getLabel()
     {
-        return 'JTL Shopware 4 Connector';
+        return 'JTL Shopware 5 Connector';
     }
 
     public function getVersion()
     {
-        return '1.0.4';
+        return '1.0.5';
     }
 
     public function getInfo()
@@ -43,17 +43,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function install()
     {
-        if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
-            if (is_writable(sys_get_temp_dir())) {
-                require_once('phar://' . dirname(__FILE__) . '/connector.phar/vendor/autoload.php');
-            } else {
-                return array(
-                    'success' => false,
-                    'message' => sprintf('Directory %s is not writeable. Please contact your administrator or hoster.', sys_get_temp_dir())
-                );
-            }
-        } else {
-            require_once (dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+        try {
+            $this->runAutoload();
+        } catch (\Exception $e) {
+            return array(
+                'success' => false,
+                'message' => $e->getMessage()
+            );
         }
 
         $configFile = Path::combine(__DIR__, 'config', 'config.json');
@@ -145,6 +141,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.0.3':
                 break;
+            case '1.0.4':
+                Shopware()->Db()->query("UPDATE s_articles_details SET ordernumber = REPLACE(ordernumber, '.jtlcon.0', ''), kind = 0 WHERE ordernumber LIKE '%.jtlcon.0'");
+                break;
             default:
                 return false;
         }
@@ -207,7 +206,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public function uninstall()
     {
         $this->dropMappingTable();
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE ordernumber LIKE '%.jtlcon.0'");
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 0");
 
         return true;
     }
@@ -215,6 +214,19 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public static function onGetControllerPathFrontend(Enlight_Event_EventArgs $args)
     {
         return dirname(__FILE__) . '/Connector.php';
+    }
+
+    private function runAutoload()
+    {
+        if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
+            if (is_writable(sys_get_temp_dir())) {
+                require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+            } else {
+                throw new \Exception(sprintf('Das Verzeichnis %s ist nicht beschreibbar. Bitte kontaktieren Sie Ihren Administrator oder Hoster.', sys_get_temp_dir()));
+            }
+        } else {
+            require_once (dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+        }
     }
 
     private function createGuid()
@@ -237,59 +249,59 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createParentDummies()
     {
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE ordernumber LIKE '%.jtlcon.0'");
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 0");
 
         // Dirty inject parent and insert in db work around
         $res = Shopware()->Db()->query('SELECT d.*, a.configurator_set_id
                                             FROM s_articles_details d
-                                            JOIN s_articles a ON a.id = d.articleID');
+                                            JOIN s_articles a ON a.id = d.articleID
+                                            WHERE a.configurator_set_id > 0
+                                                AND d.kind = 1');
 
         $i = 0;
         while ($product = $res->fetch()) {
-            if ((int) $product['kind'] == 1 && (int) $product['configurator_set_id'] > 0) {
-                $productSW = Shopware()->Models()->find('Shopware\Models\Article\Article', (int) $product['articleID']);
-                $detailSW = Shopware()->Models()->find('Shopware\Models\Article\Detail', (int) $product['id']);
+            $productSW = Shopware()->Models()->find('Shopware\Models\Article\Article', (int) $product['articleID']);
+            $detailSW = Shopware()->Models()->find('Shopware\Models\Article\Detail', (int) $product['id']);
 
-                //$detailSW->setKind(2);
+            //$detailSW->setKind(2);
 
-                $parentDetailSW = new \Shopware\Models\Article\Detail();
-                $parentDetailSW->setSupplierNumber($product['suppliernumber'])
-                    ->setNumber(sprintf('%s.%s', $product['ordernumber'], 'jtlcon.0'))
-                    ->setActive(0)
-                    ->setKind(0)
-                    ->setStockMin($product['stockmin'])
-                    ->setInStock($product['instock'])
-                    ->setReleaseDate($product['releasedate'])
-                    ->setEan($product['ean']);
+            $parentDetailSW = new \Shopware\Models\Article\Detail();
+            $parentDetailSW->setSupplierNumber($product['suppliernumber'])
+                ->setNumber(sprintf('%s.%s', $product['ordernumber'], '0'))
+                ->setActive(0)
+                ->setKind(0)
+                ->setStockMin($product['stockmin'])
+                ->setInStock($product['instock'])
+                ->setReleaseDate($product['releasedate'])
+                ->setEan($product['ean']);
 
-                $parentDetailSW->setArticle($productSW);
+            $parentDetailSW->setArticle($productSW);
 
-                $priceCollection = array();
-                foreach ($detailSW->getPrices() as $priceSW) {
-                    $parentPriceSW = new Shopware\Models\Article\Price();
-                    $parentPriceSW->setArticle($productSW)
-                        ->setCustomerGroup($priceSW->getCustomerGroup())
-                        ->setFrom($priceSW->getFrom())
-                        ->setTo($priceSW->getTo())
-                        ->setDetail($parentDetailSW)
-                        ->setPrice($priceSW->getPrice())
-                        ->setPseudoPrice($priceSW->getPseudoPrice())
-                        ->setBasePrice($priceSW->getBasePrice())
-                        ->setPercent($priceSW->getPercent());
+            $priceCollection = array();
+            foreach ($detailSW->getPrices() as $priceSW) {
+                $parentPriceSW = new Shopware\Models\Article\Price();
+                $parentPriceSW->setArticle($productSW)
+                    ->setCustomerGroup($priceSW->getCustomerGroup())
+                    ->setFrom($priceSW->getFrom())
+                    ->setTo($priceSW->getTo())
+                    ->setDetail($parentDetailSW)
+                    ->setPrice($priceSW->getPrice())
+                    ->setPseudoPrice($priceSW->getPseudoPrice())
+                    ->setBasePrice($priceSW->getBasePrice())
+                    ->setPercent($priceSW->getPercent());
 
-                    $priceCollection[] = $parentPriceSW;
-                }
+                $priceCollection[] = $parentPriceSW;
+            }
 
-                $parentDetailSW->setPrices($priceCollection);
+            $parentDetailSW->setPrices($priceCollection);
 
-                Shopware()->Models()->persist($parentDetailSW);
-                //Shopware()->Models()->persist($detailSW);
-                $i++;
+            Shopware()->Models()->persist($parentDetailSW);
+            //Shopware()->Models()->persist($detailSW);
+            $i++;
 
-                if ($i % 50 == 0) {
-                    Shopware()->Models()->flush();
-                    $i = 0;
-                }
+            if ($i % 50 == 0) {
+                Shopware()->Models()->flush();
+                $i = 0;
             }
         }
 

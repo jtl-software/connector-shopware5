@@ -131,7 +131,8 @@ class Image extends DataMapper
         $this->deleteImageData($image);
 
         // Result
-        $result->setId(new Identity('', $image->getForeignKey()->getHost()));
+        $result->setId(new Identity('', $image->getForeignKey()->getHost()))
+            ->setRelationType($image->getRelationType());
 
         return $result;
     }

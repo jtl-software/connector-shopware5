@@ -19,9 +19,9 @@ class CategoryI18n extends CategoryI18nModel
         'categoryId' => 'id',
         'name' => 'name',
         'url' => '',
-        'description' => '',
-        'metaDescription' => '',
-        'metaKeywords' => '',
+        'description' => 'cmsText',
+        'metaDescription' => 'metaDescription',
+        'metaKeywords' => 'metaKeywords',
         'titleTag' => ''
     );
     
