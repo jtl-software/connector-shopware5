@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Core\Utilities\Money;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Model\Product as ProductModel;
 use \jtl\Connector\Model\ProductChecksum;
@@ -718,7 +719,16 @@ class Product extends DataMapper
 
     protected function preparePriceAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW)
     {
-        $collection = ProductPriceMapper::buildCollection($product->getPrices(), $productSW, $detailSW);
+        // fix
+        /*
+        $recommendedRetailPrice = 0.0;
+        if ($product->getRecommendedRetailPrice() > 0.0) {
+            $recommendedRetailPrice = Money::AsNet($recommendedRetailPrice, $product->getVat());
+        }
+        */
+        $recommendedRetailPrice = $product->getRecommendedRetailPrice();
+
+        $collection = ProductPriceMapper::buildCollection($product->getPrices(), $productSW, $detailSW, $recommendedRetailPrice);
 
         if (count($collection) > 0) {
             $detailSW->setPrices($collection);

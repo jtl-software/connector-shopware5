@@ -22,7 +22,7 @@ class CategoryI18n extends CategoryI18nModel
         'description' => 'cmsText',
         'metaDescription' => 'metaDescription',
         'metaKeywords' => 'metaKeywords',
-        'titleTag' => ''
+        'titleTag' => 'cmsHeadline'
     );
     
     /**
