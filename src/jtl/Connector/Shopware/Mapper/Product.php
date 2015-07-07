@@ -535,14 +535,16 @@ class Product extends DataMapper
         $detailSW->setAdditionalText($helper->getAdditionalName());
 
         $kind = ($isChild && $detailSW->getId() > 0 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
+        $active = 1;
         if (!$isChild) {
             $kind = $this->isParent($product) ? 0 : 1;
+            $active = $kind;
         }
 
         //$kind = $isChild ? 2 : 1;
         $detailSW->setSupplierNumber($product->getManufacturerNumber())
             ->setNumber($product->getSku())
-            ->setActive(1)
+            ->setActive($active)
             ->setKind($kind)
             ->setStockMin(0)
             ->setWeight($product->getProductWeight())
