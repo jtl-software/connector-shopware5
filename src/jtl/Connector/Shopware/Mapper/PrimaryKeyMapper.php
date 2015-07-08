@@ -29,12 +29,12 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             case IdentityLinker::TYPE_IMAGE:
                 list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
 
-                $hostId = Shopware()->Db()->fetchOne(
-                    'SELECT host_id FROM jtl_connector_link_product_image WHERE id = ?',
-                    array($foreignId)
-                );
-
-                if ($hostId === false) {
+                if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
+                    $hostId = Shopware()->Db()->fetchOne(
+                        'SELECT host_id FROM jtl_connector_link_product_image WHERE id = ?',
+                        array($foreignId)
+                    );
+                } else {
                     $hostId = Shopware()->Db()->fetchOne(
                         'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ?',
                         array($mediaId)
