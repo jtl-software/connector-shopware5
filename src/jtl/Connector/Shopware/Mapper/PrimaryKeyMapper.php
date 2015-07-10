@@ -202,10 +202,10 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
              TRUNCATE TABLE jtl_connector_link_manufacturer;
              TRUNCATE TABLE jtl_connector_link_note;
              TRUNCATE TABLE jtl_connector_link_order;
-             TRUNCATE TABLE jtl_connector_link_product;
              TRUNCATE TABLE jtl_connector_link_specific;
+             TRUNCATE TABLE jtl_connector_link_specific_value;
              TRUNCATE TABLE jtl_connector_link_payment;
-             TRUNCATE TABLE jtl_connector_link_crossselling;'
+             TRUNCATE TABLE jtl_connector_crossselling;'
         );
 
         return $statement ? true : false;
