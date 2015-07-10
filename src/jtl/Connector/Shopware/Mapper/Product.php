@@ -204,7 +204,7 @@ class Product extends DataMapper
 
                 $this->prepareChildAssociatedData($product, $productSW, $detailSW);
                 $this->prepareDetailAssociatedData($product, $productSW, $detailSW, true);
-                $this->prepareAttributeAssociatedData($product, $productSW, $detailSW);
+                $this->prepareAttributeAssociatedData($product, $productSW, $detailSW, true);
                 $this->preparePriceAssociatedData($product, $productSW, $detailSW);
                 $this->prepareUnitAssociatedData($product, $productSW, $detailSW);
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
@@ -601,7 +601,7 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareAttributeAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW)
+    protected function prepareAttributeAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW, $isChild = false)
     {
         // Attribute
         $attributeSW = $detailSW->getAttribute();
@@ -619,6 +619,15 @@ class Product extends DataMapper
                 if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                     //$setter = 'set' . ucfirst($attributeI18n->getName());
                     $setter = "setAttr{$i}";
+
+                    // active
+                    if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
+                        if ($isChild) {
+                            $detailSW->setActive((int)$attributeI18n->getValue());
+                        } else {
+                            $productSW->setActive((int)$attributeI18n->getValue());
+                        }
+                    }
 
                     if (method_exists($attributeSW, $setter)) {
                         $attributeSW->{$setter}($attributeI18n->getValue());

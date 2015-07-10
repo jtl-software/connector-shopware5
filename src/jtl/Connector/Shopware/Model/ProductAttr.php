@@ -14,6 +14,8 @@ use \jtl\Connector\Model\ProductAttr as ProductAttrModel;
  */
 class ProductAttr extends ProductAttrModel
 {
+    const IS_ACTIVE = 'isActive';
+
     protected $fields = array(
         'id' => 'id',
         'productId' => 'articleId',
