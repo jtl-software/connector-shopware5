@@ -271,7 +271,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 );
             case IdentityLinker::TYPE_CROSSSELLING:
                 return array(
-                    'table' => 'jtl_connector_link_crossselling',
+                    'table' => 'jtl_connector_crossselling',
                     'pk' => 'product_id'
                 );
         }
