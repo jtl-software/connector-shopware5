@@ -125,7 +125,7 @@ class CustomerGroup extends DataMapper
                     foreach ($this->groupKeyTables as $table => $field) {
 
                         // EK fix, thanks Shopware :/
-                        $groupKey = ($customerGroupSW->getKey() === 'EK') ? 'EK' : $customerGroupSW->getKey();
+                        $groupKey = ($customerGroupSW->getKey() === 'EK') ? 'EK' : $groupKey;
 
                         Shopware()->Db()->query(
                             sprintf('UPDATE %s SET %s = ? WHERE %s = ?', $table, $field, $field),
