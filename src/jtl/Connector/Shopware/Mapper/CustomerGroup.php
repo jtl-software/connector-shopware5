@@ -123,6 +123,10 @@ class CustomerGroup extends DataMapper
                 // If Update => update foreign tables
                 if ($customerGroupSW->getId() > 0) {
                     foreach ($this->groupKeyTables as $table => $field) {
+
+                        // EK fix, thanks Shopware :/
+                        $groupKey = ($customerGroupSW->getKey() === 'EK') ? 'EK' : $customerGroupSW->getKey();
+
                         Shopware()->Db()->query(
                             sprintf('UPDATE %s SET %s = ? WHERE %s = ?', $table, $field, $field),
                             array($groupKey, $customerGroupSW->getKey())
