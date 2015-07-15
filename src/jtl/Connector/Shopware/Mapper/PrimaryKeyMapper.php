@@ -29,12 +29,12 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             case IdentityLinker::TYPE_IMAGE:
                 list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
 
-                $hostId = Shopware()->Db()->fetchOne(
-                    'SELECT host_id FROM jtl_connector_link_product_image WHERE id = ?',
-                    array($foreignId)
-                );
-
-                if ($hostId === false) {
+                if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
+                    $hostId = Shopware()->Db()->fetchOne(
+                        'SELECT host_id FROM jtl_connector_link_product_image WHERE id = ?',
+                        array($foreignId)
+                    );
+                } else {
                     $hostId = Shopware()->Db()->fetchOne(
                         'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ?',
                         array($mediaId)
@@ -202,10 +202,10 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
              TRUNCATE TABLE jtl_connector_link_manufacturer;
              TRUNCATE TABLE jtl_connector_link_note;
              TRUNCATE TABLE jtl_connector_link_order;
-             TRUNCATE TABLE jtl_connector_link_product;
              TRUNCATE TABLE jtl_connector_link_specific;
+             TRUNCATE TABLE jtl_connector_link_specific_value;
              TRUNCATE TABLE jtl_connector_link_payment;
-             TRUNCATE TABLE jtl_connector_link_crossselling;'
+             TRUNCATE TABLE jtl_connector_crossselling;'
         );
 
         return $statement ? true : false;
@@ -271,7 +271,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 );
             case IdentityLinker::TYPE_CROSSSELLING:
                 return array(
-                    'table' => 'jtl_connector_link_crossselling',
+                    'table' => 'jtl_connector_crossselling',
                     'pk' => 'product_id'
                 );
         }

@@ -1,5 +1,5 @@
 JTL Shopware 5 Connector
-======================
+========================
 
 Welcome to the JTL Shopware 5 Connector
 

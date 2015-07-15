@@ -6,8 +6,6 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Core\Logger\Logger;
-use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
 use \jtl\Connector\Model\Identity;
 use \Shopware\Models\Customer\Group as CustomerGroupSW;
@@ -15,6 +13,14 @@ use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 class CustomerGroup extends DataMapper
 {
+    protected $groupKeyTables = array(
+        's_user' => 'customergroup',
+        's_articles_prices' => 'pricegroup',
+        's_article_configurator_template_prices' => 'customer_group_key',
+        's_core_customerpricegroups' => 'name',
+        's_campaigns_mailings' => 'customergroup'
+    );
+
     public function find($id)
     {
         return $this->Manager()->getRepository('Shopware\Models\Customer\Group')->find($id);
@@ -28,9 +34,9 @@ class CustomerGroup extends DataMapper
     public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
-                'customergroup',
-                'attribute'
-            )
+            'customergroup',
+            'attribute'
+        )
             ->from('Shopware\Models\Customer\Group', 'customergroup')
             ->leftJoin('customergroup.attribute', 'attribute')
             ->setMaxResults($limit)
@@ -65,11 +71,6 @@ class CustomerGroup extends DataMapper
 
         $this->prepareCustomerGroupAssociatedData($customerGroup, $customerGroupSW);
         $this->prepareI18nAssociatedData($customerGroup, $customerGroupSW);
-
-        $violations = $this->Manager()->validate($customerGroupSW);
-        if ($violations->count() > 0) {
-            throw new ApiException\ValidationException($violations);
-        }
 
         // Save
         $this->Manager()->persist($customerGroupSW);
@@ -117,7 +118,21 @@ class CustomerGroup extends DataMapper
         // I18n
         foreach ($customerGroup->getI18ns() as $i18n) {
             if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                $customerGroupSW->setKey($i18n->getName());
+
+                // EK fix, thanks Shopware :/
+                $groupKey = ($customerGroupSW->getKey() === 'EK') ? $customerGroupSW->getKey() : substr($i18n->getName(), 0, 5);
+
+                // If Update => update foreign tables
+                if ($customerGroupSW->getId() > 0) {
+                    foreach ($this->groupKeyTables as $table => $field) {
+                        Shopware()->Db()->query(
+                            sprintf('UPDATE %s SET %s = ? WHERE %s = ?', $table, $field, $field),
+                            array($groupKey, $customerGroupSW->getKey())
+                        );
+                    }
+                }
+
+                $customerGroupSW->setKey($groupKey);
                 $customerGroupSW->setName($i18n->getName());
             }
         }

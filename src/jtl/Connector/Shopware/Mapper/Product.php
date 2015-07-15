@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Core\Utilities\Money;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Model\Product as ProductModel;
 use \jtl\Connector\Model\ProductChecksum;
@@ -203,7 +204,7 @@ class Product extends DataMapper
 
                 $this->prepareChildAssociatedData($product, $productSW, $detailSW);
                 $this->prepareDetailAssociatedData($product, $productSW, $detailSW, true);
-                $this->prepareAttributeAssociatedData($product, $productSW, $detailSW);
+                $this->prepareAttributeAssociatedData($product, $productSW, $detailSW, true);
                 $this->preparePriceAssociatedData($product, $productSW, $detailSW);
                 $this->prepareUnitAssociatedData($product, $productSW, $detailSW);
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
@@ -534,14 +535,16 @@ class Product extends DataMapper
         $detailSW->setAdditionalText($helper->getAdditionalName());
 
         $kind = ($isChild && $detailSW->getId() > 0 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
+        $active = 1;
         if (!$isChild) {
             $kind = $this->isParent($product) ? 0 : 1;
+            $active = $kind;
         }
 
         //$kind = $isChild ? 2 : 1;
         $detailSW->setSupplierNumber($product->getManufacturerNumber())
             ->setNumber($product->getSku())
-            ->setActive(1)
+            ->setActive($active)
             ->setKind($kind)
             ->setStockMin(0)
             ->setWeight($product->getProductWeight())
@@ -598,7 +601,7 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareAttributeAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW)
+    protected function prepareAttributeAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW, $isChild = false)
     {
         // Attribute
         $attributeSW = $detailSW->getAttribute();
@@ -616,6 +619,15 @@ class Product extends DataMapper
                 if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                     //$setter = 'set' . ucfirst($attributeI18n->getName());
                     $setter = "setAttr{$i}";
+
+                    // active
+                    if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
+                        if ($isChild) {
+                            $detailSW->setActive((int)$attributeI18n->getValue());
+                        } else {
+                            $productSW->setActive((int)$attributeI18n->getValue());
+                        }
+                    }
 
                     if (method_exists($attributeSW, $setter)) {
                         $attributeSW->{$setter}($attributeI18n->getValue());
@@ -718,7 +730,16 @@ class Product extends DataMapper
 
     protected function preparePriceAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW)
     {
-        $collection = ProductPriceMapper::buildCollection($product->getPrices(), $productSW, $detailSW);
+        // fix
+        /*
+        $recommendedRetailPrice = 0.0;
+        if ($product->getRecommendedRetailPrice() > 0.0) {
+            $recommendedRetailPrice = Money::AsNet($recommendedRetailPrice, $product->getVat());
+        }
+        */
+        $recommendedRetailPrice = $product->getRecommendedRetailPrice();
+
+        $collection = ProductPriceMapper::buildCollection($product->getPrices(), $productSW, $detailSW, $recommendedRetailPrice);
 
         if (count($collection) > 0) {
             $detailSW->setPrices($collection);

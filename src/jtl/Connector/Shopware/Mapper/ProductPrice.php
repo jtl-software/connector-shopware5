@@ -59,8 +59,9 @@ class ProductPrice extends DataMapper
      * @param array \jtl\Connector\Model\ProductPrice $productPrices
      * @param \Shopware\Models\Article\Article $productSW
      * @param \Shopware\Models\Article\Detail $detailSW
+     * @param float $recommendedRetailPrice
      */
-    public static function buildCollection(array $productPrices, ArticleSW &$productSW = null, DetailSW &$detailSW = null)
+    public static function buildCollection(array $productPrices, ArticleSW &$productSW = null, DetailSW &$detailSW = null, $recommendedRetailPrice = 0.0)
     {
         // Price
         $collection = array();
@@ -69,7 +70,7 @@ class ProductPrice extends DataMapper
         // build prices per customer group
         foreach ($productPrices as $productPrice) {
             $groupId = intval($productPrice->getCustomerGroupId()->getEndpoint());
-            
+
             if (!array_key_exists($groupId, $pricesPerGroup)) {
                 $pricesPerGroup[$groupId] = array();
             }
@@ -134,6 +135,14 @@ class ProductPrice extends DataMapper
             }
         }
 
+        // Find pseudoprice
+        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && $recommendedRetailPrice === 0.0) {
+            $recommendedRetailPrice = Shopware()->Db()->fetchOne(
+                'SELECT if(pseudoprice, pseudoprice, 0.0) FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
+                array($productSW->getId(), $detailSW->getId())
+            );
+        }
+
         $sql = "DELETE FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ?";
         Shopware()->Db()->query($sql, array($productSW->getId(), $detailSW->getId()));
 
@@ -155,7 +164,7 @@ class ProductPrice extends DataMapper
                 // Check if at least one element with quantity 1 is present
                 $isPresent = ProductPriceController::isDefaultQuantityPresent($priceItems);
 
-                // If not, insert default Vk                
+                // If not, insert default Vk
                 if (!$isPresent) {
                     $defaultPriceItems = $detaultPrice->getItems();
                     array_unshift($priceItems, $defaultPriceItems[0]);
@@ -187,6 +196,7 @@ class ProductPrice extends DataMapper
                         ->setDetail($detailSW);
 
                     if ($quantity == 1) {
+                        $priceSW->setPseudoPrice($recommendedRetailPrice);
                         $firstPriceItem = clone $priceItem;
                     }
 
