@@ -36,8 +36,8 @@ function exception_handler(\Exception $exception)
         ->setId('unknown')
         ->setJtlrpc('2.0');
 
-    if (isset($requestpacket) && $requestpacket !== null && is_object($requestpacket) && get_class($requestpacket) === 'jtl\\Core\\Rpc\\RequestPacket') {
-        $responsepacket->setId($id);
+    if (isset($requestpacket) && $requestpacket !== null && is_object($requestpacket) && $requestpacket instanceof RequestPacket) {
+        $responsepacket->setId($requestpacket->getId());
     }
     
     Response::send($responsepacket);
