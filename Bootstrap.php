@@ -26,7 +26,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.0.6';
+        return '1.0.7';
     }
 
     public function getInfo()
@@ -145,6 +145,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 Shopware()->Db()->query("UPDATE s_articles_details SET ordernumber = REPLACE(ordernumber, '.jtlcon.0', ''), kind = 0 WHERE ordernumber LIKE '%.jtlcon.0'");
                 break;
             case '1.0.5':
+                break;
+            case '1.0.6':
                 break;
             default:
                 return false;
