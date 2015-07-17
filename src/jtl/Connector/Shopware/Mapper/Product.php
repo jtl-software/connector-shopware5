@@ -952,6 +952,9 @@ class Product extends DataMapper
 
             $productSW = $this->find((int) $id);
 
+            $sql = 'DELETE FROM s_article_configurator_option_relations WHERE article_id = ?';
+            Shopware()->Db()->query($sql, array($detailSW->getId()));
+
             if ($this->isChildSW($productSW, $detailSW)) {
                 $this->Manager()->remove($detailSW);
                 $this->Manager()->flush($detailSW);

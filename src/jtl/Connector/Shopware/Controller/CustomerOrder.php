@@ -105,8 +105,13 @@ class CustomerOrder extends DataController
                     $this->addPos($order, 'setShippingAddress', 'CustomerOrderShippingAddress', $orderSW['shipping']);
 
                     // Salutation
-                    $order->getBillingAddress()->setSalutation(Salutation::toConnector($orderSW['billing']['salutation']));
-                    $order->getShippingAddress()->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']));
+                    if ($order->getBillingAddress() !== null) {
+                        $order->getBillingAddress()->setSalutation(Salutation::toConnector($orderSW['billing']['salutation']));
+                    }
+
+                    if ($order->getShippingAddress() !== null) {
+                        $order->getShippingAddress()->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']));
+                    }
 
                     // Adding shipping item
                     if ($orderSW['invoiceShippingNet'] > 0) {
