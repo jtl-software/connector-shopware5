@@ -1,3 +1,7 @@
+1.0.8
+-----
+- Fixed image delete result id
+
 1.0.7
 -----
 - Added empty billing and shipping information check in customer order controller
