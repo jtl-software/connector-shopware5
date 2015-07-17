@@ -62,7 +62,7 @@ final class Mmc
             }
         }
         
-        throw new \Exception("Mapper '" . self::NAMESPACE_MODEL . $class . "' not found");
+        throw new \Exception("Mapper '" . self::NAMESPACE_MAPPER . $class . "' not found");
     }
     
     /**
@@ -85,6 +85,6 @@ final class Mmc
             }
         }
         
-        throw new \Exception("Controller '" . self::NAMESPACE_MODEL . $class . "' not found");
+        throw new \Exception("Controller '" . self::NAMESPACE_CONTROLLER . $class . "' not found");
     }
 }

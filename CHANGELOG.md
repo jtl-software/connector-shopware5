@@ -1,6 +1,7 @@
 1.0.7
 -----
-- Added empty billing and shipping information check in customer order controller 
+- Added empty billing and shipping information check in customer order controller
+- Fixed single product child push and delete task
 
 1.0.6
 -----
