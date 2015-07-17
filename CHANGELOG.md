@@ -2,6 +2,7 @@
 -----
 - Added empty billing and shipping information check in customer order controller
 - Fixed single product child push and delete task
+- Fixed checksum interface problems
 
 1.0.6
 -----
