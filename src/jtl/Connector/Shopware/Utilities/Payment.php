@@ -12,7 +12,7 @@ final class Payment
 {
     private static $_mappings = array(
         PaymentTypes::TYPE_DIRECT_DEBIT => 'debit',
-        PaymentTypes::TYPE_CASH => 'cash',
+        PaymentTypes::TYPE_CASH_ON_DELIVERY => 'cash',
         PaymentTypes::TYPE_INVOICE => 'invoice',
         PaymentTypes::TYPE_PREPAYMENT => 'prepayment',
         PaymentTypes::TYPE_PAYPAL_EXPRESS => 'paypal'

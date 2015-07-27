@@ -1,6 +1,7 @@
 1.0.8
 -----
 - Fixed image delete result id
+- Correctly map cash-on-delivery (CoD) payments
 
 1.0.7
 -----
