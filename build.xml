@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="JTL-Connector-Shopware-Endpoint" default="clean">
+    <target name="build">
+        <delete dir="./dist" />
+        <mkdir dir="./dist" />
+		<mkdir dir="./dist/Frontend/jtlconnector" />
+		<mkdir dir="./dist/Frontend/jtlconnector/plugins" />
+        <mkdir dir="./dist/Frontend/jtlconnector/config" />
+		<mkdir dir="./dist/Frontend/jtlconnector/logs" />
+		<mkdir dir="./dist/Frontend/jtlconnector/db" />
+        <copy todir="./dist/Frontend/jtlconnector/config">
+            <fileset dir="./config">
+                <include name="features.json" />
+				<include name="config.json" />
+				<include name=".htaccess" />
+            </fileset>
+        </copy>
+		<copy todir="./dist/Frontend/jtlconnector/logs">
+            <fileset dir="./logs">
+				<include name=".htaccess" />
+            </fileset>
+        </copy>
+		<copy todir="./dist/Frontend/jtlconnector/db">
+            <fileset dir="./db">
+				<include name=".htaccess" />
+            </fileset>
+        </copy>
+		<copy todir="./dist/Frontend/jtlconnector/">
+            <fileset dir="./">
+                <include name="Bootstrap.php" />
+				<include name="Connector.php" />
+                <include name="LICENSE" />
+                <include name="CHANGELOG.md" />
+            </fileset>
+        </copy>
+        <delete dir="./build" />
+        <mkdir dir="./build" />
+        <copy todir="./build">
+            <fileset dir=".">
+                <include name="src/" />
+                <include name="vendor/" />
+				<include name="logs/" />
+				<include name="db/" />
+				<include name="plugins/" />
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="package" depends="build">
+        <delete file="./dist/Frontend/jtlconnector/connector.phar" />
+        <pharpackage
+            destfile="./dist/Frontend/jtlconnector/index.phar"
+            basedir="./build"
+            compression="gzip"
+            stub="./stub.php"
+            signature="sha256">
+            <fileset dir="./build">
+                <include name="**/**" />
+            </fileset>
+            <metadata>
+                <element name="version" value="0.0.1" />
+                <element name="authors">
+                    <element name="Daniel Böhmer">
+                        <element name="email" value="daniel.boehmer@jtl-software.com" />
+                    </element>
+                </element>
+            </metadata>
+        </pharpackage>
+        <move file="./dist/Frontend/jtlconnector/index.phar" tofile="./dist/Frontend/jtlconnector/connector.phar" />
+    </target>
+
+    <target name="clean" depends="package">
+        <delete dir="./build" />
+    </target>
+</project>
