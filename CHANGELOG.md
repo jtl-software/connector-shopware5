@@ -3,6 +3,8 @@
 - Fixed image delete result id
 - Fixed cash-on-delivery (CoD) payments mapping
 - Fixed image url path when using virtual paths
+- Fixed linking with image relation types
+- Fixed product variation images
 
 1.0.7
 -----
