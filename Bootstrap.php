@@ -149,6 +149,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.0.6':
                 break;
+            case '1.0.7':
+                $this->createPaymentTrigger();
+                $this->fillPaymentTable();
+                Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_image` ADD INDEX(`host_id`, `image_id`)');
+                break;
             default:
                 return false;
         }
