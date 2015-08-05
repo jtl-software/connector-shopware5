@@ -57,6 +57,15 @@ class DeliveryNote extends DataController
 
                         $deliveryNote->addItem($deliveryNoteItem);
                     }
+
+                    // TrackingList
+                    if ($orderSW->getDispatch() !== null && strlen($orderSW->getTrackingCode()) > 0) {
+                        $trackingList = Mmc::getModel('DeliveryNoteTrackingList');
+                        $trackingList->setName($orderSW->getDispatch()->getName())
+                            ->addCode($orderSW->getTrackingCode());
+
+                        $deliveryNote->addTrackingList($trackingList);
+                    }
                 }
 
                 $result[] = $deliveryNote;
