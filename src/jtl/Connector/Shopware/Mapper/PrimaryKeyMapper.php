@@ -71,11 +71,19 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 }
                 break;
             case IdentityLinker::TYPE_IMAGE:
-                $table = ($relationType === ImageRelationType::TYPE_PRODUCT) ? 'jtl_connector_link_product_image' : $dbInfo['table'];
-                $endpointId = Shopware()->Db()->fetchOne(
-                    'SELECT image_id FROM ' . $table . ' WHERE host_id = ?',
-                    array($hostId)
-                );
+                if ($relationType === ImageRelationType::TYPE_PRODUCT) {
+                    $endpointId = Shopware()->Db()->fetchOne(
+                        'SELECT image_id FROM jtl_connector_link_product_image WHERE host_id = ?',
+                        array($hostId)
+                    );
+                } else {
+                    $prefix = ($relationType === ImageRelationType::TYPE_CATEGORY) ? Image::MEDIA_TYPE_CATEGORY : Image::MEDIA_TYPE_MANUFACTURER;
+
+                    $endpointId = Shopware()->Db()->fetchOne(
+                        "SELECT image_id FROM " . $dbInfo['table'] . " WHERE host_id = ? AND image_id LIKE '{$prefix}_%'",
+                        array($hostId)
+                    );
+                }
                 break;
             default:
                 $endpointId = Shopware()->Db()->fetchOne(
@@ -111,8 +119,6 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 break;
             case IdentityLinker::TYPE_IMAGE:
                 list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
-
-                Logger::write(sprintf('Save IMAGE link with mediaType (%s), foreignId (%s) and mediaId (%s)', $mediaType, $foreignId, $mediaId), Logger::DEBUG, 'linker');
 
                 if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
                     $sql = '

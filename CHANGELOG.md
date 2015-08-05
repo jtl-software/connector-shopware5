@@ -1,5 +1,6 @@
 1.0.8
 -----
+- Added paypal transaction id support
 - Fixed image delete result id
 - Fixed cash-on-delivery (CoD) payments mapping
 - Fixed image url path when using virtual paths

@@ -996,20 +996,20 @@ class Product extends DataMapper
         }
     }
 
-    protected function isChild(ProductModel $product)
+    public function isChild(ProductModel $product)
     {
         //return (strlen($product->getId()->getEndpoint()) > 0 && strpos($product->getId()->getEndpoint(), '_') !== false);
         //return (!$product->getIsMasterProduct() && count($product->getVariations()) > 0 && $product->getMasterProductId()->getHost() > 0);
         return (!$product->getIsMasterProduct() && $product->getMasterProductId()->getHost() > 0);
     }
 
-    protected function isParent(ProductModel $product)
+    public function isParent(ProductModel $product)
     {
         //return ($product->getIsMasterProduct() && count($product->getVariations()) > 0 && $product->getMasterProductId()->getHost() == 0);
         return ($product->getIsMasterProduct() && $product->getMasterProductId()->getHost() == 0);
     }
 
-    protected function isChildSW(ArticleSW $productSW = null, DetailSW $detailSW)
+    public function isChildSW(ArticleSW $productSW = null, DetailSW $detailSW)
     {
         // If the parent is already deleted or a configurator set is present
         if ($productSW === null || ($productSW->getConfiguratorSet() !== null && $productSW->getConfiguratorSet()->getId() > 0)) {

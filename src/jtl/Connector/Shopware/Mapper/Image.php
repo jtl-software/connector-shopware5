@@ -346,7 +346,8 @@ class Image extends DataMapper
                 $this->copyNewMedia($image, $mediaSW, $file);
             }
 
-            if ($imageSW->getParent() === null) {
+            $productMapper = Mmc::getMapper('Product');
+            if ($imageSW->getParent() === null && $productMapper->isChildSW($productSW, $detailSW)) {
                 $childImageSW = $this->getChildImage($image, $mediaSW, $detailSW, $imageSW);
                 $this->Manager()->persist($childImageSW);
             }
