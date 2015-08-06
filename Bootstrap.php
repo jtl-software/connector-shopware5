@@ -734,7 +734,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             IF LENGTH(NEW.transactionID) > 0 THEN
                     SET @paymentId = (SELECT id FROM jtl_connector_payment WHERE customerOrderId = NEW.id);
                     DELETE FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
-                    INSERT IGNORE INTO jtl_connector_payment VALUES (if(@paymentId > 0, @paymentId, null), NEW.id, '', now(), '', NEW.invoice_amount_net, NEW.transactionID);
+                    INSERT IGNORE INTO jtl_connector_payment VALUES (if(@paymentId > 0, @paymentId, null), NEW.id, '', now(), '', NEW.invoice_amount, NEW.transactionID);
                 END IF;
             END;
         ";

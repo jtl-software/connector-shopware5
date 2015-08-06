@@ -152,15 +152,22 @@ class Specific extends DataMapper
         $specificId = (strlen($specific->getId()->getEndpoint()) > 0) ? (int)$specific->getId()->getEndpoint() : null;
 
         if ($specificId !== null && $specificId > 0) {
-            $specificSW = $this->find($specificId);
-            if ($specificSW !== null) {
-                foreach ($specificSW->getValues() as $valueSW) {
+            $optionSW = $this->find($specificId);
+            if ($optionSW !== null) {
+                foreach ($optionSW->getValues() as $valueSW) {
                     $this->deleteValueTranslationData($valueSW);
                     $this->Manager()->remove($valueSW);
                 }
 
                 $this->deleteTranslationData($optionSW);
-                $this->Manager()->remove($specificSW);
+                $this->Manager()->remove($optionSW);
+
+                foreach ($optionSW->getGroups() as $groupSW) {
+                    if (count($groupSW->getOptions()) == 1) {
+                        $this->Manager()->remove($groupSW);
+                    }
+                }
+
                 $this->Manager()->flush();
             }
         }

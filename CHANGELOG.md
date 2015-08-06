@@ -7,6 +7,7 @@
 - Fixed image url path when using virtual paths
 - Fixed linking with image relation types
 - Fixed product variation images
+- Fixed specific delete bug
 
 1.0.7
 -----

@@ -754,9 +754,9 @@ class Product extends DataMapper
         if (count($product->getSpecifics()) > 0) {
             if ($group === null) {
                 $group = new \Shopware\Models\Property\Group();
-                $group->setName($detailSW->getNumber())
+                $group->setName($product->getSku())
                     ->setPosition(0)
-                    ->setComparable(0)
+                    ->setComparable(1)
                     ->setSortMode(0);
 
                 $this->Manager()->persist($group);
@@ -768,10 +768,11 @@ class Product extends DataMapper
                 $valueSW = $mapper->findValue((int) $productSpecific->getSpecificValueId()->getEndpoint());
                 if ($valueSW !== null) {
                     $collection->add($valueSW);
-                    $optionSW = $valueSW->getOption();
-                    $group->addOption($optionSW);
+                    $group->addOption($valueSW->getOption());
                 }
             }
+
+            $this->Manager()->persist($group);
         }
 
         $productSW->setPropertyValues($collection);
