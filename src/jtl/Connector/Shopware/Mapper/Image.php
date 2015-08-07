@@ -128,13 +128,9 @@ class Image extends DataMapper
 
     public function delete(ImageModel $image)
     {
-        $result = new ImageModel;
+        $result = $image;
 
         $this->deleteImageData($image);
-
-        // Result
-        $result->setId(new Identity('', $image->getId()->getHost()))
-            ->setRelationType($image->getRelationType());
 
         return $result;
     }
