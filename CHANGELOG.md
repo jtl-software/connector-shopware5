@@ -1,6 +1,6 @@
 1.0.8
 -----
-- Added customer oder payment info support
+- Added customer order payment info support
 - Added delivery note tracking code support
 - Added paypal transaction id support
 - Fixed image delete result id
