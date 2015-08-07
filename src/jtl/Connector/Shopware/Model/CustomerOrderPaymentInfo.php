@@ -15,12 +15,12 @@ use \jtl\Connector\Model\CustomerOrderPaymentInfo as CustomerOrderPaymentInfoMod
 class CustomerOrderPaymentInfo extends CustomerOrderPaymentInfoModel
 {
     protected $fields = array(
-        'id' => '',
+        'id' => 'id',
         'customerOrderId' => '',
-        'bankName' => '',
-        'bankCode' => '',
-        'accountHolder' => '',
-        'accountNumber' => '',
+        'bankName' => 'bankName',
+        'bankCode' => 'bankCode',
+        'accountHolder' => 'accountHolder',
+        'accountNumber' => 'account',
         'iban' => '',
         'bic' => '',
         'creditCardNumber' => '',

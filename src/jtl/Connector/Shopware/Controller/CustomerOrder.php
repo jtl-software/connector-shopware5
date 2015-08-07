@@ -140,9 +140,14 @@ class CustomerOrder extends DataController
                         }
                     }
 
-                    // CustomerOrderItemVariations
+                    // CustomerOrderPaymentInfo
+                    if (isset($orderSW['customer']['debit']['id']) && (int) $orderSW['customer']['debit']['id'] > 0) {
+                        $customerOrderPaymentInfo = Mmc::getModel('CustomerOrderPaymentInfo');
+                        $customerOrderPaymentInfo->map(true, DataConverter::toObject($orderSW['customer']['debit']));
+                        $customerOrderPaymentInfo->setCustomerOrderId($order->getId());
 
-                    // CustomerOrderPaymentInfos
+                        $order->setPaymentInfo($customerOrderPaymentInfo);
+                    }
 
                     $result[] = $order;
                 } catch (\Exception $exc) {
