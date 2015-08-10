@@ -110,7 +110,22 @@ class CustomerOrder extends DataController
                     }
 
                     if ($order->getShippingAddress() !== null) {
-                        $order->getShippingAddress()->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']));
+
+                        $street = $order->getShippingAddress()->getStreet();
+
+                        // DHL Packstation
+                        $dhlProperties = array(
+                            'Postnummer' => 'swagDhlPostnumber',
+                            'Packstation' => 'swagDhlPackstation',
+                            'Postoffice' => 'swagDhlPostoffice'
+                        );
+
+                        foreach ($dhlProperties as $typeInfo => $dhlProperty) {
+                            $this->addDHLInfo($orderSW, $street, $dhlProperty, $typeInfo);
+                        }
+
+                        $order->getShippingAddress()->setStreet($street)
+                            ->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']));
                     }
 
                     // Adding shipping item
@@ -164,6 +179,24 @@ class CustomerOrder extends DataController
         }
 
         return $action;
+    }
+
+    /**
+     * Check if dhl postnumber, postoffice or packstation is available
+     * Add it or our street information
+     *
+     * @param array $orderSW
+     * @param string $street
+     * @param string $dhlInfoProperty
+     * @param string $dhlTypeInfo
+     */
+    public function addDHLInfo(array $orderSW, &$street, $dhlInfoProperty, $dhlTypeInfo = '')
+    {
+        if (isset($orderSW['customer']['shipping']['attribute'][$dhlInfoProperty])
+            && $orderSW['customer']['shipping']['attribute'][$dhlInfoProperty] !== null
+            && strlen($orderSW['customer']['shipping']['attribute'][$dhlInfoProperty]) > 0) {
+            $street .= sprintf(' %s: %s', $dhlTypeInfo, $orderSW['customer']['shipping']['attribute'][$dhlInfoProperty]);
+        }
     }
 
     public static function calcShippingVat(\jtl\Connector\Shopware\Model\CustomerOrder &$order)

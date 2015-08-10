@@ -38,25 +38,29 @@ class CustomerOrder extends DataMapper
     public function findAll($limit = 100, $count = false, $from = null, $until = null)
     {
         $query = $this->Manager()->createQueryBuilder()->select(array(
-                'orders',
-                'customer',
-                'debit',
-                'attribute',
-                'details',
-                'tax',
-                'billing',
-                'shipping',
-                'countryS',
-                'countryB',
-                'history',
-                'payment',
-                'dispatch'
-            ))
+            'orders',
+            'customer',
+            'customer_shipping',
+            'customer_shipping_attribute',
+            'debit',
+            'attribute',
+            'details',
+            'tax',
+            'billing',
+            'shipping',
+            'countryS',
+            'countryB',
+            'history',
+            'payment',
+            'dispatch'
+        ))
             //->from('Shopware\Models\Order\Order', 'orders')
             //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link', \Doctrine\ORM\Query\Expr\Join::WITH, 'orders.id = link.endpointId AND link.type = 21')
             ->from('jtl\Connector\Shopware\Model\Linker\CustomerOrder', 'orders')
             ->leftJoin('orders.linker', 'linker')
             ->leftJoin('orders.customer', 'customer')
+            ->leftJoin('customer.shipping', 'customer_shipping')
+            ->leftJoin('customer_shipping.attribute', 'customer_shipping_attribute')
             ->leftJoin('customer.debit', 'debit')
             ->leftJoin('orders.attribute', 'attribute')
             ->leftJoin('orders.details', 'details')
