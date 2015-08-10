@@ -572,31 +572,42 @@ class Product extends DataMapper
 
     protected function prepareDetailVariationAssociatedData(ProductModel &$product, ArticleSW &$productSW, DetailSW &$detailSW)
     {
+        $groupMapper = Mmc::getMapper('ConfiguratorGroup');
         $optionMapper = Mmc::getMapper('ConfiguratorOption');
         foreach ($product->getVariations() as $variation) {
-            foreach ($variation->getValues() as $variationValue) {
-                $name = null;
-                foreach ($variationValue->getI18ns() as $variationValueI18n) {
-                    if ($variationValueI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                        $name = $variationValueI18n->getName();
+            $variationName = null;
+            foreach ($variation->getI18ns() as $variationI18n) {
+                if ($variationI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    $variationName = $variationI18n->getName();
+                }
+            }
+
+            $groupSW = $groupMapper->findOneBy(array('name' => $variationName));
+            if ($groupSW !== null) {
+                foreach ($variation->getValues() as $variationValue) {
+                    $name = null;
+                    foreach ($variationValue->getI18ns() as $variationValueI18n) {
+                        if ($variationValueI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                            $name = $variationValueI18n->getName();
+                        }
                     }
+
+                    if ($name === null) {
+                        continue;
+                    }
+
+                    $optionSW = $optionMapper->findOneBy(array('name' => $name, 'groupId' => $groupSW->getId()));
+
+                    if ($optionSW === null) {
+                        continue;
+                    }
+
+                    $sql = "DELETE FROM s_article_configurator_option_relations WHERE article_id = ? AND option_id = ?";
+                    Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
+
+                    $sql = "INSERT INTO s_article_configurator_option_relations (id, article_id, option_id) VALUES (NULL, ?, ?)";
+                    Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
                 }
-
-                if ($name === null) {
-                    continue;
-                }
-
-                $optionSW = $optionMapper->findOneBy(array('name' => $name));
-
-                if ($optionSW === null) {
-                    continue;
-                }
-
-                $sql = "DELETE FROM s_article_configurator_option_relations WHERE article_id = ? AND option_id = ?";
-                Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
-
-                $sql = "INSERT INTO s_article_configurator_option_relations (id, article_id, option_id) VALUES (NULL, ?, ?)";
-                Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
             }
         }
     }
@@ -704,7 +715,11 @@ class Product extends DataMapper
                         }
                     }
 
-                    $optionSW = $optionMapper->findOneBy(array('name' => $variationValueName));
+                    $optionSW = null;
+                    if ($groupSW->getId() > 0) {
+                        $optionSW = $optionMapper->findOneBy(array('name' => $variationValueName, 'groupId' => $groupSW->getId()));
+                    }
+
                     if ($optionSW === null) {
                         $optionSW = new \Shopware\Models\Article\Configurator\Option();
                         $optionSW->setName($variationValueName);

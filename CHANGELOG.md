@@ -10,6 +10,7 @@
 - Fixed linking with image relation types
 - Fixed product variation images
 - Fixed specific delete bug
+- Fixed product variation value merging
 
 1.0.7
 -----
