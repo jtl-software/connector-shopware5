@@ -331,6 +331,10 @@ class Image extends DataMapper
             )
         ), $ext);
 
+        if (strlen($filename) > 100) {
+            $filename = substr($filename, strlen($filename) - 100, 100);
+        }
+
         $path = realpath(sys_get_temp_dir()) . DIRECTORY_SEPARATOR . $filename;
         if (copy($image->getFilename(), $path)) {
             $file = new File($path);
