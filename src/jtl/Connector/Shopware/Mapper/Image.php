@@ -308,11 +308,25 @@ class Image extends DataMapper
         // Filename SEO
         list ($uuid, $ext) = explode('.', $image->getFilename());
         $seo = new Seo();
+
+        $productSeo = sprintf('%s %s %s',
+            $productSW->getName(),
+            $detailSW->getAdditionalText(),
+            $image->getSort()
+        );
+
+        if (strlen($productSeo) > 70) {
+            $pos = strpos($productSeo, ' ', 70);
+            if ($pos === false) {
+                $pos = 70;
+            }
+
+            $productSeo = substr($productSeo, 0, $pos);
+        }
+
         $filename = sprintf('%s.%s', $seo->create(
-            sprintf('%s %s %s %s',
-                $productSW->getName(),
-                $detailSW->getAdditionalText(),
-                $image->getSort(),
+            sprintf('%s %s',
+                $productSeo,
                 $detailSW->getNumber()
             )
         ), $ext);

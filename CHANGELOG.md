@@ -11,6 +11,7 @@
 - Fixed product variation images
 - Fixed specific delete bug
 - Fixed product variation value merging
+- Fixed product image seo length
 
 1.0.7
 -----
