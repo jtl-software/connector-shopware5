@@ -315,10 +315,10 @@ class Image extends DataMapper
             $image->getSort()
         );
 
-        if (strlen($productSeo) > 70) {
-            $pos = strpos($productSeo, ' ', 70);
+        if (strlen($productSeo) > 60) {
+            $pos = strpos($productSeo, ' ', 60);
             if ($pos === false) {
-                $pos = 70;
+                $pos = 60;
             }
 
             $productSeo = substr($productSeo, 0, $pos);
