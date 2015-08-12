@@ -285,6 +285,7 @@ class Category extends DataMapper
             $categorySW->setParent($parentSW);
         }
 
+        $categorySW->setActive($category->getIsActive());
         $categorySW->setPosition($category->getSort());
         $categorySW->setNoViewSelect(false);
     }
