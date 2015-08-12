@@ -5,6 +5,7 @@
 - Added delivery note tracking code support
 - Added paypal transaction id support
 - Added and evaluate category active flag value
+- Added and evaluate category isActive attribute value
 - Fixed image delete result id
 - Fixed cash-on-delivery (CoD) payments mapping
 - Fixed image url path when using virtual paths
