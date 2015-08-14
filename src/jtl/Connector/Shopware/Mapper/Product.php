@@ -779,11 +779,15 @@ class Product extends DataMapper
 
             $mapper = Mmc::getMapper('Specific');
             $group->setOptions(array());
+            $options = array();
             foreach ($product->getSpecifics() as $productSpecific) {
                 $valueSW = $mapper->findValue((int) $productSpecific->getSpecificValueId()->getEndpoint());
                 if ($valueSW !== null) {
                     $collection->add($valueSW);
-                    $group->addOption($valueSW->getOption());
+                    if (!in_array($valueSW->getOption()->getId(), $options)) {
+                        $group->addOption($valueSW->getOption());
+                        $options[] = $valueSW->getOption()->getId();
+                    }
                 }
             }
 

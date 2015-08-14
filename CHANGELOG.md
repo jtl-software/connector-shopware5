@@ -14,6 +14,7 @@
 - Fixed specific delete bug
 - Fixed product variation value merging
 - Fixed product image seo length
+- Fixed product specific relation problem
 
 1.0.7
 -----

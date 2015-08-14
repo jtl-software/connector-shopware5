@@ -276,7 +276,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $detailSW = Shopware()->Models()->find('Shopware\Models\Article\Detail', (int) $product['id']);
 
             //$detailSW->setKind(2);
-
             $parentDetailSW = new \Shopware\Models\Article\Detail();
             $parentDetailSW->setSupplierNumber($product['suppliernumber'])
                 ->setNumber(sprintf('%s.%s', $product['ordernumber'], '0'))
