@@ -17,80 +17,85 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 {
     public function getHostId($endpointId, $type)
     {
+        $hostId = false;
         $dbInfo = $this->getTableInfo($type);
-        switch ($type) {
-            case IdentityLinker::TYPE_PRODUCT:
-                list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
+        if ($dbInfo !== null) {
+            switch ($type) {
+                case IdentityLinker::TYPE_PRODUCT:
+                    list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
 
-                $hostId = Shopware()->Db()->fetchOne(
-                    'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ? AND detail_id = ?',
-                    array($productId, $detailId)
-                );
-                break;
-            case IdentityLinker::TYPE_IMAGE:
-                list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
-
-                if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
                     $hostId = Shopware()->Db()->fetchOne(
-                        'SELECT host_id FROM jtl_connector_link_product_image WHERE id = ?',
-                        array($foreignId)
+                        'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ? AND detail_id = ?',
+                        array($productId, $detailId)
                     );
-                } else {
+                    break;
+                case IdentityLinker::TYPE_IMAGE:
+                    list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
+
+                    if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
+                        $hostId = Shopware()->Db()->fetchOne(
+                            'SELECT host_id FROM jtl_connector_link_product_image WHERE id = ?',
+                            array($foreignId)
+                        );
+                    } else {
+                        $hostId = Shopware()->Db()->fetchOne(
+                            'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ?',
+                            array($mediaId)
+                        );
+                    }
+                    break;
+                default:
                     $hostId = Shopware()->Db()->fetchOne(
                         'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ?',
-                        array($mediaId)
+                        array($endpointId)
                     );
-                }
-                break;
-            default:
-                $hostId = Shopware()->Db()->fetchOne(
-                    'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ?',
-                    array($endpointId)
-                );
-                break;
+                    break;
+            }
         }
 
         Logger::write(sprintf('Trying to get hostId with endpointId (%s) and type (%s) ... hostId: (%s)', $endpointId, $type, $hostId), Logger::DEBUG, 'linker');
 
-        return ($hostId !== false) ? (int)$hostId : null;
+        return ($hostId !== false) ? (int) $hostId : null;
     }
 
     public function getEndpointId($hostId, $type, $relationType = null)
     {
-        $dbInfo = $this->getTableInfo($type);
         $endpointId = false;
-        switch ($type) {
-            case IdentityLinker::TYPE_PRODUCT:
-                $res = Shopware()->Db()->fetchAll(
-                    'SELECT ' . $dbInfo['pk'] . ', detail_id FROM ' . $dbInfo['table'] . ' WHERE host_id = ?',
-                    array($hostId)
-                );
-
-                if (is_array($res) && count($res) > 0) {
-                    $endpointId = IdConcatenator::link(array($res[0]['detail_id'], $res[0][$dbInfo['pk']]));
-                }
-                break;
-            case IdentityLinker::TYPE_IMAGE:
-                if ($relationType === ImageRelationType::TYPE_PRODUCT) {
-                    $endpointId = Shopware()->Db()->fetchOne(
-                        'SELECT image_id FROM jtl_connector_link_product_image WHERE host_id = ?',
+        $dbInfo = $this->getTableInfo($type);
+        if ($dbInfo !== null) {
+            switch ($type) {
+                case IdentityLinker::TYPE_PRODUCT:
+                    $res = Shopware()->Db()->fetchAll(
+                        'SELECT ' . $dbInfo['pk'] . ', detail_id FROM ' . $dbInfo['table'] . ' WHERE host_id = ?',
                         array($hostId)
                     );
-                } else {
-                    $prefix = ($relationType === ImageRelationType::TYPE_CATEGORY) ? Image::MEDIA_TYPE_CATEGORY : Image::MEDIA_TYPE_MANUFACTURER;
 
+                    if (is_array($res) && count($res) > 0) {
+                        $endpointId = IdConcatenator::link(array($res[0]['detail_id'], $res[0][$dbInfo['pk']]));
+                    }
+                    break;
+                case IdentityLinker::TYPE_IMAGE:
+                    if ($relationType === ImageRelationType::TYPE_PRODUCT) {
+                        $endpointId = Shopware()->Db()->fetchOne(
+                            'SELECT image_id FROM jtl_connector_link_product_image WHERE host_id = ?',
+                            array($hostId)
+                        );
+                    } else {
+                        $prefix = ($relationType === ImageRelationType::TYPE_CATEGORY) ? Image::MEDIA_TYPE_CATEGORY : Image::MEDIA_TYPE_MANUFACTURER;
+
+                        $endpointId = Shopware()->Db()->fetchOne(
+                            "SELECT image_id FROM " . $dbInfo['table'] . " WHERE host_id = ? AND image_id LIKE '{$prefix}_%'",
+                            array($hostId)
+                        );
+                    }
+                    break;
+                default:
                     $endpointId = Shopware()->Db()->fetchOne(
-                        "SELECT image_id FROM " . $dbInfo['table'] . " WHERE host_id = ? AND image_id LIKE '{$prefix}_%'",
+                        'SELECT ' . $dbInfo['pk'] . ' FROM ' . $dbInfo['table'] . ' WHERE host_id = ?',
                         array($hostId)
                     );
-                }
-                break;
-            default:
-                $endpointId = Shopware()->Db()->fetchOne(
-                    'SELECT ' . $dbInfo['pk'] . ' FROM ' . $dbInfo['table'] . ' WHERE host_id = ?',
-                    array($hostId)
-                );
-                break;
+                    break;
+            }
         }
 
         Logger::write(sprintf('Trying to get endpointId with hostId (%s) and type (%s) ... endpointId: (%s)', $hostId, $type, $endpointId), Logger::DEBUG, 'linker');
@@ -102,57 +107,60 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     {
         Logger::write(sprintf('Save link with endpointId (%s), hostId (%s) and type (%s)', $endpointId, $hostId, $type), Logger::DEBUG, 'linker');
 
+        $statement = false;
         $dbInfo = $this->getTableInfo($type);
-        switch ($type) {
-            case IdentityLinker::TYPE_PRODUCT:
-                list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
+        if ($dbInfo !== null) {
+            switch ($type) {
+                case IdentityLinker::TYPE_PRODUCT:
+                    list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
 
-                $sql = '
-                    INSERT IGNORE INTO ' . $dbInfo['table'] . '
-                    (
-                        product_id, detail_id, host_id
-                    )
-                    VALUES (?,?,?)
-                ';
-
-                $statement = Shopware()->Db()->query($sql, array($productId, $detailId, $hostId));
-                break;
-            case IdentityLinker::TYPE_IMAGE:
-                list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
-
-                if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
-                    $sql = '
-                        INSERT IGNORE INTO jtl_connector_link_product_image
-                        (
-                            id, host_id, image_id
-                        )
-                        VALUES (?,?,?)
-                    ';
-
-                    $statement = Shopware()->Db()->query($sql, array($foreignId, $hostId, $endpointId));
-                } else {
                     $sql = '
                         INSERT IGNORE INTO ' . $dbInfo['table'] . '
                         (
-                            image_id, media_id, host_id
+                            product_id, detail_id, host_id
                         )
                         VALUES (?,?,?)
                     ';
 
-                    $statement = Shopware()->Db()->query($sql, array($endpointId, $mediaId, $hostId));
-                }
-                break;
-            default:
-                $sql = '
-                    INSERT IGNORE INTO ' . $dbInfo['table'] . '
-                    (
-                        ' . $dbInfo['pk'] . ', host_id
-                    )
-                    VALUES (?,?)
-                ';
+                    $statement = Shopware()->Db()->query($sql, array($productId, $detailId, $hostId));
+                    break;
+                case IdentityLinker::TYPE_IMAGE:
+                    list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
 
-                $statement = Shopware()->Db()->query($sql, array($endpointId, $hostId));
-                break;
+                    if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
+                        $sql = '
+                            INSERT IGNORE INTO jtl_connector_link_product_image
+                            (
+                                id, host_id, image_id
+                            )
+                            VALUES (?,?,?)
+                        ';
+
+                        $statement = Shopware()->Db()->query($sql, array($foreignId, $hostId, $endpointId));
+                    } else {
+                        $sql = '
+                            INSERT IGNORE INTO ' . $dbInfo['table'] . '
+                            (
+                                image_id, media_id, host_id
+                            )
+                            VALUES (?,?,?)
+                        ';
+
+                        $statement = Shopware()->Db()->query($sql, array($endpointId, $mediaId, $hostId));
+                    }
+                    break;
+                default:
+                    $sql = '
+                        INSERT IGNORE INTO ' . $dbInfo['table'] . '
+                        (
+                            ' . $dbInfo['pk'] . ', host_id
+                        )
+                        VALUES (?,?)
+                    ';
+
+                    $statement = Shopware()->Db()->query($sql, array($endpointId, $hostId));
+                    break;
+            }
         }
 
         return $statement ? true : false;
@@ -162,31 +170,34 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     {
         Logger::write(sprintf('Delete link with endpointId (%s), hostId (%s) and type (%s)', $endpointId, $hostId, $type), Logger::DEBUG, 'linker');
 
+        $rows = false;
         $dbInfo = $this->getTableInfo($type);
-        if ($endpointId) {
-            switch ($type) {
-                case IdentityLinker::TYPE_PRODUCT:
-                    list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
+        if ($dbInfo !== null) {
+            if ($endpointId) {
+                switch ($type) {
+                    case IdentityLinker::TYPE_PRODUCT:
+                        list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
 
-                    $where = array('product_id = ?' => $productId, 'detail_id = ?' => $detailId);
-                    break;
-                case IdentityLinker::TYPE_IMAGE:
-                    list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
+                        $where = array('product_id = ?' => $productId, 'detail_id = ?' => $detailId);
+                        break;
+                    case IdentityLinker::TYPE_IMAGE:
+                        list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
 
-                    $where = ($mediaType === Image::MEDIA_TYPE_PRODUCT) ?
-                        array('id = ?' => $foreignId) : array($dbInfo['pk'] . ' = ?' => $mediaId);
-                    break;
-                default:
-                    $where = array($dbInfo['pk'] . ' = ?' => $endpointId);
-                    break;
+                        $where = ($mediaType === Image::MEDIA_TYPE_PRODUCT) ?
+                            array('id = ?' => $foreignId) : array($dbInfo['pk'] . ' = ?' => $mediaId);
+                        break;
+                    default:
+                        $where = array($dbInfo['pk'] . ' = ?' => $endpointId);
+                        break;
+                }
             }
-        }
 
-        if ($hostId) {
-            $where = array('host_id = ?' => $hostId);
-        }
+            if ($hostId) {
+                $where = array('host_id = ?' => $hostId);
+            }
 
-        $rows = Shopware()->Db()->delete($dbInfo['table'], $where);
+            $rows = Shopware()->Db()->delete($dbInfo['table'], $where);
+        }
 
         return $rows ? true : false;
     }
@@ -278,5 +289,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     'pk' => 'product_id'
                 );
         }
+
+        return null;
     }
 }
