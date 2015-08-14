@@ -26,7 +26,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.0.7';
+        return '1.0.8';
     }
 
     public function getInfo()
