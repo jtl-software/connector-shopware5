@@ -28,8 +28,8 @@ class Payment extends DataMapper
         ->where('linker.hostId IS NULL')
         ->setFirstResult(0)
         ->setMaxResults($limit)
-        //->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
-        ->getQuery();
+        ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+        //->getQuery();
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 

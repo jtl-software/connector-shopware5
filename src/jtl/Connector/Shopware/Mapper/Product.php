@@ -572,31 +572,42 @@ class Product extends DataMapper
 
     protected function prepareDetailVariationAssociatedData(ProductModel &$product, ArticleSW &$productSW, DetailSW &$detailSW)
     {
+        $groupMapper = Mmc::getMapper('ConfiguratorGroup');
         $optionMapper = Mmc::getMapper('ConfiguratorOption');
         foreach ($product->getVariations() as $variation) {
-            foreach ($variation->getValues() as $variationValue) {
-                $name = null;
-                foreach ($variationValue->getI18ns() as $variationValueI18n) {
-                    if ($variationValueI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                        $name = $variationValueI18n->getName();
+            $variationName = null;
+            foreach ($variation->getI18ns() as $variationI18n) {
+                if ($variationI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    $variationName = $variationI18n->getName();
+                }
+            }
+
+            $groupSW = $groupMapper->findOneBy(array('name' => $variationName));
+            if ($groupSW !== null) {
+                foreach ($variation->getValues() as $variationValue) {
+                    $name = null;
+                    foreach ($variationValue->getI18ns() as $variationValueI18n) {
+                        if ($variationValueI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                            $name = $variationValueI18n->getName();
+                        }
                     }
+
+                    if ($name === null) {
+                        continue;
+                    }
+
+                    $optionSW = $optionMapper->findOneBy(array('name' => $name, 'groupId' => $groupSW->getId()));
+
+                    if ($optionSW === null) {
+                        continue;
+                    }
+
+                    $sql = "DELETE FROM s_article_configurator_option_relations WHERE article_id = ? AND option_id = ?";
+                    Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
+
+                    $sql = "INSERT INTO s_article_configurator_option_relations (id, article_id, option_id) VALUES (NULL, ?, ?)";
+                    Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
                 }
-
-                if ($name === null) {
-                    continue;
-                }
-
-                $optionSW = $optionMapper->findOneBy(array('name' => $name));
-
-                if ($optionSW === null) {
-                    continue;
-                }
-
-                $sql = "DELETE FROM s_article_configurator_option_relations WHERE article_id = ? AND option_id = ?";
-                Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
-
-                $sql = "INSERT INTO s_article_configurator_option_relations (id, article_id, option_id) VALUES (NULL, ?, ?)";
-                Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
             }
         }
     }
@@ -704,7 +715,11 @@ class Product extends DataMapper
                         }
                     }
 
-                    $optionSW = $optionMapper->findOneBy(array('name' => $variationValueName));
+                    $optionSW = null;
+                    if ($groupSW->getId() > 0) {
+                        $optionSW = $optionMapper->findOneBy(array('name' => $variationValueName, 'groupId' => $groupSW->getId()));
+                    }
+
                     if ($optionSW === null) {
                         $optionSW = new \Shopware\Models\Article\Configurator\Option();
                         $optionSW->setName($variationValueName);
@@ -754,9 +769,9 @@ class Product extends DataMapper
         if (count($product->getSpecifics()) > 0) {
             if ($group === null) {
                 $group = new \Shopware\Models\Property\Group();
-                $group->setName($detailSW->getNumber())
+                $group->setName($product->getSku())
                     ->setPosition(0)
-                    ->setComparable(0)
+                    ->setComparable(1)
                     ->setSortMode(0);
 
                 $this->Manager()->persist($group);
@@ -764,14 +779,19 @@ class Product extends DataMapper
 
             $mapper = Mmc::getMapper('Specific');
             $group->setOptions(array());
+            $options = array();
             foreach ($product->getSpecifics() as $productSpecific) {
                 $valueSW = $mapper->findValue((int) $productSpecific->getSpecificValueId()->getEndpoint());
                 if ($valueSW !== null) {
                     $collection->add($valueSW);
-                    $optionSW = $valueSW->getOption();
-                    $group->addOption($optionSW);
+                    if (!in_array($valueSW->getOption()->getId(), $options)) {
+                        $group->addOption($valueSW->getOption());
+                        $options[] = $valueSW->getOption()->getId();
+                    }
                 }
             }
+
+            $this->Manager()->persist($group);
         }
 
         $productSW->setPropertyValues($collection);
@@ -996,20 +1016,20 @@ class Product extends DataMapper
         }
     }
 
-    protected function isChild(ProductModel $product)
+    public function isChild(ProductModel $product)
     {
         //return (strlen($product->getId()->getEndpoint()) > 0 && strpos($product->getId()->getEndpoint(), '_') !== false);
         //return (!$product->getIsMasterProduct() && count($product->getVariations()) > 0 && $product->getMasterProductId()->getHost() > 0);
         return (!$product->getIsMasterProduct() && $product->getMasterProductId()->getHost() > 0);
     }
 
-    protected function isParent(ProductModel $product)
+    public function isParent(ProductModel $product)
     {
         //return ($product->getIsMasterProduct() && count($product->getVariations()) > 0 && $product->getMasterProductId()->getHost() == 0);
         return ($product->getIsMasterProduct() && $product->getMasterProductId()->getHost() == 0);
     }
 
-    protected function isChildSW(ArticleSW $productSW = null, DetailSW $detailSW)
+    public function isChildSW(ArticleSW $productSW = null, DetailSW $detailSW)
     {
         // If the parent is already deleted or a configurator set is present
         if ($productSW === null || ($productSW->getConfiguratorSet() !== null && $productSW->getConfiguratorSet()->getId() > 0)) {

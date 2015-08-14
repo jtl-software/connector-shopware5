@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Payment\PaymentTypes;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use \jtl\Connector\Model\CustomerOrderItem;
@@ -37,24 +38,30 @@ class CustomerOrder extends DataMapper
     public function findAll($limit = 100, $count = false, $from = null, $until = null)
     {
         $query = $this->Manager()->createQueryBuilder()->select(array(
-                'orders',
-                'customer',
-                'attribute',
-                'details',
-                'tax',
-                'billing',
-                'shipping',
-                'countryS',
-                'countryB',
-                'history',
-                'payment',
-                'dispatch'
-            ))
+            'orders',
+            'customer',
+            'customer_shipping',
+            'customer_shipping_attribute',
+            'debit',
+            'attribute',
+            'details',
+            'tax',
+            'billing',
+            'shipping',
+            'countryS',
+            'countryB',
+            'history',
+            'payment',
+            'dispatch'
+        ))
             //->from('Shopware\Models\Order\Order', 'orders')
             //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link', \Doctrine\ORM\Query\Expr\Join::WITH, 'orders.id = link.endpointId AND link.type = 21')
             ->from('jtl\Connector\Shopware\Model\Linker\CustomerOrder', 'orders')
             ->leftJoin('orders.linker', 'linker')
             ->leftJoin('orders.customer', 'customer')
+            ->leftJoin('customer.shipping', 'customer_shipping')
+            ->leftJoin('customer_shipping.attribute', 'customer_shipping_attribute')
+            ->leftJoin('customer.debit', 'debit')
             ->leftJoin('orders.attribute', 'attribute')
             ->leftJoin('orders.details', 'details')
             ->leftJoin('details.tax', 'tax')
@@ -114,19 +121,12 @@ class CustomerOrder extends DataMapper
         $this->prepareShippingAssociatedData($customerOrder, $orderSW);
         $this->prepareBillingAssociatedData($customerOrder, $orderSW);
         $this->prepareItemsAssociatedData($customerOrder, $orderSW);
-
-        $violations = $this->Manager()->validate($orderSW);
-        if ($violations->count() > 0) {
-            throw new ApiException\ValidationException($violations);
-        }
+        $this->preparePaymentInfoAssociatedData($customerOrder, $orderSW);
 
         // Save Order
         $this->Manager()->persist($orderSW);
         $this->Manager()->flush();
-        
-        // CustomerOrderPaymentInfo
-        // CustomerOrderItem
-        // CustomerOrderBillingAddress
+
         // CustomerOrderAttr
         
         $result->setId(new Identity($orderSW->getId(), $customerOrder->getId()->getHost()));
@@ -485,7 +485,30 @@ class CustomerOrder extends DataMapper
         $detailsSW->add($detailSW);
     }
 
-    protected function isChild(CustomerOrderItem &$customerOrderItem)
+    protected function preparePaymentInfoAssociatedData(CustomerOrderModel $customerOrder)
+    {
+        if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT && $customerOrder->getPaymentInfo() !== null) {
+            $customerMapper = Mmc::getMapper('Customer');
+            $customer = $customerMapper->find($customerOrder->getCustomerId()->getEndpoint());
+
+            if ($customer !== null) {
+                $debitSW = $customer->getDebit();
+                if ($debitSW === null) {
+                    $debitSW = new \Shopware\Models\Customer\Debit();
+                }
+
+                $debitSW->setAccount($customerOrder->getPaymentInfo()->getAccountNumber())
+                    ->setBankCode($customerOrder->getPaymentInfo()->getBankCode())
+                    ->setBankName($customerOrder->getPaymentInfo()->getBankName())
+                    ->setAccountHolder($customerOrder->getPaymentInfo()->getAccountHolder())
+                    ->setCustomer($customer);
+
+                $this->Manager()->persist($debitSW);
+            }
+        }
+    }
+
+    public function isChild(CustomerOrderItem &$customerOrderItem)
     {
         return (strlen($customerOrderItem->getProductId()->getEndpoint()) > 0 && strpos($customerOrderItem->getProductId()->getEndpoint(), '_') !== false);
     }

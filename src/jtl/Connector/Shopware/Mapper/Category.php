@@ -200,11 +200,6 @@ class Category extends DataMapper
         $this->prepareAttributeAssociatedData($category, $categorySW);
         $this->prepareInvisibilityAssociatedData($category, $categorySW);
 
-        $violations = $this->Manager()->validate($categorySW);
-        if ($violations->count() > 0) {
-            throw new ApiException\ValidationException($violations);
-        }
-
         // Save Category
         $this->Manager()->persist($categorySW);
         $this->flush();
@@ -285,6 +280,7 @@ class Category extends DataMapper
             $categorySW->setParent($parentSW);
         }
 
+        $categorySW->setActive($category->getIsActive());
         $categorySW->setPosition($category->getSort());
         $categorySW->setNoViewSelect(false);
     }
@@ -297,8 +293,8 @@ class Category extends DataMapper
                 $categorySW->setName($i18n->getName());
                 $categorySW->setMetaDescription($i18n->getMetaDescription());
                 $categorySW->setMetaKeywords($i18n->getMetaKeywords());
-                $categorySW->setCmsHeadline($i18n->getTitleTag());
-                $categorySW->setCmsText($i18n->getDescription());
+                //$categorySW->setCmsHeadline($i18n->getTitleTag());
+                //$categorySW->setCmsText($i18n->getDescription());
 
                 $this->Manager()->persist($categorySW);
                 $this->Manager()->flush();
@@ -319,6 +315,13 @@ class Category extends DataMapper
         foreach ($category->getAttributes() as $i => $attribute) {
             $i++;
             foreach ($attribute->getI18ns() as $attributeI18n) {
+
+                // Active fix
+                $allowedActiveValues = array('0', '1', 0, 1, false, true);
+                if (strtolower($attributeI18n->getName()) === 'isactive' && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
+                    $categorySW->setActive((bool) $attributeI18n->getValue());
+                }
+
                 if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                     $setter = "setAttribute{$i}";
 
@@ -411,8 +414,8 @@ class Category extends DataMapper
                 $categoryMappingSW->setName($i18n->getName());
                 $categoryMappingSW->setMetaDescription($i18n->getMetaDescription());
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
-                $categoryMappingSW->setCmsHeadline($i18n->getName());
-                $categoryMappingSW->setCmsText($i18n->getDescription());
+                //$categoryMappingSW->setCmsHeadline($i18n->getMetaKeywords());
+                //$categoryMappingSW->setCmsText($i18n->getDescription());
 
                 $this->prepareAttributeAssociatedData($category, $categoryMappingSW);
                 $categoryMappingSW->setCustomerGroups($categorySW->getCustomerGroups());

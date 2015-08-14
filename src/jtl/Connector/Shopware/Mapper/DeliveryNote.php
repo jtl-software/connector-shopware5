@@ -74,11 +74,6 @@ class DeliveryNote extends DataMapper
 
         $this->prepareDeliveryNoteAssociatedData($deliveryNote, $deliveryNoteSW);
 
-        $violations = $this->Manager()->validate($deliveryNoteSW);
-        if ($violations->count() > 0) {
-            throw new ApiException\ValidationException($violations);
-        }
-
         $this->Manager()->persist($deliveryNoteSW);
         $this->flush();
 
@@ -115,6 +110,17 @@ class DeliveryNote extends DataMapper
         if ($orderSW !== null) {
             if ($deliveryNoteSW === null) {
                 $deliveryNoteSW = new DocumentSW;
+            }
+
+            // Tracking
+            if (count($deliveryNote->getTrackingLists()) > 0) {
+                $trackingLists = $deliveryNote->getTrackingLists();
+                $codes = $trackingLists[0]->getCodes();
+
+                if (count($codes) > 0) {
+                    $orderSW->setTrackingCode($codes[0]);
+                    $this->Manager()->persist($orderSW);
+                }
             }
 
             $type = $this->findType('Lieferschein');

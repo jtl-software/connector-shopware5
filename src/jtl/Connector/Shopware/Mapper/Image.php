@@ -6,8 +6,10 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Seo;
 use \jtl\Connector\Drawing\ImageRelationType;
+use jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Model\Image as ImageModel;
 use \jtl\Connector\Shopware\Model\Image as ImageConModel;
 use \jtl\Connector\Model\Identity;
@@ -126,13 +128,9 @@ class Image extends DataMapper
 
     public function delete(ImageModel $image)
     {
-        $result = new ImageModel;
+        $result = $image;
 
         $this->deleteImageData($image);
-
-        // Result
-        $result->setId(new Identity('', $image->getForeignKey()->getHost()))
-            ->setRelationType($image->getRelationType());
 
         return $result;
     }
@@ -191,8 +189,8 @@ class Image extends DataMapper
                 }
 
                 $imageSW = $this->Manager()->getRepository('Shopware\Models\Article\Image')->find((int) $imageId);
-                if ($imageSW !== null) {                    
-                    $imageChildSW = $this->loadChildImage($detailId);
+                if ($imageSW !== null) {
+                    $imageChildSW = $this->loadChildImage($detailId, $imageSW->getId());
 
                     //Check if product is a configurator and check if the image is in use from another child
                     if ($this->isParentImageInUse($imageSW->getId(), $detailId)) {
@@ -201,26 +199,52 @@ class Image extends DataMapper
                         $this->Manager()->remove($imageChildSW);
                     }
 
-                    $this->Manager()->remove($imageSW);
-                    $this->Manager()->flush();
+                    try {
+                        $this->Manager()->remove($imageSW);
+                        $this->Manager()->flush();
+                    } catch (\Exception $e) {
+                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                    }
                 }
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $categorySW = $this->Manager()->getRepository('Shopware\Models\Category\Category')->find((int) $imageId);
                 if ($categorySW !== null) {
                     $categorySW->setMedia(null);
-                    $this->Manager()->persist($categorySW);
-                    $this->Manager()->flush();
+
+                    try {
+                        $this->Manager()->persist($categorySW);
+                        $this->Manager()->flush();
+                    } catch (\Exception $e) {
+                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                    }
                 }
                 break;
             case ImageRelationType::TYPE_MANUFACTURER:
                 $supplierSW = $this->Manager()->getRepository('Shopware\Models\Article\Supplier')->find((int) $imageId);
                 if ($supplierSW !== null) {
                     $supplierSW->setImage('');
-                    $this->Manager()->persist($supplierSW);
-                    $this->Manager()->flush();
+
+                    try {
+                        $this->Manager()->persist($supplierSW);
+                        $this->Manager()->flush();
+                    } catch (\Exception $e) {
+                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                    }
                 }
                 break;
+        }
+
+        $mediaSW = $this->Manager()->getRepository('Shopware\Models\Media\Media')->find((int) $mediaId);
+        if ($mediaSW !== null) {
+            @unlink(sprintf('%s%s', Shopware()->OldPath(), $mediaSW->getPath()));
+
+            try {
+                $this->Manager()->remove($mediaSW);
+                $this->Manager()->flush();
+            } catch (\Exception $e) {
+                Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+            }
         }
     }
 
@@ -229,7 +253,7 @@ class Image extends DataMapper
         if (!file_exists($image->getFilename())) {
             throw new \Exception(sprintf('File (%s) does not exists', $image->getFilename()));
         }
-        
+
         $file = new File($image->getFilename());
 
         if ($image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
@@ -270,8 +294,8 @@ class Image extends DataMapper
         list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
 
         $productMapper = Mmc::getMapper('Product');
-        $detailSW = $productMapper->findDetail((int) $detailId);
 
+        $detailSW = $productMapper->findDetail((int) $detailId);
         if ($detailSW === null) {
             throw new \Exception(sprintf('Cannot find product detail with id (%s)', $detailId));
         }
@@ -284,7 +308,33 @@ class Image extends DataMapper
         // Filename SEO
         list ($uuid, $ext) = explode('.', $image->getFilename());
         $seo = new Seo();
-        $filename = sprintf('%s.%s', $seo->create(sprintf('%s %s', $productSW->getName(), $detailSW->getNumber())), $ext);
+
+        $productSeo = sprintf('%s %s %s',
+            $productSW->getName(),
+            $detailSW->getAdditionalText(),
+            $image->getSort()
+        );
+
+        if (strlen($productSeo) > 60) {
+            $pos = strpos($productSeo, ' ', 60);
+            if ($pos === false) {
+                $pos = 60;
+            }
+
+            $productSeo = substr($productSeo, 0, $pos);
+        }
+
+        $filename = sprintf('%s.%s', $seo->create(
+            sprintf('%s %s',
+                $productSeo,
+                $detailSW->getNumber()
+            )
+        ), $ext);
+
+        if (strlen($filename) > 100) {
+            $filename = substr($filename, strlen($filename) - 100, 100);
+        }
+
         $path = realpath(sys_get_temp_dir()) . DIRECTORY_SEPARATOR . $filename;
         if (copy($image->getFilename(), $path)) {
             $file = new File($path);
@@ -310,12 +360,16 @@ class Image extends DataMapper
                 $this->copyNewMedia($image, $mediaSW, $file);
             }
 
-            $childImageSW = $this->getChildImage($image, $mediaSW, $detailSW);
-            $childImageSW->setParent($imageSW);
-            $this->Manager()->persist($childImageSW);
+            $productMapper = Mmc::getMapper('Product');
+            if ($imageSW->getParent() === null && $productMapper->isChildSW($productSW, $detailSW)) {
+                $childImageSW = $this->getChildImage($image, $mediaSW, $detailSW, $imageSW);
+                $this->Manager()->persist($childImageSW);
+            }
         } else {
             $this->copyNewMedia($image, $mediaSW, $file);
         }
+
+        $this->copyNewMedia($image, $mediaSW, $file);
     }
 
     protected function isParentImageInUse($parentId, $detailId)
@@ -334,30 +388,33 @@ class Image extends DataMapper
         return (is_array($results) && count($results) > 0);
     }
 
-    protected function loadChildImage($detailId)
+    protected function loadChildImage($detailId, $parentId)
     {
-        $results = $this->Manager()->createQueryBuilder()
-            ->select(
-                'image'
-            )
-            ->from('Shopware\Models\Article\Image', 'image')
-            ->where('image.articleDetailId = :detailId')
-            ->setParameter('detailId', $detailId)
-            ->getQuery()->getResult();
-
-        return (is_array($results) && count($results) == 1) ? $results[0] : null;
+        try {
+            return $this->Manager()->createQueryBuilder()
+                ->select(
+                    'image'
+                )
+                ->from('Shopware\Models\Article\Image', 'image')
+                ->where('image.parent = :parentId')
+                ->andWhere('image.articleDetailId = :detailId')
+                ->setParameter('parentId', $parentId)
+                ->setParameter('detailId', $detailId)
+                ->getQuery()->getOneOrNullResult();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
-    protected function getChildImage(ImageModel $image, MediaSW $mediaSW, DetailSW $detailSW)
+    protected function getChildImage(ImageModel $image, MediaSW $mediaSW, DetailSW $detailSW, ArticleImageSW $parentImageSW)
     {
-        $imageSW = $this->loadChildImage($detailSW->getId());
+        $imageSW = $this->loadChildImage($detailSW->getId(), $parentImageSW->getId());
 
         if ($imageSW === null) {
             $imageSW = new ArticleImageSW;
             $imageSW->setHeight(0);
             $imageSW->setDescription('');
             $imageSW->setWidth(0);
-            $imageSW->setArticle($detailSW->getArticle());
             $imageSW->setArticleDetail($detailSW);
 
             $this->Manager()->persist($imageSW);
@@ -367,6 +424,7 @@ class Image extends DataMapper
         $imageSW->setPosition($image->getSort());
         $main = ($image->getSort() == 1) ? 1 : 2;
         $imageSW->setMain($main);
+        $imageSW->setParent($parentImageSW);
 
         return $imageSW;
     }
@@ -396,8 +454,11 @@ class Image extends DataMapper
         $imageSW->setPosition($image->getSort());
         $main = ($image->getSort() == 1) ? 1 : 2;
         $imageSW->setMain($main);
-        $imageSW->setPath($mediaSW->getName());
-        $imageSW->setMedia($mediaSW);
+
+        if ($imageSW->getParent() === null) {
+            $imageSW->setPath($mediaSW->getName());
+            $imageSW->setMedia($mediaSW);
+        }
 
         return $imageSW;
     }
@@ -600,7 +661,7 @@ class Image extends DataMapper
 
     protected function copyNewMedia(ImageModel $image, MediaSW &$mediaSW, File $file)
     {
-        if ($mediaSW->getId() > 0 && $this->generadeMD5($mediaSW->getPath()) != md5_file($image->getFilename())) {
+        if ($mediaSW->getId() > 0 && file_exists($image->getFilename()) && $this->generadeMD5($mediaSW->getPath()) != md5_file($image->getFilename())) {
             $stats = stat($image->getFilename());
             $infos = pathinfo($image->getFilename());
 

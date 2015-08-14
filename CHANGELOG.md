@@ -1,3 +1,21 @@
+1.0.8
+-----
+- Added dhl postnumber, postoffice and packstation support
+- Added customer order payment info support
+- Added delivery note tracking code support
+- Added paypal transaction id support
+- Added and evaluate category active flag value
+- Added and evaluate category isActive attribute value
+- Fixed image delete result id
+- Fixed cash-on-delivery (CoD) payments mapping
+- Fixed image url path when using virtual paths
+- Fixed linking with image relation types
+- Fixed product variation images
+- Fixed specific delete bug
+- Fixed product variation value merging
+- Fixed product image seo length
+- Fixed product specific relation problem
+
 1.0.7
 -----
 - Added empty billing and shipping information check in customer order controller
