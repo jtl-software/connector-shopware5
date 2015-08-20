@@ -37,7 +37,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'author' => 'JTL-Software GmbH',
             'description' => '',
             'support' => 'JTL-Software Forum',
-            'link' => 'http://forum.jtl-software.de'
+            'link' => 'http://www.jtl-software.de'
         );
     }
 
@@ -153,6 +153,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->createPaymentTrigger();
                 $this->fillPaymentTable();
                 Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_image` ADD INDEX(`host_id`, `image_id`)');
+                break;
+            case '1.0.8':
+                Shopware()->Db()->query(
+                    'UPDATE jtl_connector_payment p
+                     JOIN s_order o ON o.id = p.customerOrderId
+                     SET p.totalSum = o.invoice_amount'
+                );
                 break;
             default:
                 return false;
@@ -412,7 +419,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Shopware()->Db()->query(
             "INSERT INTO jtl_connector_payment
             (
-              SELECT null, id, '', ordertime, '', invoice_amount_net, transactionID
+              SELECT null, id, '', ordertime, '', invoice_amount, transactionID
               FROM s_order
               WHERE LENGTH(transactionID) > 0
             )"
