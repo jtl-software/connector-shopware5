@@ -166,7 +166,16 @@ class GlobalData extends DataController
                 $globalData->addTaxRate($tax);
             }
 
-            // ShippingClasss
+            // Shipping
+            $mapper = Mmc::getMapper('Shipping');
+            $shippingMethodSWs = $mapper->findAll($limit);
+
+            foreach ($shippingMethodSWs as $shippingMethodSW) {
+                $shippingMethod = Mmc::getModel('ShippingMethod');
+                $shippingMethod->map(true, DataConverter::toObject($shippingMethodSW, true));
+
+                $globalData->addShippingMethod($shippingMethod);
+            }
             
             $result[] = $globalData;
 

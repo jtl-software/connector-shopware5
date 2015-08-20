@@ -1,3 +1,12 @@
+1.0.9
+-----
+- Added product activity support
+- Added shipping method mapping
+- Added product minimum quantity support
+- Added base price (purchase price) support
+- Changed pull value handling - stripping whitespaces from the beginning and end of a string
+- Fixed payment price value to gross
+
 1.0.8
 -----
 - Added dhl postnumber, postoffice and packstation support

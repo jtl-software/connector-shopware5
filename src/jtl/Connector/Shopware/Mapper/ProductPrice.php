@@ -60,9 +60,15 @@ class ProductPrice extends DataMapper
      * @param \Shopware\Models\Article\Article $productSW
      * @param \Shopware\Models\Article\Detail $detailSW
      * @param float $recommendedRetailPrice
+     * @param float $purchasePrice
      */
-    public static function buildCollection(array $productPrices, ArticleSW &$productSW = null, DetailSW &$detailSW = null, $recommendedRetailPrice = 0.0)
-    {
+    public static function buildCollection(
+        array $productPrices,
+        ArticleSW &$productSW = null,
+        DetailSW &$detailSW = null,
+        $recommendedRetailPrice = 0.0,
+        $purchasePrice = 0.0
+    ) {
         // Price
         $collection = array();
         $pricesPerGroup = array();
@@ -143,6 +149,14 @@ class ProductPrice extends DataMapper
             );
         }
 
+        // Find baseprice
+        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && $purchasePrice === 0.0) {
+            $purchasePrice = Shopware()->Db()->fetchOne(
+                'SELECT if(baseprice, baseprice, 0.0) FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
+                array($productSW->getId(), $detailSW->getId())
+            );
+        }
+
         $sql = "DELETE FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ?";
         Shopware()->Db()->query($sql, array($productSW->getId(), $detailSW->getId()));
 
@@ -193,10 +207,12 @@ class ProductPrice extends DataMapper
                         ->setCustomerGroup($customerGroupSW)
                         ->setFrom($quantity)
                         ->setPrice($priceItem->getNetPrice())
+                        ->setBasePrice($purchasePrice)
+                        ->setPseudoPrice($recommendedRetailPrice)
                         ->setDetail($detailSW);
 
                     if ($quantity == 1) {
-                        $priceSW->setPseudoPrice($recommendedRetailPrice);
+                        //$priceSW->setPseudoPrice($recommendedRetailPrice);
                         $firstPriceItem = clone $priceItem;
                     }
 

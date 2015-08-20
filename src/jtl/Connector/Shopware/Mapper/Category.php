@@ -312,21 +312,24 @@ class Category extends DataMapper
             $this->Manager()->persist($attributeSW);
         }
 
-        foreach ($category->getAttributes() as $i => $attribute) {
-            $i++;
-            foreach ($attribute->getI18ns() as $attributeI18n) {
+        $i = 0;
+        foreach ($category->getAttributes() as $attribute) {
+            if (!$attribute->getIsCustomProperty()) {
+                $i++;
+                foreach ($attribute->getI18ns() as $attributeI18n) {
 
-                // Active fix
-                $allowedActiveValues = array('0', '1', 0, 1, false, true);
-                if (strtolower($attributeI18n->getName()) === 'isactive' && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                    $categorySW->setActive((bool) $attributeI18n->getValue());
-                }
+                    // Active fix
+                    $allowedActiveValues = array('0', '1', 0, 1, false, true);
+                    if (strtolower($attributeI18n->getName()) === 'isactive' && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
+                        $categorySW->setActive((bool)$attributeI18n->getValue());
+                    }
 
-                if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                    $setter = "setAttribute{$i}";
+                    if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                        $setter = "setAttribute{$i}";
 
-                    if (method_exists($attributeSW, $setter)) {
-                        $attributeSW->{$setter}($attributeI18n->getValue());
+                        if (method_exists($attributeSW, $setter)) {
+                            $attributeSW->{$setter}($attributeI18n->getValue());
+                        }
                     }
                 }
             }
