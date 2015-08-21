@@ -6,6 +6,7 @@
 - Added base price (purchase price) support
 - Changed pull value handling - stripping whitespaces from the beginning and end of a string
 - Fixed payment price value to gross
+- Fixed loop bug when pulling inconsistent customer orders
 
 1.0.8
 -----

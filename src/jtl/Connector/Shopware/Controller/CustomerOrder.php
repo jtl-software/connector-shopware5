@@ -76,12 +76,6 @@ class CustomerOrder extends DataController
                         $order->setLanguageISO(LanguageUtil::map($localeSW->getLocale()));
                     }
 
-                    if (!is_array($orderSW['details']) || count($orderSW['details']) == 0) {
-                        Logger::write(sprintf('Order (%s) has no items', $orderSW['number']), Logger::WARNING, 'controller');
-
-                        continue;
-                    }
-
                     foreach ($orderSW['details'] as $detailSW) {
                         $orderItem = Mmc::getModel('CustomerOrderItem');
                         $orderItem->map(true, DataConverter::toObject($detailSW, true));
@@ -149,7 +143,6 @@ class CustomerOrder extends DataController
                     // Attributes
                     for ($i = 1; $i <= 6; $i++) {
                         if (isset($orderSW['attribute']["attribute{$i}"]) && strlen($orderSW['attribute']["attribute{$i}"]) > 0) {
-                            $attributeExists = true;
                             $customerOrderAttr = Mmc::getModel('CustomerOrderAttrs');
                             $customerOrderAttr->map(true, DataConverter::toObject($orderSW['attribute']));
                             $customerOrderAttr->setKey("attribute{$i}")
