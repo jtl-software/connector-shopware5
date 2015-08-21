@@ -130,7 +130,11 @@ class Image extends DataMapper
     {
         $result = $image;
 
-        $this->deleteImageData($image);
+        try {
+            $this->deleteImageData($image);
+        } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+        }
 
         return $result;
     }
@@ -141,24 +145,28 @@ class Image extends DataMapper
         $imageSW = null;
         $result = new ImageModel;
 
-        $this->prepareImageAssociatedData($image, $mediaSW, $imageSW);
+        try {
+            $this->prepareImageAssociatedData($image, $mediaSW, $imageSW);
 
-        $this->Manager()->persist($mediaSW);
+            $this->Manager()->persist($mediaSW);
 
-        if ($imageSW !== null) {
-            $this->Manager()->persist($imageSW);
+            if ($imageSW !== null) {
+                $this->Manager()->persist($imageSW);
+            }
+
+            $this->flush();
+
+            $manager = Shopware()->Container()->get('thumbnail_manager');
+            $manager->createMediaThumbnail($mediaSW, array(), true);
+
+            // Result
+            $result->setId(new Identity(ImageConModel::generateId($image->getRelationType(), $imageSW->getId(), $mediaSW->getId()), $image->getId()->getHost()))
+                ->setForeignKey(new Identity($image->getForeignKey()->getEndpoint(), $image->getForeignKey()->getHost()))
+                ->setRelationType($image->getRelationType())
+                ->setFilename(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $mediaSW->getPath()));
+        } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
-
-        $this->flush();
-
-        $manager = Shopware()->Container()->get('thumbnail_manager');
-        $manager->createMediaThumbnail($mediaSW, array(), true);
-
-        // Result
-        $result->setId(new Identity(ImageConModel::generateId($image->getRelationType(), $imageSW->getId(), $mediaSW->getId()), $image->getId()->getHost()))
-            ->setForeignKey(new Identity($image->getForeignKey()->getEndpoint(), $image->getForeignKey()->getHost()))
-            ->setRelationType($image->getRelationType())
-            ->setFilename(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $mediaSW->getPath()));
 
         return $result;
     }

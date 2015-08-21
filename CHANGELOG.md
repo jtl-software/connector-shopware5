@@ -5,6 +5,7 @@
 - Added product minimum quantity support
 - Added base price (purchase price) support
 - Changed pull value handling - stripping whitespaces from the beginning and end of a string
+- Changed image save and delete error handling
 - Fixed payment price value to gross
 - Fixed loop bug when pulling inconsistent customer orders
 - Fixed cross selling save issue
