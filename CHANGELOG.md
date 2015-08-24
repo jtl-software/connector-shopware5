@@ -15,6 +15,7 @@
 - Fixed category moving problem
 - Fixed payment trigger problem
 - Fixed product doctrine delete problem
+- Fixed category meta data problem
 
 1.0.8
 -----

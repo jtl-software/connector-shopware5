@@ -293,8 +293,7 @@ class Category extends DataMapper
                 $categorySW->setName($i18n->getName());
                 $categorySW->setMetaDescription($i18n->getMetaDescription());
                 $categorySW->setMetaKeywords($i18n->getMetaKeywords());
-                //$categorySW->setCmsHeadline($i18n->getTitleTag());
-                //$categorySW->setCmsText($i18n->getDescription());
+                $categorySW->setMetaTitle($i18n->getTitleTag());
 
                 $this->Manager()->persist($categorySW);
                 $this->Manager()->flush();
