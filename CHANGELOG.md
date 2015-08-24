@@ -9,6 +9,7 @@
 - Fixed payment price value to gross
 - Fixed loop bug when pulling inconsistent customer orders
 - Fixed cross selling save issue
+- Fixed category moving problem
 
 1.0.8
 -----

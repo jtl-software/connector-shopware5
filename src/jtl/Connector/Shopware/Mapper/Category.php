@@ -260,7 +260,7 @@ class Category extends DataMapper
 
         if ($categoryId !== null && $categoryId > 0) {
             $categorySW = $this->find($categoryId);
-            if ($categorySW->getLevel() > 0) {
+            if ($categorySW->getLevel() > 0 && $parentId === null) {
                 $parentId = $categorySW->getParent()->getId();
             }
         }
@@ -271,7 +271,7 @@ class Category extends DataMapper
 
         $parentSW = null;
         if ($parentId !== null) {
-            $parentSW = $this->find($parentId);
+            $parentSW = $this->find((int) $parentId);
         } else {
             $parentSW = $this->findOneBy(array('parent' => null));
         }
