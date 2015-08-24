@@ -5,6 +5,7 @@
 - Added product minimum quantity support
 - Added base price (purchase price) support
 - Added base price converting
+- Added customer order status new
 - Changed pull value handling - stripping whitespaces from the beginning and end of a string
 - Changed image save and delete error handling
 - Fixed payment price value to gross
