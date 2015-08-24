@@ -160,6 +160,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                      JOIN s_order o ON o.id = p.customerOrderId
                      SET p.totalSum = o.invoice_amount'
                 );
+                $this->createPaymentTrigger();
                 break;
             default:
                 return false;

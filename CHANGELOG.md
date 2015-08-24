@@ -10,6 +10,7 @@
 - Fixed loop bug when pulling inconsistent customer orders
 - Fixed cross selling save issue
 - Fixed category moving problem
+- Fixed payment trigger problem
 
 1.0.8
 -----
