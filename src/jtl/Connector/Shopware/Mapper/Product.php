@@ -563,8 +563,13 @@ class Product extends DataMapper
         }
 
         // Base Price
-        $detailSW->setReferenceUnit($product->getBasePriceQuantity());
+        $detailSW->setReferenceUnit(0.0);
         $detailSW->setPurchaseUnit($product->getMeasurementQuantity());
+        if ($product->getBasePriceDivisor() > 0 && $product->getMeasurementQuantity() > 0) {
+            $detailSW->setReferenceUnit(($product->getMeasurementQuantity() / $product->getBasePriceDivisor()));
+        }
+        //$detailSW->setReferenceUnit($product->getBasePriceQuantity());
+        //$detailSW->setPurchaseUnit($product->getMeasurementQuantity());
 
         $detailSW->setWeight($product->getProductWeight())
             ->setPurchaseSteps($product->getPackagingQuantity())
@@ -971,56 +976,132 @@ class Product extends DataMapper
     {
         $productId = (strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
 
+        /*
+        Logger::write(sprintf('>>> Product with id (%s, %s), masterProductId (%s, %s), manufacturerId (%s, %s)',
+            $product->getId()->getEndpoint(),
+            $product->getId()->getHost(),
+            $product->getMasterProductId()->getEndpoint(),
+            $product->getMasterProductId()->getHost(),
+            $product->getManufacturerId()->getEndpoint(),
+            $product->getManufacturerId()->getHost()
+        ), Logger::DEBUG, 'database');
+        */
+
         if ($productId !== null) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
             $detailSW = $this->findDetail((int) $detailId);
             if ($detailSW === null) {
                 //throw new DatabaseException(sprintf('Detail (%s) not found', $detailId));
+                Logger::write(sprintf('Detail with id (%s, %s) not found',
+                    $product->getId()->getEndpoint(),
+                    $product->getId()->getHost()
+                ), Logger::ERROR, 'database');
                 return;
             }
 
             $productSW = $this->find((int) $id);
+            $mainDetailId = $productSW->getMainDetail()->getId();
 
             $sql = 'DELETE FROM s_article_configurator_option_relations WHERE article_id = ?';
             Shopware()->Db()->query($sql, array($detailSW->getId()));
 
             if ($this->isChildSW($productSW, $detailSW)) {
-                $this->Manager()->remove($detailSW);
-                $this->Manager()->flush($detailSW);
+                //Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
 
-                if ($productSW !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) {
-                    $mainDetailSW = $this->findDetailBy(array('articleId' => $productSW->getId()));
+                try {
+                    Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
+                    Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
+                    Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
 
-                    if ($mainDetailSW !== null && $mainDetailSW->getKind() != 0) {
-                        $attributeSW = $productSW->getAttribute();
-                        if ($attributeSW === null) {
-                            $attributeSW = new \Shopware\Models\Attribute\Article();
-                            $attributeSW->setArticle($productSW);
-                            $attributeSW->setArticleDetail($mainDetailSW);
+                    if ($mainDetailId == $detailSW->getId()) {
+                        $count = Shopware()->Db()->fetchOne(
+                            'SELECT count(*) FROM s_articles_details WHERE articleID = ?',
+                            array($productSW->getId())
+                        );
 
-                            $this->Manager()->persist($attributeSW);
-                        }
+                        $kindSql = ($count > 1) ? ' AND kind != 0 ' : '';
 
-                        $productSW->setAttribute($attributeSW);
-                        $mainDetailSW->setAttribute($attributeSW);
-                        $productSW->setMainDetail($mainDetailSW);
+                        Shopware()->Db()->query(
+                            'UPDATE s_articles SET main_detail_id = (SELECT id FROM s_articles_details WHERE articleID = ? ' . $kindSql . ' LIMIT 1) WHERE id = ?',
+                            array($productSW->getId(), $productSW->getId())
+                        );
 
-                        $this->Manager()->persist($productSW);
-                        $this->Manager()->flush();
+                        /*
+                        $sql = '
+                            INSERT INTO s_articles_attributes (id, articleID, articledetailsID)
+                              SELECT null, ?, main_detail_id
+                              FROM s_articles
+                              WHERE id = ?
+                        ';
+
+                        Shopware()->Db()->query($sql, array($productSW->getId(), $productSW->getId()));
+                        */
                     }
-                }
 
+                    /*
+                    $this->Manager()->remove($detailSW->getAttribute());
+                    $this->Manager()->remove($detailSW);
+                    $this->Manager()->flush();
+                    */
+
+                    /*
+                    Logger::write(sprintf('>>>> DELETING DETAIL with id (%s, %s)',
+                        $product->getId()->getEndpoint(),
+                        $product->getId()->getHost()
+                    ), Logger::DEBUG, 'database');
+                    */
+
+                    /*
+                    if ($productSW !== null && $mainDetailId == $detailSW->getId()) {
+                        $mainDetailSW = $this->findDetailBy(array('articleId' => $productSW->getId()));
+
+                        if ($mainDetailSW !== null && $mainDetailSW->getKind() != 0) {
+                            $attributeSW = $mainDetailSW->getAttribute();
+                            if ($attributeSW === null) {
+                                $attributeSW = new \Shopware\Models\Attribute\Article();
+                                $attributeSW->setArticle($productSW);
+                                $attributeSW->setArticleDetail($mainDetailSW);
+
+                                $this->Manager()->persist($attributeSW);
+                            }
+
+                            $productSW->setAttribute($attributeSW);
+                            $mainDetailSW->setAttribute($attributeSW);
+                            $productSW->setMainDetail($mainDetailSW);
+
+                            $this->Manager()->persist($productSW);
+                            $this->Manager()->flush();
+                        }
+                    }
+                    */
+                } catch (\Exception $e) {
+                    Logger::write('DETAIL ' . ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                }
             } elseif ($productSW !== null) {
-                $this->deleteTranslationData($productSW);
+                try {
+                    $this->deleteTranslationData($productSW);
 
-                $set = $productSW->getConfiguratorSet();
-                if ($set !== null) {
-                    $this->Manager()->remove($set);
+                    $set = $productSW->getConfiguratorSet();
+                    if ($set !== null) {
+                        $this->Manager()->remove($set);
+                    }
+
+                    Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
+                    Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
+                    Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
+
+                    $this->Manager()->remove($productSW);
+                    $this->Manager()->flush($productSW);
+
+                    /*
+                    Logger::write(sprintf('>>>> DELETING PARENT with id (%s, %s)',
+                        $product->getId()->getEndpoint(),
+                        $product->getId()->getHost()
+                    ), Logger::DEBUG, 'database');
+                    */
+                } catch (\Exception $e) {
+                    Logger::write('PARENT ' . ExceptionFormatter::format($e), Logger::ERROR, 'database');
                 }
-
-                $this->Manager()->remove($detailSW);
-                $this->Manager()->remove($productSW);
-                $this->Manager()->flush();
             }
         }
     }

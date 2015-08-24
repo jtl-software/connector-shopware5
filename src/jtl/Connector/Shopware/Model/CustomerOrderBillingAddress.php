@@ -25,7 +25,7 @@ class CustomerOrderBillingAddress extends CustomerOrderBillingAddressModel
         'company' => 'company',
         'deliveryInstruction' => '',
         'street' => 'street',
-        'extraAddressLine' => 'department',
+        'extraAddressLine' => '',
         'zipCode' => 'zipCode',
         'city' => 'city',
         'state' => '',

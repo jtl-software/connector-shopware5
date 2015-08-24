@@ -124,6 +124,8 @@ class CustomerOrder extends DataController
 
                         $order->getShippingAddress()->setExtraAddressLine($extraAddressLine)
                             ->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']));
+
+                        // @TODO: Firmenzusatz mappen auf department
                     }
 
                     // Adding shipping item

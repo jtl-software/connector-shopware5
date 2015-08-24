@@ -25,7 +25,7 @@ class CustomerOrderShippingAddress extends CustomerOrderShippingAddressModel
         'company' => 'company',
         'deliveryInstruction' => '',
         'street' => 'street',
-        'extraAddressLine' => 'department',
+        'extraAddressLine' => '',
         'zipCode' => 'zipCode',
         'city' => 'city',
         'state' => '',

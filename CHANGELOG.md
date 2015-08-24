@@ -4,6 +4,7 @@
 - Added shipping method mapping
 - Added product minimum quantity support
 - Added base price (purchase price) support
+- Added base price converting
 - Changed pull value handling - stripping whitespaces from the beginning and end of a string
 - Changed image save and delete error handling
 - Fixed payment price value to gross
@@ -11,6 +12,7 @@
 - Fixed cross selling save issue
 - Fixed category moving problem
 - Fixed payment trigger problem
+- Fixed product doctrine delete problem
 
 1.0.8
 -----

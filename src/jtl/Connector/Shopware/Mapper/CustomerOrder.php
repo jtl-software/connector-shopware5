@@ -339,6 +339,8 @@ class CustomerOrder extends DataMapper
             $shippingSW->setOrder($orderSW);
             $shippingSW->setCustomer($orderSW->getCustomer());
 
+            // @TODO: Firmenzusatz mappen auf department
+
             $orderSW->setShipping($shippingSW);
         }
     }
@@ -374,6 +376,8 @@ class CustomerOrder extends DataMapper
 
             $billingSW->setCustomer($orderSW->getCustomer());
             $billingSW->setOrder($orderSW);
+
+            // @TODO: Firmenzusatz mappen auf department
 
             $orderSW->setBilling($billingSW);
         }
