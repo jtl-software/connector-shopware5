@@ -327,6 +327,7 @@ class CustomerOrder extends DataMapper
             }
 
             $shippingSW->setCompany($shippingAddress->getCompany())
+                ->setDepartment($shippingAddress->getDeliveryInstruction())
                 ->setSalutation(Salutation::toEndpoint($shippingAddress->getSalutation()))
                 ->setFirstName($shippingAddress->getFirstName())
                 ->setLastName($shippingAddress->getLastName())
@@ -365,6 +366,7 @@ class CustomerOrder extends DataMapper
             }
 
             $billingSW->setCompany($billingAddress->getCompany())
+                ->setDepartment($billingAddress->getDeliveryInstruction())
                 ->setSalutation(Salutation::toEndpoint($billingAddress->getSalutation()))
                 ->setFirstName($billingAddress->getFirstName())
                 ->setLastName($billingAddress->getLastName())

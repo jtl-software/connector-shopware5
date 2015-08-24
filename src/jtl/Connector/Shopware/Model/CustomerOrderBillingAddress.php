@@ -23,7 +23,7 @@ class CustomerOrderBillingAddress extends CustomerOrderBillingAddressModel
         'lastName' => 'lastName',
         'title' => '',
         'company' => 'company',
-        'deliveryInstruction' => '',
+        'deliveryInstruction' => 'department',
         'street' => 'street',
         'extraAddressLine' => '',
         'zipCode' => 'zipCode',

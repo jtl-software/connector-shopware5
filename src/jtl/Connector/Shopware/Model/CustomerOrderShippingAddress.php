@@ -23,7 +23,7 @@ class CustomerOrderShippingAddress extends CustomerOrderShippingAddressModel
         'lastName' => 'lastName',
         'title' => '',
         'company' => 'company',
-        'deliveryInstruction' => '',
+        'deliveryInstruction' => 'department',
         'street' => 'street',
         'extraAddressLine' => '',
         'zipCode' => 'zipCode',
