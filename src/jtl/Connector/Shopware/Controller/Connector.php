@@ -42,7 +42,6 @@ class Connector extends DataController
                     $value *= 1024;
                 case 'm':
                     $value *= 1024;
-                    break;
                 case 'k':
                     $value *= 1024;
             }
