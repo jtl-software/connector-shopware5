@@ -168,6 +168,8 @@ class Image extends DataMapper
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
 
+        @unlink($image->getFilename());
+
         return $result;
     }
 
@@ -343,7 +345,7 @@ class Image extends DataMapper
             $filename = substr($filename, strlen($filename) - 100, 100);
         }
 
-        $path = realpath(sys_get_temp_dir()) . DIRECTORY_SEPARATOR . $filename;
+        $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $filename;
         if (copy($image->getFilename(), $path)) {
             $file = new File($path);
             $image->setFilename($path);

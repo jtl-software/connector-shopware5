@@ -8,6 +8,7 @@
 - Added customer order status new
 - Added customer / customer order shipping / billing department support
 - Added category description to cms text mapping
+- Added multiple image push support
 - Changed pull value handling - stripping whitespaces from the beginning and end of a string
 - Changed image save and delete error handling
 - Fixed payment price value to gross
