@@ -11,6 +11,7 @@
 - Added multiple image push support
 - Changed pull value handling - stripping whitespaces from the beginning and end of a string
 - Changed image save and delete error handling
+- Changed specific value error tolerance
 - Fixed payment price value to gross
 - Fixed loop bug when pulling inconsistent customer orders
 - Fixed cross selling save issue
