@@ -15,9 +15,9 @@ use \jtl\Connector\Model\MeasurementUnitI18n as MeasurementUnitI18nModel;
 class MeasurementUnitI18n extends MeasurementUnitI18nModel
 {
     protected $fields = array(
-        'measurementUnitId' => '',
+        'measurementUnitId' => 'id',
         'languageISO' => '',
-        'name' => ''
+        'name' => 'name'
     );
     
     /**
