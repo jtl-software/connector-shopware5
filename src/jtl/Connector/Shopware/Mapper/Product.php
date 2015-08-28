@@ -949,6 +949,7 @@ class Product extends DataMapper
         foreach ($product->getMediaFiles() as $mediaFile) {
             $download = new DownloadSW();
             $download->setArticle($productSW)
+                ->setName('')
                 ->setFile($mediaFile->getUrl())
                 ->setSize(0);
 
@@ -1000,6 +1001,14 @@ class Product extends DataMapper
             }
 
             $productSW = $this->find((int) $id);
+            if ($productSW === null) {
+                Logger::write(sprintf('Product with id (%s, %s) not found',
+                    $product->getId()->getEndpoint(),
+                    $product->getId()->getHost()
+                ), Logger::ERROR, 'database');
+                return;
+            }
+
             $mainDetailId = $productSW->getMainDetail()->getId();
 
             $sql = 'DELETE FROM s_article_configurator_option_relations WHERE article_id = ?';
