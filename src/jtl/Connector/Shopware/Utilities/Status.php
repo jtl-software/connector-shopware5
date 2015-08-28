@@ -11,7 +11,7 @@ use \jtl\Connector\Model\CustomerOrder;
 final class Status
 {
     private static $_mappings = array(
-        //CustomerOrder::STATUS_NEW => 0,
+        CustomerOrder::STATUS_NEW => 0,
         //CustomerOrder::STATUS_PROCESSING => 1,
         //CustomerOrder::STATUS_COMPLETED => 2,
         CustomerOrder::STATUS_PARTIALLY_SHIPPED => 6,

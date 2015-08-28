@@ -234,11 +234,11 @@ class Specific extends DataMapper
             }
 
             // Check
-            if ($value === null || in_array($value, $values)) {
+            if ($value === null || in_array(strtolower($value), $values)) {
                 continue;
             }
 
-            $values[] = $value;
+            $values[] = strtolower($value);
 
             if ($valueSW === null && $optionSW->getId() > 0) {
                 $valueSW = $this->findValueBy(array('option' => $optionSW->getId(), 'value' => $value));

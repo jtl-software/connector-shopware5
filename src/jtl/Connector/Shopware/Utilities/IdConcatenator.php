@@ -10,7 +10,7 @@ final class IdConcatenator
 {
     const SEPARATOR = '_';
 
-    private function __construct() { }    
+    private function __construct() { }
     private function __clone() { }
 
     public static function link(array $endpointIds)

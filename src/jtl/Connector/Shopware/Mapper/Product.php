@@ -67,26 +67,26 @@ class Product extends DataMapper
         }
 
         $query = $this->Manager()->createQueryBuilder()->select(
-                'detail',
-                'article',
-                'unit',
-                'tax',
-                'categories',
-                'maindetail',
-                'detailprices',
-                'prices',
-                'links',
-                'attribute',
-                'downloads',
-                'supplier',
-                'pricegroup',
-                'discounts',
-                'customergroups',
-                'configuratorOptions',
-                'propertygroup',
-                'propertyoptions',
-                'propertyvalues'
-            )
+            'detail',
+            'article',
+            'unit',
+            'tax',
+            'categories',
+            'maindetail',
+            'detailprices',
+            'prices',
+            'links',
+            'attribute',
+            'downloads',
+            'supplier',
+            'pricegroup',
+            'discounts',
+            'customergroups',
+            'configuratorOptions',
+            'propertygroup',
+            'propertyoptions',
+            'propertyvalues'
+        )
             ->from('jtl\Connector\Shopware\Model\Linker\Detail', 'detail')
             ->leftJoin('detail.linker', 'linker')
             ->leftJoin('detail.article', 'article')
@@ -95,7 +95,7 @@ class Product extends DataMapper
             ->leftJoin('article.tax', 'tax')
             ->leftJoin('article.categories', 'categories')
             ->leftJoin('article.mainDetail', 'maindetail')
-            ->leftJoin('maindetail.prices', 'prices')            
+            ->leftJoin('maindetail.prices', 'prices')
             ->leftJoin('article.links', 'links')
             ->leftJoin('article.attribute', 'attribute', \Doctrine\ORM\Query\Expr\Join::WITH, 'attribute.articleDetailId = detail.id')
             ->leftJoin('article.downloads', 'downloads')
@@ -206,7 +206,7 @@ class Product extends DataMapper
                 $this->prepareDetailAssociatedData($product, $productSW, $detailSW, true);
                 $this->prepareAttributeAssociatedData($product, $productSW, $detailSW, true);
                 $this->preparePriceAssociatedData($product, $productSW, $detailSW);
-                $this->prepareUnitAssociatedData($product, $productSW, $detailSW);
+                $this->prepareUnitAssociatedData($product, $detailSW);
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
 
                 // First Child
@@ -218,9 +218,9 @@ class Product extends DataMapper
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
                 $this->Manager()->flush();
-                
-                $this->prepareDetailVariationAssociatedData($product, $productSW, $detailSW);
-                
+
+                $this->prepareDetailVariationAssociatedData($product, $detailSW);
+
             } else {
                 $this->prepareProductAssociatedData($product, $productSW, $detailSW);
                 $this->prepareCategoryAssociatedData($product, $productSW);
@@ -230,28 +230,28 @@ class Product extends DataMapper
                 // $this->prepareSpecialPriceAssociatedData($product, $productSW); Can not be fully supported
 
                 //if (!$this->isParent($product)) {
-                    $this->prepareDetailAssociatedData($product, $productSW, $detailSW);
-                    $this->prepareVariationAssociatedData($product, $productSW);
-                    $this->prepareSpecificAssociatedData($product, $productSW, $detailSW);
-                    $this->prepareAttributeAssociatedData($product, $productSW, $detailSW);
-                    $this->preparePriceAssociatedData($product, $productSW, $detailSW);
-                    $this->prepareUnitAssociatedData($product, $productSW, $detailSW);
-                    $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
-                    $this->prepareMediaFileAssociatedData($product, $productSW);
+                $this->prepareDetailAssociatedData($product, $productSW, $detailSW);
+                $this->prepareVariationAssociatedData($product, $productSW);
+                $this->prepareSpecificAssociatedData($product, $productSW, $detailSW);
+                $this->prepareAttributeAssociatedData($product, $productSW, $detailSW);
+                $this->preparePriceAssociatedData($product, $productSW, $detailSW);
+                $this->prepareUnitAssociatedData($product, $detailSW);
+                $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
+                $this->prepareMediaFileAssociatedData($product, $productSW);
 
-                    if (!($detailSW->getId() > 0)) {
-                        $kind = $detailSW->getKind();
-                        $productSW->setMainDetail($detailSW);
-                        $detailSW->setKind($kind);
-                        $productSW->setDetails(array($detailSW));
-                    }
+                if (!($detailSW->getId() > 0)) {
+                    $kind = $detailSW->getKind();
+                    $productSW->setMainDetail($detailSW);
+                    $detailSW->setKind($kind);
+                    $productSW->setDetails(array($detailSW));
+                }
 
-                    /*
-                    $violations = $this->Manager()->validate($productSW);
-                    if ($violations->count() > 0) {
-                        throw new ApiException\ValidationException($violations);
-                    }
-                    */
+                /*
+                $violations = $this->Manager()->validate($productSW);
+                if ($violations->count() > 0) {
+                    throw new ApiException\ValidationException($violations);
+                }
+                */
                 //}
 
                 //$this->prepareVariationAssociatedData($product, $productSW);
@@ -338,7 +338,7 @@ class Product extends DataMapper
         $productSW->setAdded($product->getCreationDate())
             ->setAvailableFrom($product->getAvailableFrom())
             ->setHighlight(intval($product->getIsTopProduct()))
-            ->setActive(true);
+            ->setActive($product->getIsActive());
 
         $inStock = 0;
         if ($product->getConsiderStock()) {
@@ -434,20 +434,20 @@ class Product extends DataMapper
         } else {
             // Work Around - load dummy manufacturer
             $manufacturerSW = $manufacturerMapper->findOneBy(array('name' => '_'));
-            
+
             if ($manufacturerSW === null) {
                 $manufacturerSW = new \Shopware\Models\Article\Supplier();
                 $manufacturerSW->setName('_')
                     ->setLink('');
-                    
+
                 $manufacturerSW->setDescription('');
                 $manufacturerSW->setMetaTitle('');
                 $manufacturerSW->setMetaDescription('');
                 $manufacturerSW->setMetaKeywords('');
-                
+
                 $this->Manager()->persist($manufacturerSW);
             }
-            
+
             $productSW->setSupplier($manufacturerSW);
         }
     }
@@ -494,7 +494,7 @@ class Product extends DataMapper
 
                         continue;
                     }
-                    
+
                     $priceDiscountSW = Shopware()->Models()->getRepository('Shopware\Models\Price\Discount')->findOneBy(array('groupId' => $specialPrice->getProductSpecialPriceId()->getEndpoint()));
                     if ($priceDiscountSW === null) {
                         $priceDiscountSW = new \Shopware\Models\Price\Discount();
@@ -523,7 +523,7 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareDetailAssociatedData(ProductModel $product, ArticleSW $productSW, DetailSW &$detailSW = null, $isChild = false)
+    protected function prepareDetailAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW = null, $isChild = false)
     {
         // Detail
         if ($detailSW === null) {
@@ -535,10 +535,10 @@ class Product extends DataMapper
         $detailSW->setAdditionalText($helper->getAdditionalName());
 
         $kind = ($isChild && $detailSW->getId() > 0 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
-        $active = 1;
+        $active = $product->getIsActive();
         if (!$isChild) {
             $kind = $this->isParent($product) ? 0 : 1;
-            $active = $kind;
+            $active = $this->isParent($product) ? false : $active;
         }
 
         //$kind = $isChild ? 2 : 1;
@@ -549,6 +549,7 @@ class Product extends DataMapper
             ->setStockMin(0)
             ->setWeight($product->getProductWeight())
             ->setInStock($product->getStockLevel()->getStockLevel())
+            ->setStockMin($product->getMinimumQuantity())
             ->setMinPurchase($product->getMinimumOrderQuantity())
             ->setReleaseDate($product->getAvailableFrom())
             ->setEan($product->getEan());
@@ -562,15 +563,20 @@ class Product extends DataMapper
         }
 
         // Base Price
-        $detailSW->setReferenceUnit($product->getBasePriceQuantity());
+        $detailSW->setReferenceUnit(0.0);
         $detailSW->setPurchaseUnit($product->getMeasurementQuantity());
+        if ($product->getBasePriceDivisor() > 0 && $product->getMeasurementQuantity() > 0) {
+            $detailSW->setReferenceUnit(($product->getMeasurementQuantity() / $product->getBasePriceDivisor()));
+        }
+        //$detailSW->setReferenceUnit($product->getBasePriceQuantity());
+        //$detailSW->setPurchaseUnit($product->getMeasurementQuantity());
 
         $detailSW->setWeight($product->getProductWeight())
             ->setPurchaseSteps($product->getPackagingQuantity())
             ->setArticle($productSW);
     }
 
-    protected function prepareDetailVariationAssociatedData(ProductModel &$product, ArticleSW &$productSW, DetailSW &$detailSW)
+    protected function prepareDetailVariationAssociatedData(ProductModel &$product, DetailSW &$detailSW)
     {
         $groupMapper = Mmc::getMapper('ConfiguratorGroup');
         $optionMapper = Mmc::getMapper('ConfiguratorOption');
@@ -624,24 +630,27 @@ class Product extends DataMapper
             $this->Manager()->persist($attributeSW);
         }
 
-        foreach ($product->getAttributes() as $i => $attribute) {
-            $i++;
-            foreach ($attribute->getI18ns() as $attributeI18n) {
-                if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                    //$setter = 'set' . ucfirst($attributeI18n->getName());
-                    $setter = "setAttr{$i}";
+        $i = 0;
+        foreach ($product->getAttributes() as $attribute) {
+            if (!$attribute->getIsCustomProperty()) {
+                $i++;
+                foreach ($attribute->getI18ns() as $attributeI18n) {
+                    if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                        //$setter = 'set' . ucfirst($attributeI18n->getName());
+                        $setter = "setAttr{$i}";
 
-                    // active
-                    if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
-                        if ($isChild) {
-                            $detailSW->setActive((int)$attributeI18n->getValue());
-                        } else {
-                            $productSW->setActive((int)$attributeI18n->getValue());
+                        // active
+                        if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
+                            if ($isChild) {
+                                $detailSW->setActive((int)$attributeI18n->getValue());
+                            } else {
+                                $productSW->setActive((int)$attributeI18n->getValue());
+                            }
                         }
-                    }
 
-                    if (method_exists($attributeSW, $setter)) {
-                        $attributeSW->{$setter}($attributeI18n->getValue());
+                        if (method_exists($attributeSW, $setter)) {
+                            $attributeSW->{$setter}($attributeI18n->getValue());
+                        }
                     }
                 }
             }
@@ -659,7 +668,7 @@ class Product extends DataMapper
                 if ($checksum === null) {
                     return false;
                 }
-                
+
                 return $checksum->hasChanged();
             } else {
                 return true;
@@ -752,9 +761,14 @@ class Product extends DataMapper
             $recommendedRetailPrice = Money::AsNet($recommendedRetailPrice, $product->getVat());
         }
         */
-        $recommendedRetailPrice = $product->getRecommendedRetailPrice();
 
-        $collection = ProductPriceMapper::buildCollection($product->getPrices(), $productSW, $detailSW, $recommendedRetailPrice);
+        $collection = ProductPriceMapper::buildCollection(
+            $product->getPrices(),
+            $productSW,
+            $detailSW,
+            $product->getRecommendedRetailPrice(),
+            $product->getPurchasePrice()
+        );
 
         if (count($collection) > 0) {
             $detailSW->setPrices($collection);
@@ -903,7 +917,7 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareUnitAssociatedData(ProductModel $product, ArticleSW $productSW, DetailSW &$detailSW = null)
+    protected function prepareUnitAssociatedData(ProductModel $product, DetailSW &$detailSW = null)
     {
         if ($product->getUnitId()->getHost() > 0) {
             $unitMapper = Mmc::getMapper('Unit');
@@ -935,6 +949,7 @@ class Product extends DataMapper
         foreach ($product->getMediaFiles() as $mediaFile) {
             $download = new DownloadSW();
             $download->setArticle($productSW)
+                ->setName('')
                 ->setFile($mediaFile->getUrl())
                 ->setSize(0);
 
@@ -962,56 +977,140 @@ class Product extends DataMapper
     {
         $productId = (strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
 
+        /*
+        Logger::write(sprintf('>>> Product with id (%s, %s), masterProductId (%s, %s), manufacturerId (%s, %s)',
+            $product->getId()->getEndpoint(),
+            $product->getId()->getHost(),
+            $product->getMasterProductId()->getEndpoint(),
+            $product->getMasterProductId()->getHost(),
+            $product->getManufacturerId()->getEndpoint(),
+            $product->getManufacturerId()->getHost()
+        ), Logger::DEBUG, 'database');
+        */
+
         if ($productId !== null) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
             $detailSW = $this->findDetail((int) $detailId);
             if ($detailSW === null) {
                 //throw new DatabaseException(sprintf('Detail (%s) not found', $detailId));
+                Logger::write(sprintf('Detail with id (%s, %s) not found',
+                    $product->getId()->getEndpoint(),
+                    $product->getId()->getHost()
+                ), Logger::ERROR, 'database');
                 return;
             }
 
             $productSW = $this->find((int) $id);
+            if ($productSW === null) {
+                Logger::write(sprintf('Product with id (%s, %s) not found',
+                    $product->getId()->getEndpoint(),
+                    $product->getId()->getHost()
+                ), Logger::ERROR, 'database');
+                return;
+            }
+
+            $mainDetailId = $productSW->getMainDetail()->getId();
 
             $sql = 'DELETE FROM s_article_configurator_option_relations WHERE article_id = ?';
             Shopware()->Db()->query($sql, array($detailSW->getId()));
 
             if ($this->isChildSW($productSW, $detailSW)) {
-                $this->Manager()->remove($detailSW);
-                $this->Manager()->flush($detailSW);
+                //Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
 
-                if ($productSW !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) {
-                    $mainDetailSW = $this->findDetailBy(array('articleId' => $productSW->getId()));
+                try {
+                    Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
+                    Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
+                    Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
 
-                    if ($mainDetailSW !== null && $mainDetailSW->getKind() != 0) {
-                        $attributeSW = $productSW->getAttribute();
-                        if ($attributeSW === null) {
-                            $attributeSW = new \Shopware\Models\Attribute\Article();
-                            $attributeSW->setArticle($productSW);
-                            $attributeSW->setArticleDetail($mainDetailSW);
+                    if ($mainDetailId == $detailSW->getId()) {
+                        $count = Shopware()->Db()->fetchOne(
+                            'SELECT count(*) FROM s_articles_details WHERE articleID = ?',
+                            array($productSW->getId())
+                        );
 
-                            $this->Manager()->persist($attributeSW);
-                        }
+                        $kindSql = ($count > 1) ? ' AND kind != 0 ' : '';
 
-                        $productSW->setAttribute($attributeSW);
-                        $mainDetailSW->setAttribute($attributeSW);
-                        $productSW->setMainDetail($mainDetailSW);
+                        Shopware()->Db()->query(
+                            'UPDATE s_articles SET main_detail_id = (SELECT id FROM s_articles_details WHERE articleID = ? ' . $kindSql . ' LIMIT 1) WHERE id = ?',
+                            array($productSW->getId(), $productSW->getId())
+                        );
 
-                        $this->Manager()->persist($productSW);
-                        $this->Manager()->flush();
+                        /*
+                        $sql = '
+                            INSERT INTO s_articles_attributes (id, articleID, articledetailsID)
+                              SELECT null, ?, main_detail_id
+                              FROM s_articles
+                              WHERE id = ?
+                        ';
+
+                        Shopware()->Db()->query($sql, array($productSW->getId(), $productSW->getId()));
+                        */
                     }
-                }
 
+                    /*
+                    $this->Manager()->remove($detailSW->getAttribute());
+                    $this->Manager()->remove($detailSW);
+                    $this->Manager()->flush();
+                    */
+
+                    /*
+                    Logger::write(sprintf('>>>> DELETING DETAIL with id (%s, %s)',
+                        $product->getId()->getEndpoint(),
+                        $product->getId()->getHost()
+                    ), Logger::DEBUG, 'database');
+                    */
+
+                    /*
+                    if ($productSW !== null && $mainDetailId == $detailSW->getId()) {
+                        $mainDetailSW = $this->findDetailBy(array('articleId' => $productSW->getId()));
+
+                        if ($mainDetailSW !== null && $mainDetailSW->getKind() != 0) {
+                            $attributeSW = $mainDetailSW->getAttribute();
+                            if ($attributeSW === null) {
+                                $attributeSW = new \Shopware\Models\Attribute\Article();
+                                $attributeSW->setArticle($productSW);
+                                $attributeSW->setArticleDetail($mainDetailSW);
+
+                                $this->Manager()->persist($attributeSW);
+                            }
+
+                            $productSW->setAttribute($attributeSW);
+                            $mainDetailSW->setAttribute($attributeSW);
+                            $productSW->setMainDetail($mainDetailSW);
+
+                            $this->Manager()->persist($productSW);
+                            $this->Manager()->flush();
+                        }
+                    }
+                    */
+                } catch (\Exception $e) {
+                    Logger::write('DETAIL ' . ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                }
             } elseif ($productSW !== null) {
-                $this->deleteTranslationData($productSW);
+                try {
+                    $this->deleteTranslationData($productSW);
 
-                $set = $productSW->getConfiguratorSet();
-                if ($set !== null) {
-                    $this->Manager()->remove($set);
+                    $set = $productSW->getConfiguratorSet();
+                    if ($set !== null) {
+                        $this->Manager()->remove($set);
+                    }
+
+                    Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
+                    Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
+                    Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
+
+                    $this->Manager()->remove($productSW);
+                    $this->Manager()->flush($productSW);
+
+                    /*
+                    Logger::write(sprintf('>>>> DELETING PARENT with id (%s, %s)',
+                        $product->getId()->getEndpoint(),
+                        $product->getId()->getHost()
+                    ), Logger::DEBUG, 'database');
+                    */
+                } catch (\Exception $e) {
+                    Logger::write('PARENT ' . ExceptionFormatter::format($e), Logger::ERROR, 'database');
                 }
-
-                $this->Manager()->remove($detailSW);
-                $this->Manager()->remove($productSW);
-                $this->Manager()->flush();
             }
         }
     }

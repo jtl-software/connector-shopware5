@@ -19,7 +19,8 @@ class ProductAttr extends ProductAttrModel
     protected $fields = array(
         'id' => 'id',
         'productId' => 'articleId',
-        'isTranslated' => ''
+        'isTranslated' => '',
+        'isCustomProperty' => ''
     );
     
     /**

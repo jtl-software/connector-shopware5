@@ -260,7 +260,7 @@ class Category extends DataMapper
 
         if ($categoryId !== null && $categoryId > 0) {
             $categorySW = $this->find($categoryId);
-            if ($categorySW->getLevel() > 0) {
+            if ($categorySW->getLevel() > 0 && $parentId === null) {
                 $parentId = $categorySW->getParent()->getId();
             }
         }
@@ -271,7 +271,7 @@ class Category extends DataMapper
 
         $parentSW = null;
         if ($parentId !== null) {
-            $parentSW = $this->find($parentId);
+            $parentSW = $this->find((int) $parentId);
         } else {
             $parentSW = $this->findOneBy(array('parent' => null));
         }
@@ -293,8 +293,8 @@ class Category extends DataMapper
                 $categorySW->setName($i18n->getName());
                 $categorySW->setMetaDescription($i18n->getMetaDescription());
                 $categorySW->setMetaKeywords($i18n->getMetaKeywords());
-                //$categorySW->setCmsHeadline($i18n->getTitleTag());
-                //$categorySW->setCmsText($i18n->getDescription());
+                $categorySW->setMetaTitle($i18n->getTitleTag());
+                $categorySW->setCmsText($i18n->getDescription());
 
                 $this->Manager()->persist($categorySW);
                 $this->Manager()->flush();
@@ -312,21 +312,24 @@ class Category extends DataMapper
             $this->Manager()->persist($attributeSW);
         }
 
-        foreach ($category->getAttributes() as $i => $attribute) {
-            $i++;
-            foreach ($attribute->getI18ns() as $attributeI18n) {
+        $i = 0;
+        foreach ($category->getAttributes() as $attribute) {
+            if (!$attribute->getIsCustomProperty()) {
+                $i++;
+                foreach ($attribute->getI18ns() as $attributeI18n) {
 
-                // Active fix
-                $allowedActiveValues = array('0', '1', 0, 1, false, true);
-                if (strtolower($attributeI18n->getName()) === 'isactive' && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                    $categorySW->setActive((bool) $attributeI18n->getValue());
-                }
+                    // Active fix
+                    $allowedActiveValues = array('0', '1', 0, 1, false, true);
+                    if (strtolower($attributeI18n->getName()) === 'isactive' && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
+                        $categorySW->setActive((bool)$attributeI18n->getValue());
+                    }
 
-                if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                    $setter = "setAttribute{$i}";
+                    if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                        $setter = "setAttribute{$i}";
 
-                    if (method_exists($attributeSW, $setter)) {
-                        $attributeSW->{$setter}($attributeI18n->getValue());
+                        if (method_exists($attributeSW, $setter)) {
+                            $attributeSW->{$setter}($attributeI18n->getValue());
+                        }
                     }
                 }
             }

@@ -63,7 +63,7 @@ class CustomerOrder extends DataMapper
             ->leftJoin('customer_shipping.attribute', 'customer_shipping_attribute')
             ->leftJoin('customer.debit', 'debit')
             ->leftJoin('orders.attribute', 'attribute')
-            ->leftJoin('orders.details', 'details')
+            ->join('orders.details', 'details')
             ->leftJoin('details.tax', 'tax')
             ->leftJoin('orders.billing', 'billing')
             ->leftJoin('orders.shipping', 'shipping')
@@ -327,6 +327,7 @@ class CustomerOrder extends DataMapper
             }
 
             $shippingSW->setCompany($shippingAddress->getCompany())
+                ->setDepartment($shippingAddress->getDeliveryInstruction())
                 ->setSalutation(Salutation::toEndpoint($shippingAddress->getSalutation()))
                 ->setFirstName($shippingAddress->getFirstName())
                 ->setLastName($shippingAddress->getLastName())
@@ -363,6 +364,7 @@ class CustomerOrder extends DataMapper
             }
 
             $billingSW->setCompany($billingAddress->getCompany())
+                ->setDepartment($billingAddress->getDeliveryInstruction())
                 ->setSalutation(Salutation::toEndpoint($billingAddress->getSalutation()))
                 ->setFirstName($billingAddress->getFirstName())
                 ->setLastName($billingAddress->getLastName())

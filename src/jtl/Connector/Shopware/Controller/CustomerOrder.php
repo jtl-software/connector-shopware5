@@ -76,12 +76,6 @@ class CustomerOrder extends DataController
                         $order->setLanguageISO(LanguageUtil::map($localeSW->getLocale()));
                     }
 
-                    if (!is_array($orderSW['details']) || count($orderSW['details']) == 0) {
-                        Logger::write(sprintf('Order (%s) has no items', $orderSW['number']), Logger::WARNING, 'controller');
-
-                        continue;
-                    }
-
                     foreach ($orderSW['details'] as $detailSW) {
                         $orderItem = Mmc::getModel('CustomerOrderItem');
                         $orderItem->map(true, DataConverter::toObject($detailSW, true));
@@ -111,20 +105,24 @@ class CustomerOrder extends DataController
 
                     if ($order->getShippingAddress() !== null) {
 
-                        $street = $order->getShippingAddress()->getStreet();
-
                         // DHL Packstation
-                        $dhlProperties = array(
-                            'Postnummer' => 'swagDhlPostnumber',
-                            'Packstation' => 'swagDhlPackstation',
-                            'Postoffice' => 'swagDhlPostoffice'
+                        $dhlPropertyInfos = array(
+                            array('name' => 'Postnummer', 'prop' => 'swagDhlPostnumber', 'serialized' => false),
+                            array('name' => 'Packstation', 'prop' => 'swagDhlPackstation', 'serialized' => true),
+                            array('name' => 'Postoffice', 'prop' => 'swagDhlPostoffice', 'serialized' => true)
                         );
 
-                        foreach ($dhlProperties as $typeInfo => $dhlProperty) {
-                            $this->addDHLInfo($orderSW, $street, $dhlProperty, $typeInfo);
+                        $dhlInfos = array();
+                        foreach ($dhlPropertyInfos as $dhlPropertyInfo) {
+                            $this->addDHLInfo($orderSW, $dhlInfos, $dhlPropertyInfo);
                         }
 
-                        $order->getShippingAddress()->setStreet($street)
+                        $extraAddressLine = $order->getShippingAddress()->getExtraAddressLine();
+                        if (count($dhlInfos) > 0) {
+                            $extraAddressLine .= sprintf(' (%s)', implode(' - ', $dhlInfos));
+                        }
+
+                        $order->getShippingAddress()->setExtraAddressLine($extraAddressLine)
                             ->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']));
                     }
 
@@ -145,7 +143,6 @@ class CustomerOrder extends DataController
                     // Attributes
                     for ($i = 1; $i <= 6; $i++) {
                         if (isset($orderSW['attribute']["attribute{$i}"]) && strlen($orderSW['attribute']["attribute{$i}"]) > 0) {
-                            $attributeExists = true;
                             $customerOrderAttr = Mmc::getModel('CustomerOrderAttrs');
                             $customerOrderAttr->map(true, DataConverter::toObject($orderSW['attribute']));
                             $customerOrderAttr->setKey("attribute{$i}")
@@ -186,16 +183,30 @@ class CustomerOrder extends DataController
      * Add it or our street information
      *
      * @param array $orderSW
-     * @param string $street
-     * @param string $dhlInfoProperty
-     * @param string $dhlTypeInfo
+     * @param array $dhlInfo
+     * @param array $dhlInfoPropertyInfo
      */
-    public function addDHLInfo(array $orderSW, &$street, $dhlInfoProperty, $dhlTypeInfo = '')
+    public function addDHLInfo(array $orderSW, array &$dhlInfos, array $dhlInfoPropertyInfo)
     {
-        if (isset($orderSW['customer']['shipping']['attribute'][$dhlInfoProperty])
-            && $orderSW['customer']['shipping']['attribute'][$dhlInfoProperty] !== null
-            && strlen($orderSW['customer']['shipping']['attribute'][$dhlInfoProperty]) > 0) {
-            $street .= sprintf(' %s: %s', $dhlTypeInfo, $orderSW['customer']['shipping']['attribute'][$dhlInfoProperty]);
+        $property = $dhlInfoPropertyInfo['prop'];
+        $name = $dhlInfoPropertyInfo['name'];
+
+        if (isset($orderSW['customer']['shipping']['attribute'][$property])
+            && $orderSW['customer']['shipping']['attribute'][$property] !== null
+            && strlen($orderSW['customer']['shipping']['attribute'][$property]) > 0) {
+
+            if ($dhlInfoPropertyInfo['serialized']) {
+                $obj = @unserialize($orderSW['customer']['shipping']['attribute'][$property]);
+                if ($obj !== false) {
+                    $number = isset($obj->officeNumber) ? $obj->officeNumber : $obj->stationNumber;
+                    if (strlen(trim($obj->zip)) > 0 && strlen(trim($obj->city)) > 0) {
+                        $value = sprintf('%s %s, %s', $obj->zip, $obj->city, $number);
+                        $dhlInfos[] = sprintf('%s: %s', $name, $value);
+                    }
+                }
+            } else {
+                $dhlInfos[] = sprintf('%s: %s', $name, $orderSW['customer']['shipping']['attribute'][$property]);
+            }
         }
     }
 

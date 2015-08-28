@@ -124,6 +124,7 @@ class Product extends DataController
 
         // ProductPrice
         $recommendedRetailPrice = 0.0;
+        $purchasePrice = 0.0;
         $customerGroupCache = null;
         $productPriceId = new Identity(IdConcatenator::link(array($product->getId()->getEndpoint(), 0)));
         $productPrice = Mmc::getModel('ProductPrice');
@@ -165,6 +166,7 @@ class Product extends DataController
             // Search default product price
             if ($customerGroup->getId() == Shopware()->Shop()->getCustomerGroup()->getId() && (int) $data['prices'][$i]['from'] == 1) {
                 $recommendedRetailPrice = $data['prices'][$i]['pseudoPrice'];
+                $purchasePrice = $data['prices'][$i]['basePrice'];
                 $defaultPrice = clone $productPrice;
                 $defaultPrice->setCustomerGroupId(new Identity('0', 0))
                     ->setCustomerId(new Identity('0', 0));
@@ -181,7 +183,8 @@ class Product extends DataController
         // add default price
         if ($defaultPrice !== null) {
             $product->addPrice($defaultPrice)
-                ->setRecommendedRetailPrice($recommendedRetailPrice);
+                ->setRecommendedRetailPrice($recommendedRetailPrice)
+                ->setPurchasePrice($purchasePrice);
         } else {
             Logger::write(sprintf('Could not find any default price for product (%s, %s)', 
                 $product->getId()->getEndpoint(),

@@ -120,7 +120,8 @@ class GlobalData extends DataController
             $translationUtil = new TranslationUtil();
             $translations = array();
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['locale']['id'], 'config_units');
+                //$translation = $translationUtil->read($shop['locale']['id'], 'config_units');
+                $translation = $translationUtil->read($shop['id'], 'config_units'); // Shopware Bug? Shop id for objectlanguage instead of locale id
                 if (!empty($translation)) {
                     $translations[$shop['locale']['locale']] = $translation;
                 }
@@ -129,6 +130,12 @@ class GlobalData extends DataController
             foreach ($measurementUnitSWs as $measurementUnitSW) {
                 $measurementUnit = Mmc::getModel('MeasurementUnit');
                 $measurementUnit->map(true, DataConverter::toObject($measurementUnitSW, true));
+
+                $measurementUnitI18n = Mmc::getModel('MeasurementUnitI18n');
+                $measurementUnitI18n->map(true, DataConverter::toObject($measurementUnitSW, true));
+                $measurementUnitI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()));
+
+                $measurementUnit->addI18n($measurementUnitI18n);
 
                 if (count($translations) > 0) {
                     foreach ($translations as $localeName => $translation) {
@@ -166,7 +173,16 @@ class GlobalData extends DataController
                 $globalData->addTaxRate($tax);
             }
 
-            // ShippingClasss
+            // Shipping
+            $mapper = Mmc::getMapper('Shipping');
+            $shippingMethodSWs = $mapper->findAll($limit);
+
+            foreach ($shippingMethodSWs as $shippingMethodSW) {
+                $shippingMethod = Mmc::getModel('ShippingMethod');
+                $shippingMethod->map(true, DataConverter::toObject($shippingMethodSW, true));
+
+                $globalData->addShippingMethod($shippingMethod);
+            }
             
             $result[] = $globalData;
 

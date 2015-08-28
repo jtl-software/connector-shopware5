@@ -1,5 +1,6 @@
 build/**
 dist/**
+viewer/**
 composer.lock
 composer
 vendor/**

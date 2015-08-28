@@ -6,6 +6,8 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Model\CrossSelling as CrossSellingModel;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
@@ -80,11 +82,24 @@ class CrossSelling extends DataMapper
                             $sProductId,
                             $dProductId
                         );
+
+                        try {
+                            Shopware()->Db()->delete(
+                                's_articles_relationships',
+                                array('articleID = ?' => $sProductId, 'relatedarticle = ?' => $dProductId)
+                            );
+                        } catch (\Exception $e) {
+                            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                        }
                     }
                 }
 
                 if ($isValid) {
-                    Shopware()->Db()->query($sql);
+                    try {
+                        Shopware()->Db()->query($sql);
+                    } catch (\Exception $e) {
+                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                    }
                 }
             }
         }

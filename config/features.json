@@ -455,6 +455,7 @@
         "variation_combinations_supported": true,
         "set_articles_supported": false,
         "needs_finish_call": false,
-        "free_field_supported": false
+        "free_field_supported": false,
+        "needs_category_root": true
     }
 }

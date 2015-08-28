@@ -32,6 +32,7 @@ class Product extends ProductModel
         'shippingWeight' => '',
         'isNewProduct' => '',
         'recommendedRetailPrice' => '',
+        'purchasePrice' => '',
         'considerStock' => '',
         'permitNegativeStock' => '',
         'considerVariationStock' => '',
@@ -74,7 +75,9 @@ class Product extends ProductModel
         'height' => 'height',
         'width' => 'width',
         'isActive' => 'active',
-        'supplierDeliveryTime' => 'shippingTime'
+        'supplierDeliveryTime' => 'shippingTime',
+        'minBestBeforeDate' => '',
+        'minimumQuantity' => 'stockMin'
     );
     
     /**

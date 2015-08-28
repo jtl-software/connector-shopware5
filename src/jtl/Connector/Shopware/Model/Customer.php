@@ -26,7 +26,7 @@ class Customer extends CustomerModel
         'lastName' => array('billing', 'lastName'),
         'company' => array('billing', 'company'),
         'street' => array('billing', 'street'),
-        'deliveryInstruction' => '',
+        'deliveryInstruction' => array('billing', 'department'),
         'extraAddressLine' => '',
         'zipCode' => array('billing', 'zipCode'),
         'city' => array('billing', 'city'),

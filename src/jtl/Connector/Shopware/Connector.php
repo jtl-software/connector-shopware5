@@ -137,9 +137,12 @@ class Connector extends BaseConnector
         $this->controller->setMethod($this->getMethod());
 
         if ($this->action === Method::ACTION_PUSH || $this->action === Method::ACTION_DELETE) {
+            /*
+             * OLD single Image
             if ($this->action === Method::ACTION_PUSH && $this->getMethod()->getController() === 'image') {
                 return $this->controller->{$this->action}($requestpacket->getParams());
             }
+            */
 
             // Product Price work around
             if ($this->getMethod()->getController() === 'product_price') {

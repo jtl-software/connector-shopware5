@@ -74,15 +74,15 @@ abstract class DataModel
                     switch ($propertyInfo->getType()) {
                         case 'integer':
                         case 'int':
-                            return (int)$value;
+                            return (int) $value;
                         case 'float':
                         case 'double':
-                            return (float)$value;
+                            return (float) $value;
                         case 'string':
-                            return (string)$value;
+                            return trim((string) $value);
                         case 'boolean':
                         case 'bool':
-                            return (bool)$value;
+                            return (bool) $value;
                     }
                 }
             }
