@@ -1,3 +1,7 @@
+1.1.10
+-----
+- Added floating point values support for php ini configurations
+
 1.0.9
 -----
 - Added product activity support

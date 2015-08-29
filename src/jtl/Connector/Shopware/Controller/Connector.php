@@ -46,7 +46,7 @@ class Connector extends DataController
                     $value *= 1024;
             }
 
-            return $value;
+            return (int) $value;
         };
 
         $serverInfo = new ConnectorServerInfo();
