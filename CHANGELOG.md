@@ -1,6 +1,7 @@
-1.1.10
+1.0.10
 -----
 - Added floating point values support for php ini configurations
+- Changed identify serverinfo byte values to megabyte
 
 1.0.9
 -----
