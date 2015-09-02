@@ -40,8 +40,6 @@ class Product extends DataController
         try {
             $result = array();
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
-
-            $fetchChildren = ($queryFilter->isFilter(QueryFilter::FILTER_FETCH_CHILDREN) && $queryFilter->isFilter(QueryFilter::FILTER_PARENT_ID));
             $mapper = Mmc::getMapper('Product');
 
             $products = $mapper->findAll($limit);
