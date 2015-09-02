@@ -26,7 +26,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.0.9';
+        return '1.0.10';
     }
 
     public function getInfo()
@@ -161,6 +161,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                      SET p.totalSum = o.invoice_amount'
                 );
                 $this->createPaymentTrigger();
+                break;
+            case '1.0.9':
                 break;
             default:
                 return false;
