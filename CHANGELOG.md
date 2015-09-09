@@ -1,5 +1,11 @@
+1.0.11
+------
+- Added more payment mapping codes
+- Added payment name fallback
+- Changed error handling
+
 1.0.10
------
+------
 - Added floating point values support for php ini configurations
 - Changed identify serverinfo byte values to megabyte
 

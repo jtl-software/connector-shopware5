@@ -23,8 +23,8 @@ class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Acti
             } else {
                 include_once(CONNECTOR_DIR . '/src/bootstrap.php');
             }
-        } catch (\Exception $exc) {
-            exception_handler($exc);
+        } catch (\Exception $e) {
+
         }
     }
 }

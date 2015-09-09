@@ -58,7 +58,7 @@
                 <include name="**/**" />
             </fileset>
             <metadata>
-                <element name="version" value="1.0.9" />
+                <element name="version" value="1.0.11" />
                 <element name="authors">
                     <element name="Daniel Böhmer">
                         <element name="email" value="daniel.boehmer@jtl-software.com" />
@@ -72,7 +72,7 @@
             <include name="Frontend/**" />
         </fileset>
 
-        <zip destfile="./dist/jtl-connector-shopware5-1.0.9.zip">
+        <zip destfile="./dist/jtl-connector-shopware5-1.0.11.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>

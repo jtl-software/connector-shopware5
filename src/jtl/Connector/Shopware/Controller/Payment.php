@@ -44,7 +44,9 @@ class Payment extends DataController
 
                 if ($orderSW !== null) {
                     if ($orderSW->getPayment() !== null) {
-                        $payment->setPaymentModuleCode(PaymentUtil::map(null, strtolower($orderSW->getPayment()->getName())));
+                        $paymentModuleCode = PaymentUtil::map(null, strtolower($orderSW->getPayment()->getName()));
+                        $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : strtolower($orderSW->getPayment()->getName());
+                        $payment->setPaymentModuleCode($paymentModuleCode);
                     }
 
                     $result[] = $payment;
