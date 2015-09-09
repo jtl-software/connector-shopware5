@@ -1,3 +1,7 @@
+1.0.12
+------
+- Changed price value restriction
+
 1.0.11
 ------
 - Added more payment mapping codes

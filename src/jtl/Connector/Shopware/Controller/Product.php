@@ -163,8 +163,8 @@ class Product extends DataController
 
             // Search default product price
             if ($customerGroup->getId() == Shopware()->Shop()->getCustomerGroup()->getId() && (int) $data['prices'][$i]['from'] == 1) {
-                $recommendedRetailPrice = $data['prices'][$i]['pseudoPrice'];
-                $purchasePrice = $data['prices'][$i]['basePrice'];
+                $recommendedRetailPrice = (double) $data['prices'][$i]['pseudoPrice'];
+                $purchasePrice = (double) $data['prices'][$i]['basePrice'];
                 $defaultPrice = clone $productPrice;
                 $defaultPrice->setCustomerGroupId(new Identity('0', 0))
                     ->setCustomerId(new Identity('0', 0));
