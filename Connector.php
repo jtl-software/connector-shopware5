@@ -13,6 +13,8 @@ class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Acti
         session_destroy();
         define('CONNECTOR_DIR', __DIR__);
 
+        $application = null;
+
         try {
             if (file_exists(CONNECTOR_DIR . '/connector.phar')) {
                 if (is_writable(sys_get_temp_dir())) {
@@ -24,7 +26,10 @@ class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Acti
                 include_once(CONNECTOR_DIR . '/src/bootstrap.php');
             }
         } catch (\Exception $e) {
-
+            if (is_object($application)) {
+                $handler = $application->getErrorHandler()->getExceptionHandler();
+                $handler($e);
+            }
         }
     }
 }

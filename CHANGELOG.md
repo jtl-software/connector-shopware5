@@ -1,6 +1,7 @@
 1.0.12
 ------
 - Changed price value restriction
+- Added global exception handler
 
 1.0.11
 ------
