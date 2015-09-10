@@ -416,6 +416,26 @@ class Product extends DataController
                 $product->addMediaFile($productMediaFile);
             }
         }
+
+        // Links
+        if (!$isDetail) {
+            foreach ($data['links'] as $i=> $linkSW) {
+                $productMediaFile = Mmc::getModel('ProductMediaFile');
+                $productMediaFile->map(true, DataConverter::toObject($linkSW));
+                $productMediaFile->setProductId($product->getId())
+                    ->setUrl($linkSW['link'])
+                    ->setSort($i)
+                    ->setType('.*');
+
+                $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
+                $productMediaFileI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                    ->setName($linkSW['name']);
+
+                $productMediaFile->addI18n($productMediaFileI18n);
+
+                $product->addMediaFile($productMediaFile);
+            }
+        }
         
         return $product;
     }

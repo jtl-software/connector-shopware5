@@ -2,6 +2,7 @@
 ------
 - Changed price value restriction
 - Added global exception handler
+- Added shopware link support
 
 1.0.11
 ------
