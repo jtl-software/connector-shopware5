@@ -3,6 +3,7 @@
 - Changed price value restriction
 - Added global exception handler
 - Added shopware link support
+- Added customer order tax free support 
 
 1.0.11
 ------

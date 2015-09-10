@@ -80,6 +80,11 @@ class CustomerOrder extends DataController
                         $orderItem = Mmc::getModel('CustomerOrderItem');
                         $orderItem->map(true, DataConverter::toObject($detailSW, true));
 
+                        // Tax Free
+                        if ((int) $orderSW['taxFree'] == 1) {
+                            $orderItem->setVat(0.0);
+                        }
+
                         $detail = $productMapper->findDetailBy(array('number' => $detailSW['articleNumber']));
                         if ($detail !== null) {
                             //throw new \Exception(sprintf('Cannot find detail with number (%s)', $detailSW['articleNumber']));
