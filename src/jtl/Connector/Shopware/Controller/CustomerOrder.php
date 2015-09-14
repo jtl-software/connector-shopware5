@@ -148,7 +148,7 @@ class CustomerOrder extends DataController
                     // Attributes
                     for ($i = 1; $i <= 6; $i++) {
                         if (isset($orderSW['attribute']["attribute{$i}"]) && strlen($orderSW['attribute']["attribute{$i}"]) > 0) {
-                            $customerOrderAttr = Mmc::getModel('CustomerOrderAttrs');
+                            $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
                             $customerOrderAttr->map(true, DataConverter::toObject($orderSW['attribute']));
                             $customerOrderAttr->setKey("attribute{$i}")
                                 ->setValue($orderSW['attribute']["attribute{$i}"]);

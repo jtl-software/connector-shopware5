@@ -1,6 +1,7 @@
 1.0.12
 ------
 - Fixed product attribute date type problem
+- Fixed syntax error in customer order controller
 - Changed price value restriction
 - Changed category cms function management behavior
 - Added global exception handler
