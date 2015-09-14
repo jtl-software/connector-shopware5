@@ -1,5 +1,6 @@
 1.0.12
 ------
+- Fixed product attribute date type problem
 - Changed price value restriction
 - Added global exception handler
 - Added shopware link support
