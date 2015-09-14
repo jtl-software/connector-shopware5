@@ -2,6 +2,7 @@
 ------
 - Fixed product attribute date type problem
 - Changed price value restriction
+- Changed category cms function management behavior
 - Added global exception handler
 - Added shopware link support
 - Added customer order tax free support

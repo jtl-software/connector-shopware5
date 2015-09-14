@@ -14,6 +14,9 @@ use \jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
  */
 class CategoryAttr extends CategoryAttrModel
 {
+    const IS_ACTIVE = 'isActive';
+    const CMS_HEADLINE = 'cmsHeadline';
+
     protected $fields = array(
         'id' => 'id',
         'categoryId' => 'categoryId',
