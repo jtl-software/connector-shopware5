@@ -33,7 +33,8 @@ class CustomerOrderBillingAddress extends CustomerOrderBillingAddressModel
         'phone' => 'phone',
         'mobile' => '',
         'fax' => 'fax',
-        'eMail' => ''
+        'eMail' => '',
+        'vatNumber' => 'vatId'
     );
     
     /**

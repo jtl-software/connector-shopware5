@@ -5,6 +5,7 @@
 - Added shopware link support
 - Added customer order tax free support
 - Added specific ci encoding support
+- Added customer order vat number support
 
 1.0.11
 ------

@@ -186,7 +186,6 @@ class Product extends DataMapper
         //$result = new ProductModel();
         $result = $product;
 
-        /*
         Logger::write(sprintf('>>> Product with id (%s, %s), masterProductId (%s, %s), manufacturerId (%s, %s)',
             $product->getId()->getEndpoint(),
             $product->getId()->getHost(),
@@ -195,7 +194,6 @@ class Product extends DataMapper
             $product->getManufacturerId()->getEndpoint(),
             $product->getManufacturerId()->getHost()
         ), Logger::DEBUG, 'database');
-        */
 
         try {
             if ($this->isChild($product)) {
