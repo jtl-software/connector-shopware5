@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Shopware\Model\CategoryAttr;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Model\Category as CategoryModel;
 use \jtl\Connector\Model\Identity;
@@ -320,7 +321,8 @@ class Category extends DataMapper
 
                     // Active fix
                     $allowedActiveValues = array('0', '1', 0, 1, false, true);
-                    if (strtolower($attributeI18n->getName()) === 'isactive' && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
+                    if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::IS_ACTIVE)
+                        && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
                         $categorySW->setActive((bool)$attributeI18n->getValue());
                     }
 
@@ -329,6 +331,11 @@ class Category extends DataMapper
 
                         if (method_exists($attributeSW, $setter)) {
                             $attributeSW->{$setter}($attributeI18n->getValue());
+                        }
+
+                        // Cms Headline
+                        if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::CMS_HEADLINE)) {
+                            $categorySW->setCmsHeadline($attributeI18n->getValue());
                         }
                     }
                 }

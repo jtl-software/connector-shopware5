@@ -163,8 +163,8 @@ class Product extends DataController
 
             // Search default product price
             if ($customerGroup->getId() == Shopware()->Shop()->getCustomerGroup()->getId() && (int) $data['prices'][$i]['from'] == 1) {
-                $recommendedRetailPrice = $data['prices'][$i]['pseudoPrice'];
-                $purchasePrice = $data['prices'][$i]['basePrice'];
+                $recommendedRetailPrice = (double) $data['prices'][$i]['pseudoPrice'];
+                $purchasePrice = (double) $data['prices'][$i]['basePrice'];
                 $defaultPrice = clone $productPrice;
                 $defaultPrice->setCustomerGroupId(new Identity('0', 0))
                     ->setCustomerId(new Identity('0', 0));
@@ -410,6 +410,26 @@ class Product extends DataController
                 $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
                 $productMediaFileI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($downloadSW['name']);
+
+                $productMediaFile->addI18n($productMediaFileI18n);
+
+                $product->addMediaFile($productMediaFile);
+            }
+        }
+
+        // Links
+        if (!$isDetail) {
+            foreach ($data['links'] as $i=> $linkSW) {
+                $productMediaFile = Mmc::getModel('ProductMediaFile');
+                $productMediaFile->map(true, DataConverter::toObject($linkSW));
+                $productMediaFile->setProductId($product->getId())
+                    ->setUrl($linkSW['link'])
+                    ->setSort($i)
+                    ->setType('.*');
+
+                $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
+                $productMediaFileI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                    ->setName($linkSW['name']);
 
                 $productMediaFile->addI18n($productMediaFileI18n);
 

@@ -1,3 +1,15 @@
+1.0.12
+------
+- Fixed product attribute date type problem
+- Fixed syntax error in customer order controller
+- Changed price value restriction
+- Changed category cms function management behavior
+- Added global exception handler
+- Added shopware link support
+- Added customer order tax free support
+- Added specific ci encoding support
+- Added customer order vat number support
+
 1.0.11
 ------
 - Added more payment mapping codes

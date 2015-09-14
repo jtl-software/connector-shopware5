@@ -21,6 +21,7 @@ use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use \Shopware\Models\Article\Detail as DetailSW;
 use \Shopware\Models\Article\Article as ArticleSW;
 use \Shopware\Models\Article\Download as DownloadSW;
+use \Shopware\Models\Article\Link as LinkSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use \jtl\Connector\Shopware\Model\Helper\ProductNameHelper;
@@ -636,7 +637,12 @@ class Product extends DataMapper
                 $i++;
                 foreach ($attribute->getI18ns() as $attributeI18n) {
                     if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                        //$setter = 'set' . ucfirst($attributeI18n->getName());
+
+                        // Work Around, thx @db structure
+                        if ($i == 17) {
+                            $i++;
+                        }
+
                         $setter = "setAttr{$i}";
 
                         // active
@@ -945,26 +951,37 @@ class Product extends DataMapper
 
     protected function prepareMediaFileAssociatedData(ProductModel $product, ArticleSW &$productSW)
     {
-        $collection = array();
-        foreach ($product->getMediaFiles() as $mediaFile) {
-            $download = new DownloadSW();
-            $download->setArticle($productSW)
-                ->setName('')
-                ->setFile($mediaFile->getUrl())
-                ->setSize(0);
+        $linkCollection = array();
+        $downloadCollection = array();
 
+        foreach ($product->getMediaFiles() as $mediaFile) {
+            $name = '';
             foreach ($mediaFile->getI18ns() as $i18n) {
                 if ($i18n->getLanguageIso() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                    $download->setName($i18n->getName());
+                    $name = $i18n->getName();
                 }
             }
 
-            $this->Manager()->persist($download);
+            if (preg_match('/^http|ftp{1}/i', $mediaFile->getUrl())) {
+                $linkSW = new LinkSW();
+                $linkSW->setLink($mediaFile->getUrl())
+                    ->setName($name);
 
-            $collection[] = $download;
+                $this->Manager()->persist($linkSW);
+                $linkCollection[] = $linkSW;
+            } else {
+                $downloadSW = new DownloadSW();
+                $downloadSW->setFile($mediaFile->getUrl())
+                    ->setSize(0)
+                    ->setName($name);
+
+                $this->Manager()->persist($downloadSW);
+                $downloadCollection[] = $downloadSW;
+            }
         }
 
-        $productSW->setDownloads($collection);
+        $productSW->setLinks($linkCollection);
+        $productSW->setDownloads($downloadCollection);
     }
 
     protected function deleteTranslationData(ArticleSW $productSW)

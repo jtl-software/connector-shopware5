@@ -37,6 +37,8 @@ class Manufacturer extends DataMapper
             ->leftJoin('supplier.linker', 'linker')
             ->leftJoin('supplier.attribute', 'attribute')
             ->where('linker.hostId IS NULL')
+            ->andWhere('supplier.name != :name')
+            ->setParameter('name', '_')
             ->setFirstResult(0)
             ->setMaxResults($limit)
             //->getQuery();
@@ -54,6 +56,14 @@ class Manufacturer extends DataMapper
     public function fetchCount($limit = 100)
     {
         return $this->findAll($limit, true);
+    }
+
+    public function deleteSuperfluous()
+    {
+        return Shopware()->Db()->query('DELETE s
+                                        FROM s_articles_supplier s
+                                        LEFT JOIN s_articles a ON a.supplierID = s.id
+                                        WHERE a.id IS NULL');
     }
 
     public function delete(ManufacturerModel $manufacturer)
