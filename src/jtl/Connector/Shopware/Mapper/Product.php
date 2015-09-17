@@ -1026,7 +1026,10 @@ class Product extends DataMapper
                 return;
             }
 
-            $mainDetailId = $productSW->getMainDetail()->getId();
+            $mainDetailId = Shopware()->Db()->fetchOne(
+                'SELECT main_detail_id FROM s_articles WHERE id = ?',
+                array($productSW->getId())
+            );
 
             $sql = 'DELETE FROM s_article_configurator_option_relations WHERE article_id = ?';
             Shopware()->Db()->query($sql, array($detailSW->getId()));

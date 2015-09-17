@@ -1,3 +1,9 @@
+1.1.0
+-----
+- Fixed customer order vat free support
+- Fixed product child delete
+- Fixed customer order language iso
+
 1.0.12
 ------
 - Fixed product attribute date type problem
