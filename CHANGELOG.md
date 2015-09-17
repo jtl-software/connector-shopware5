@@ -1,6 +1,7 @@
-1.0.13
-------
+1.1.0
+-----
 - Fixed customer order vat free support
+- Fixed product child delete
 
 1.0.12
 ------
