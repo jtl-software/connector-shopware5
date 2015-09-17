@@ -42,6 +42,7 @@ class CustomerOrder extends DataController
             $result = array();
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
+            $shopMapper = Mmc::getMapper('Shop');
             $mapper = Mmc::getMapper('CustomerOrder');
             $productMapper = Mmc::getMapper('Product');
             $orders = $mapper->findAll($limit);
@@ -70,10 +71,12 @@ class CustomerOrder extends DataController
                     }
 
                     // Locale
-                    $localeSW = LocaleUtil::get((int)$orderSW['languageIso']);
-                    if ($localeSW !== null) {
-                        //$order->setLocaleName($localeSW->getLocale());
-                        $order->setLanguageISO(LanguageUtil::map($localeSW->getLocale()));
+                    $shop = $shopMapper->find((int) $orderSW['languageIso']);
+                    //$localeSW = LocaleUtil::get((int) $orderSW['languageIso']);
+                    //if ($localeSW !== null) {
+                    if ($shop !== null) {
+                        //$order->setLanguageISO(LanguageUtil::map($localeSW->getLocale()));
+                        $order->setLanguageISO(LanguageUtil::map($shop->getLocale()->getLocale()));
                     }
 
                     foreach ($orderSW['details'] as $detailSW) {

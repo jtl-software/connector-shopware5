@@ -2,6 +2,7 @@
 -----
 - Fixed customer order vat free support
 - Fixed product child delete
+- Fixed customer order language iso
 
 1.0.12
 ------
