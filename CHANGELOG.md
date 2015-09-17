@@ -1,3 +1,7 @@
+1.0.13
+------
+- Fixed customer order vat free support
+
 1.0.12
 ------
 - Fixed product attribute date type problem

@@ -77,13 +77,14 @@ class CustomerOrder extends DataController
                     }
 
                     foreach ($orderSW['details'] as $detailSW) {
-                        $orderItem = Mmc::getModel('CustomerOrderItem');
-                        $orderItem->map(true, DataConverter::toObject($detailSW, true));
 
                         // Tax Free
                         if ((int) $orderSW['taxFree'] == 1) {
-                            $orderItem->setVat(0.0);
+                            $detailSW['taxRate'] = 0.0;
                         }
+
+                        $orderItem = Mmc::getModel('CustomerOrderItem');
+                        $orderItem->map(true, DataConverter::toObject($detailSW, true));
 
                         $detail = $productMapper->findDetailBy(array('number' => $detailSW['articleNumber']));
                         if ($detail !== null) {
