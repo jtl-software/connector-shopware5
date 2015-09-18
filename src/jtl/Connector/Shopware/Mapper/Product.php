@@ -124,7 +124,7 @@ class Product extends DataMapper
         $translationUtil = new TranslationUtil();
         for ($i = 0; $i < count($products); $i++) {
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['locale']['id'], 'article', $products[$i]['articleId']);
+                $translation = $translationUtil->read($shop['id'], 'article', $products[$i]['articleId']);
                 if (!empty($translation)) {
                     $translation['shopId'] = $shop['id'];
                     $products[$i]['translations'][$shop['locale']['locale']] = $translation;
@@ -230,7 +230,6 @@ class Product extends DataMapper
                 $this->prepareManufacturerAssociatedData($product, $productSW);
                 // $this->prepareSpecialPriceAssociatedData($product, $productSW); Can not be fully supported
 
-                //if (!$this->isParent($product)) {
                 $this->prepareDetailAssociatedData($product, $productSW, $detailSW);
                 $this->prepareVariationAssociatedData($product, $productSW);
                 $this->prepareSpecificAssociatedData($product, $productSW, $detailSW);
@@ -247,16 +246,6 @@ class Product extends DataMapper
                     $productSW->setDetails(array($detailSW));
                 }
 
-                /*
-                $violations = $this->Manager()->validate($productSW);
-                if ($violations->count() > 0) {
-                    throw new ApiException\ValidationException($violations);
-                }
-                */
-                //}
-
-                //$this->prepareVariationAssociatedData($product, $productSW);
-
                 // Save Product
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
@@ -267,6 +256,7 @@ class Product extends DataMapper
                 }
 
                 $this->prepareSetVariationRelations($product, $productSW);
+                $this->saveVariationTranslationData($product, $productSW);
                 $this->deleteTranslationData($productSW);
                 $this->saveTranslationData($product, $productSW);
             }
@@ -821,6 +811,7 @@ class Product extends DataMapper
     protected function saveTranslationData(ProductModel $product, ArticleSW $productSW)
     {
         // ProductI18n
+        $shopMapper = Mmc::getMapper('Shop');
         $translationUtil = new TranslationUtil();
         $cache = array();
         foreach ($product->getI18ns() as $i18n) {
@@ -833,26 +824,34 @@ class Product extends DataMapper
             }
 
             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                $helper = ProductNameHelper::build($product, $i18n->getLanguageISO());
+                $shop = $shopMapper->findByLocale($locale->getLocale());
 
-                $cache[$locale->getId()] = array(
-                    'name' => $helper->getProductName(),
-                    'descriptionLong' => $i18n->getDescription(),
-                    'metaTitle' => $i18n->getTitleTag(),
-                    'description' => $i18n->getShortDescription(),
-                    'keywords' => $i18n->getMetaKeywords(),
-                    'packUnit' => '',
-                    'attr1' => '',
-                    'attr2' => '',
-                    'attr3' => ''
-                );
+                if ($shop !== null) {
+                    $helper = ProductNameHelper::build($product, $i18n->getLanguageISO());
 
-                $translationUtil->write(
-                    $locale->getId(),
-                    'article',
-                    $productSW->getId(),
-                    $cache[$locale->getId()]
-                );
+                    $cache[$shop->getId()] = array(
+                        'name' => $helper->getProductName(),
+                        'descriptionLong' => $i18n->getDescription(),
+                        'metaTitle' => $i18n->getTitleTag(),
+                        'description' => $i18n->getShortDescription(),
+                        'keywords' => $i18n->getMetaKeywords(),
+                        'packUnit' => '',
+                        'attr1' => '',
+                        'attr2' => '',
+                        'attr3' => ''
+                    );
+
+                    $translationUtil->write(
+                        $shop->getId(),
+                        'article',
+                        $productSW->getId(),
+                        $cache[$shop->getId()]
+                    );
+                } else {
+                    Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $i18n->getLanguageISO()), Logger::WARNING, 'database');
+
+                    continue;
+                }
             }
         }
 
@@ -871,25 +870,99 @@ class Product extends DataMapper
                             continue;
                         }
 
-                        $data = array();
-                        if (array_key_exists($locale->getId(), $cache)) {
-                            $data = $cache[$locale->getId()];
-                        } else {
-                            $data = $translationUtil->read(
-                                $locale->getId(),
+                        $shop = $shopMapper->findByLocale($locale->getLocale());
+
+                        if ($shop !== null) {
+                            $data = array();
+                            if (array_key_exists($shop->getId(), $cache)) {
+                                $data = $cache[$shop->getId()];
+                            } else {
+                                $data = $translationUtil->read(
+                                    $shop->getId(),
+                                    'article',
+                                    $productSW->getId()
+                                );
+                            }
+
+                            $data['packUnit'] = $unitI18n->getName();
+
+                            $translationUtil->write(
+                                $shop->getId(),
                                 'article',
-                                $productSW->getId()
+                                $productSW->getId(),
+                                $data
                             );
+                        } else {
+                            Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $unitI18n->getLanguageISO()), Logger::WARNING, 'database');
+
+                            continue;
                         }
+                    }
+                }
+            }
+        }
+    }
 
-                        $data['packUnit'] = $unitI18n->getName();
+    protected function saveVariationTranslationData(ProductModel $product, ArticleSW &$productSW)
+    {
+        $groupMapper = Mmc::getMapper('ConfiguratorGroup');
+        $optionMapper = Mmc::getMapper('ConfiguratorOption');
+        $confiSetSW = $productSW->getConfiguratorSet();
+        if ($confiSetSW !== null && count($product->getVariations()) > 0) {
 
-                        $translationUtil->write(
-                            $locale->getId(),
-                            'article',
-                            $productSW->getId(),
-                            $data
-                        );
+            // Get default translation values
+            $variations = array();
+            $values = array();
+            $defaultIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+            foreach ($product->getVariations() as $variation) {
+                foreach ($variation->getI18ns() as $variationI18n) {
+                    if ($variationI18n->getLanguageISO() === $defaultIso) {
+                        $variations[$variationI18n->getName()] = $variation->getId()->getHost();
+                        break;
+                    }
+                }
+
+                foreach ($variation->getValues() as $value) {
+                    foreach ($value->getI18ns() as $valueI18n) {
+                        if ($valueI18n->getLanguageISO() === $defaultIso) {
+                            $values[$variation->getId()->getHost()][$valueI18n->getName()] = $value->getId()->getHost();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Write non default translation values
+            foreach ($product->getVariations() as $variation) {
+                foreach ($variation->getI18ns() as $variationI18n) {
+                    if ($variationI18n->getLanguageISO() !== $defaultIso) {
+                        foreach ($confiSetSW->getGroups() as $groupSW) {
+                            if (isset($variations[$groupSW->getName()]) && $variations[$groupSW->getName()] == $variation->getId()->getHost()) {
+                                try {
+                                    $groupMapper->saveTranslatation($groupSW->getId(), $variationI18n->getLanguageISO(), $variationI18n->getName());
+                                } catch (\Exception $e) {
+                                    Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                                }
+                            }
+                        }
+                    }
+                }
+
+                foreach ($variation->getValues() as $value) {
+                    foreach ($value->getI18ns() as $valueI18n) {
+                        if ($valueI18n->getLanguageISO() !== $defaultIso) {
+                            foreach ($confiSetSW->getOptions() as $optionSW) {
+                                if (isset($values[$variation->getId()->getHost()][$optionSW->getName()])
+                                    && $values[$variation->getId()->getHost()][$optionSW->getName()] == $value->getId()->getHost()) {
+
+                                    try {
+                                        $optionMapper->saveTranslatation($optionSW->getId(), $valueI18n->getLanguageISO(), $valueI18n->getName());
+                                    } catch (\Exception $e) {
+                                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
