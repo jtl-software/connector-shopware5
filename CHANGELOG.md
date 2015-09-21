@@ -5,6 +5,7 @@
 - Added customer main language support
 - Added manufacturer language support
 - Fixed multi language bug
+- Fixed specific language bug
 
 1.1.0
 -----
