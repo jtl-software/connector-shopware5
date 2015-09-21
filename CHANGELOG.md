@@ -2,7 +2,9 @@
 -----
 - Added category by name mapping
 - Added product variation multi language support
-- Fixed multi language bug 
+- Added customer main language support
+- Added manufacturer language support
+- Fixed multi language bug
 
 1.1.0
 -----

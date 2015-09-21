@@ -14,6 +14,7 @@ use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Salutation;
 use \Shopware\Models\Customer\Customer as CustomerSW;
 use \Shopware\Models\Customer\Billing as BillingSW;
+use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 class Customer extends DataMapper
 {
@@ -126,6 +127,12 @@ class Customer extends DataMapper
 
         if ($customerSW === null) {
             $customerSW = new CustomerSW;
+        }
+
+        $shopMapper = Mmc::getMapper('Shop');
+        $shop = $shopMapper->findByLocale(LanguageUtil::map($customer->getLanguageISO()));
+        if ($shop !== null) {
+            $customerSW->setLanguageSubShop($shop);
         }
 
         $customerSW->setEmail($customer->getEMail())

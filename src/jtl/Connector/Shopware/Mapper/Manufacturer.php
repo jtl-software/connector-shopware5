@@ -12,6 +12,9 @@ use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Model\Identity;
 use \Shopware\Models\Article\Supplier as ManufacturerSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
+use \jtl\Connector\Shopware\Utilities\Mmc;
 
 class Manufacturer extends DataMapper
 {
@@ -46,11 +49,27 @@ class Manufacturer extends DataMapper
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
-        //$res = $query->getResult(\Doctrine\ORM\Query::HYDRATE_ARRAY);
+        if ($count) {
+            return $paginator->count();
+        }
 
-        //return $count ? count($res) : $res;
+        $manufacturers = iterator_to_array($paginator);
 
-        return $count ? ($paginator->count()) : iterator_to_array($paginator);
+        $shopMapper = Mmc::getMapper('Shop');
+        $shops = $shopMapper->findAll(null, null);
+
+        $translationUtil = new TranslationUtil();
+        for ($i = 0; $i < count($manufacturers); $i++) {
+            foreach ($shops as $shop) {
+                $translation = $translationUtil->read($shop['id'], 'supplier', $manufacturers[$i]['id']);
+                if (!empty($translation)) {
+                    $translation['shopId'] = $shop['id'];
+                    $manufacturers[$i]['translations'][$shop['locale']['locale']] = $translation;
+                }
+            }
+        }
+
+        return $manufacturers;
     }
 
     public function fetchCount($limit = 100)
@@ -94,10 +113,54 @@ class Manufacturer extends DataMapper
         $this->Manager()->persist($manufacturerSW);
         $this->flush();
 
+        $this->saveTranslatation($manufacturer, $manufacturerSW);
+
         // Result
         $result->setId(new Identity($manufacturerSW->getId(), $manufacturer->getId()->getHost()));
 
         return $result;
+    }
+
+    public function saveTranslatation(ManufacturerModel $manufacturer, ManufacturerSW $manufacturerSW)
+    {
+        foreach ($manufacturer->getI18ns() as $i18n) {
+            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+
+                $iso = $i18n->getLanguageISO();
+                $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $iso));
+
+                if ($locale === null) {
+                    throw new ApiException\NotFoundException(sprintf('Could not find any locale for iso (%s)', $iso));
+                }
+
+                $shopMapper = Mmc::getMapper('Shop');
+                $shop = $shopMapper->findByLocale($locale->getLocale());
+
+                if ($shop === null) {
+                    throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
+                }
+
+                $translationUtil = new TranslationUtil();
+                $translationUtil->delete('supplier', $manufacturerSW->getId(), $shop->getId());
+                $translationUtil->write(
+                    $shop->getId(),
+                    'supplier',
+                    $manufacturerSW->getId(),
+                    array(
+                        'metaTitle' => $i18n->getTitleTag(),
+                        'description' => $i18n->getDescription(),
+                        'metaDescription' => $i18n->getMetaDescription(),
+                        'metaKeywords' => $i18n->getMetaKeywords()
+                    )
+                );
+            }
+        }
+    }
+
+    public function deleteTranslation(ManufacturerSW $manufacturerSW)
+    {
+        $translationUtil = new TranslationUtil();
+        $translationUtil->delete('supplier', $manufacturerSW->getId());
     }
 
     protected function deleteManufacturerData(ManufacturerModel $manufacturer)
@@ -107,6 +170,8 @@ class Manufacturer extends DataMapper
         if ($manufacturerId !== null && $manufacturerId > 0) {
             $manufacturerSW = $this->find((int) $manufacturerId);
             if ($manufacturerSW !== null) {
+                $this->deleteTranslation($manufacturerSW);
+
                 $this->Manager()->remove($manufacturerSW);
                 $this->Manager()->flush($manufacturerSW);
             }
