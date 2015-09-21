@@ -14,6 +14,8 @@ use \jtl\Connector\ModelContainer\ProductContainer;
 use \jtl\Connector\Core\Utilities\DataConverter;
 use \jtl\Connector\Shopware\Model\DataModel;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 
 class ConfiguratorGroup extends DataMapper
 {
@@ -124,27 +126,41 @@ class ConfiguratorGroup extends DataMapper
 
     /**
      * @param int $id
-     * @param string $localId
+     * @param string $iso
      * @param string $translation
      * @return \Shopware\Models\Article\Configurator\Group
      * @throws \Shopware\Components\Api\Exception\ParameterMissingException
      * @throws \Shopware\Components\Api\Exception\NotFoundException
      */
-    public function createTranslatation($id, $localId, $translation)
+    public function saveTranslatation($id, $iso, $translation)
     {
         $configuratorGroup = $this->find($id);
 
         if (!$configuratorGroup) {
-            throw new ApiException\NotFoundException("Configurator Group by id $id not found");
+            throw new ApiException\NotFoundException(sprintf('Configurator Group by id (%s) not found', $id));
         }
 
-        $resource = \Shopware\Components\Api\Manager::getResource('Translation');
-        $resource->create(array(
-            'type' => \Shopware\Components\Api\Resource\Translation::TYPE_CONFIGURATOR_GROUP,
-            'key' => $configuratorGroup->getId(),
-            'localeId' => $localId,
-            'data' => array('name' => $translation)
-        ));
+        $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $iso));
+
+        if ($locale === null) {
+            throw new ApiException\NotFoundException(sprintf('Could not find any locale for iso (%s)', $iso));
+        }
+
+        $shopMapper = Mmc::getMapper('Shop');
+        $shop = $shopMapper->findByLocale($locale->getLocale());
+
+        if ($shop === null) {
+            throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
+        }
+
+        $translationUtil = new TranslationUtil();
+        $translationUtil->delete('configuratorgroup', $id, $shop->getId());
+        $translationUtil->write(
+            $shop->getId(),
+            'configuratorgroup',
+            $configuratorGroup->getId(),
+            array('name' => $translation)
+        );
 
         return $configuratorGroup;
     }

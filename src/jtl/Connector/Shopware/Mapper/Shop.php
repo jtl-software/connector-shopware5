@@ -14,6 +14,19 @@ class Shop extends DataMapper
     {
         return $this->Manager()->find('Shopware\Models\Shop\Shop', $id);
     }
+
+    public function findByLocale($locale)
+    {
+        return $this->Manager()->createQueryBuilder()->select(
+                'shop',
+                'locale'
+            )
+            ->from('Shopware\Models\Shop\Shop', 'shop')
+            ->leftJoin('shop.locale', 'locale')
+            ->where('locale.locale = :locale')
+            ->setParameter('locale', $locale)
+            ->getQuery()->getOneOrNullResult();
+    }
     
     public function findAll($limit = 100, $count = false)
     {

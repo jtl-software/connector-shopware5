@@ -28,6 +28,23 @@ class Category extends DataMapper
         return $this->Manager()->find('Shopware\Models\Category\Category', $id);
     }
 
+    public function findByNameAndLevel($name, $level = 0)
+    {
+        $id = Shopware()->Db()->fetchOne(
+            'SELECT c.id
+              FROM s_categories c
+              JOIN jtl_connector_category_level l ON l.category_id = c.id
+              WHERE c.description = ? AND l.level = ?',
+            array($name, $level)
+        );
+
+        if ($id !== null && (int) $id > 0) {
+            return $this->find($id);
+        }
+
+        return null;
+    }
+
     /**
      * @param integer $parentId
      * @param string $iso
@@ -263,6 +280,21 @@ class Category extends DataMapper
             $categorySW = $this->find($categoryId);
             if ($categorySW->getLevel() > 0 && $parentId === null) {
                 $parentId = $categorySW->getParent()->getId();
+            }
+        }
+
+        // Try via name
+        if ($categorySW === null) {
+            $name = null;
+            foreach ($category->getI18ns() as $i18n) {
+                if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) == Shopware()->Shop()->getLocale()->getLocale()) {
+                    $name = $i18n->getName();
+                    break;
+                }
+            }
+
+            if ($name !== null) {
+                $categorySW = $this->findByNameAndLevel($name, $category->getLevel());
             }
         }
 

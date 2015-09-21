@@ -1,3 +1,12 @@
+1.1.1
+-----
+- Added category by name mapping
+- Added product variation multi language support
+- Added customer main language support
+- Added manufacturer language support
+- Fixed multi language bug
+- Fixed specific language bug
+
 1.1.0
 -----
 - Fixed customer order vat free support
