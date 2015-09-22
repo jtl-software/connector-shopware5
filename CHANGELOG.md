@@ -1,6 +1,7 @@
 1.1.2
 -----
 - Fixed product variation language bug
+- Fixed measurement language bug
 
 1.1.1
 -----

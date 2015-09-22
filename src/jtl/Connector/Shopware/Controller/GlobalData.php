@@ -120,8 +120,7 @@ class GlobalData extends DataController
             $translationUtil = new TranslationUtil();
             $translations = array();
             foreach ($shops as $shop) {
-                //$translation = $translationUtil->read($shop['locale']['id'], 'config_units');
-                $translation = $translationUtil->read($shop['id'], 'config_units'); // Shopware Bug? Shop id for objectlanguage instead of locale id
+                $translation = $translationUtil->read($shop['id'], 'config_units');
                 if (!empty($translation)) {
                     $translations[$shop['locale']['locale']] = $translation;
                 }
