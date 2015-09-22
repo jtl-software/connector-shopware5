@@ -7,9 +7,11 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\Utilities\Money;
+use jtl\Connector\Shopware\Model\ProductVariation;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Model\Product as ProductModel;
 use \jtl\Connector\Model\ProductChecksum;
+use jtl\Connector\Shopware\Utilities\VariationType;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Core\Exception\DatabaseException;
 use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
@@ -691,7 +693,14 @@ class Product extends DataMapper
 
             $groupMapper = Mmc::getMapper('ConfiguratorGroup');
             $optionMapper = Mmc::getMapper('ConfiguratorOption');
+            $types = array();
             foreach ($product->getVariations() as $variation) {
+                if (!isset($types[$variation->getType()])) {
+                    $types[$variation->getType()] = 0;
+                }
+
+                $types[$variation->getType()]++;
+
                 $variationName = null;
                 $variationValueName = null;
                 foreach ($variation->getI18ns() as $variationI18n) {
@@ -740,12 +749,32 @@ class Product extends DataMapper
             }
 
             $confiSet->setOptions($options)
-                ->setGroups($groups);
+                ->setGroups($groups)
+                ->setType($this->calcVariationType($types));
 
             $this->Manager()->persist($confiSet);
 
             $productSW->setConfiguratorSet($confiSet);
         }
+    }
+
+    protected function calcVariationType(array $types)
+    {
+        arsort($types);
+
+        $checkEven = function($vTypes) {
+            if (count($vTypes) > 1) {
+                $arr = array_values($vTypes);
+                return ($arr[0] == $arr[1]);
+            }
+
+            return false;
+        };
+
+        reset($types);
+        $key = $checkEven($types) ? ProductVariation::TYPE_SELECT : key($types);
+
+        return VariationType::map($key);
     }
 
     protected function preparePriceAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW)

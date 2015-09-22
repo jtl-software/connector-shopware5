@@ -2,6 +2,7 @@
 -----
 - Fixed product variation language bug
 - Fixed measurement language bug
+- Added product variation type support
 
 1.1.1
 -----
