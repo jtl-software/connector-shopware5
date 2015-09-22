@@ -1,3 +1,7 @@
+1.1.2
+-----
+- Fixed product variation language bug
+
 1.1.1
 -----
 - Added category by name mapping
