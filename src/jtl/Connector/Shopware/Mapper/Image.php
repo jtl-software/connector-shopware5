@@ -371,15 +371,55 @@ class Image extends DataMapper
             }
 
             $productMapper = Mmc::getMapper('Product');
+
+            // if detail is a child
             if ($imageSW->getParent() === null && $productMapper->isChildSW($productSW, $detailSW)) {
                 $childImageSW = $this->getChildImage($image, $mediaSW, $detailSW, $imageSW);
                 $this->Manager()->persist($childImageSW);
+
+                // Save mapping and rule
+                $this->saveImageMapping($imageSW, $detailSW);
             }
         } else {
             $this->copyNewMedia($image, $mediaSW, $file);
         }
 
         $this->copyNewMedia($image, $mediaSW, $file);
+    }
+
+    protected function saveImageMapping(ArticleImageSW $imageSW, DetailSW $detailSW)
+    {
+        $mappingSW = null;
+        if ($imageSW->getId() > 0) {
+            $mappingSW = $this->Manager()->getRepository('Shopware\Models\Article\Image\Mapping')->findOneBy(array('image' => $imageSW->getId()));
+        }
+
+        if ($mappingSW === null) {
+            $mappingSW = new \Shopware\Models\Article\Image\Mapping();
+            $this->Manager()->persist($mappingSW);
+        } else {
+            Shopware()->Db()->delete('s_article_img_mapping_rules', array('mapping_id = ?' => $mappingSW->getId()));
+        }
+
+        $mappingSW->setImage($imageSW);
+
+        $relations = Shopware()->Db()->fetchAssoc(
+            'SELECT * FROM s_article_configurator_option_relations WHERE article_id = ?',
+            array($detailSW->getId())
+        );
+
+        $optionMapper = Mmc::getMapper('ConfiguratorOption');
+        foreach ($relations as $relation) {
+            $optionSW = $optionMapper->find((int) $relation['option_id']);
+
+            if ($optionSW !== null) {
+                $ruleSW = new \Shopware\Models\Article\Image\Rule();
+                $ruleSW->setMapping($mappingSW);
+                $ruleSW->setOption($optionSW);
+
+                $this->Manager()->persist($ruleSW);
+            }
+        }
     }
 
     protected function isParentImageInUse($parentId, $detailId)
