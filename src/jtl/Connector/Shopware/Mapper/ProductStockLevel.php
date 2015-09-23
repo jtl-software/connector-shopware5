@@ -35,9 +35,12 @@ class ProductStockLevel extends DataMapper
                 }
             }
 
-            throw new DatabaseException(sprintf('Product with Endpoint Id (%s) cannot be found', $productId));
+            //throw new DatabaseException(sprintf('Product with Endpoint Id (%s) cannot be found', $productId));
         }
 
-        throw new DatabaseException('Product Endpoint Id cannot be empty');
+        //throw new DatabaseException('Product Endpoint Id cannot be empty');
+
+        // Thx @ Wawi Error Handling
+        return $stock;
     }
 }
