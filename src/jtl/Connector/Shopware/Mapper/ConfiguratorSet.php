@@ -8,7 +8,7 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Shopware\Utilities\Translation;
+use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 
 class ConfiguratorSet extends DataMapper
 {
@@ -45,14 +45,14 @@ class ConfiguratorSet extends DataMapper
             $shopMapper = Mmc::getMapper('Shop');
             $shops = $shopMapper->findAll(null);
 
-            $translationReader = new Translation;
+            $translationUtil = new TranslationUtil;
             for ($i = 0; $i < count($sets); $i++) {
                 foreach ($shops as $shop) {
                     
                     // Groups
                     $ks = array_keys($sets[$i]['configuratorSet']['groups']);
                     foreach ($ks as $k) {
-                        $translation = $translationReader->read($shop['locale']['id'], 'configuratorgroup', $sets[$i]['configuratorSet']['groups'][$k]['id']);
+                        $translation = $translationUtil->read($shop['id'], 'configuratorgroup', $sets[$i]['configuratorSet']['groups'][$k]['id']);
                         if (!empty($translation)) {
                             $translation['groupId'] = $sets[$i]['configuratorSet']['groups'][$k]['id'];
                             $sets[$i]['configuratorSet']['groups'][$k]['translations'][$shop['locale']['locale']] = $translation;
@@ -62,7 +62,7 @@ class ConfiguratorSet extends DataMapper
                     // Options
                     $ks = array_keys($sets[$i]['configuratorSet']['options']);
                     foreach ($ks as $k) {
-                        $translation = $translationReader->read($shop['locale']['id'], 'configuratoroption', $sets[$i]['configuratorSet']['options'][$k]['id']);
+                        $translation = $translationUtil->read($shop['id'], 'configuratoroption', $sets[$i]['configuratorSet']['options'][$k]['id']);
                         if (!empty($translation)) {
                             $translation['optionId'] = $sets[$i]['configuratorSet']['options'][$k]['id'];
                             $sets[$i]['configuratorSet']['options'][$k]['translations'][$shop['locale']['locale']] = $translation;

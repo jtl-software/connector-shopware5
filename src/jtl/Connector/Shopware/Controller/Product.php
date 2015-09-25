@@ -19,6 +19,7 @@ use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Utilities\VariationType;
 
 /**
  * Product Controller
@@ -297,6 +298,7 @@ class Product extends DataController
             $configuratorSets = $configuratorSetMapper->findByProductId($data['articleId']);
             if (is_array($configuratorSets) && count($configuratorSets) > 0) {
                 foreach ($configuratorSets as $cs) {
+                    $typeSW = (int) $cs['configuratorSet']['type'];
 
                     // ProductVariationI18n
                     foreach ($cs['configuratorSet']['groups'] as $group) {
@@ -311,6 +313,8 @@ class Product extends DataController
 
                         $productVariation = Mmc::getModel('ProductVariation');
                         $productVariation->map(true, DataConverter::toObject($group, true));
+
+                        $productVariation->setType(VariationType::map(null, $typeSW));
 
                         // Main Language
                         $productVariationI18n = Mmc::getModel('ProductVariationI18n');

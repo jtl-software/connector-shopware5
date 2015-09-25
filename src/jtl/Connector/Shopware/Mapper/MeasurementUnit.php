@@ -8,6 +8,7 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
+use jtl\Connector\Shopware\Utilities\Mmc;
 use \Shopware\Models\Article\Unit as UnitSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
@@ -117,9 +118,12 @@ class MeasurementUnit extends DataMapper
     protected function saveTranslationData(MeasurementUnitModel $unit, UnitSW $unitSW)
     {
         $translationUtil = new TranslationUtil();
+        $translationUtil->delete('config_units', $unitSW->getId());
+        $defaultIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
         foreach ($unit->getI18ns() as $i18n) {
-            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $i18n->getLanguageISO()));
+            $iso = $i18n->getLanguageISO();
+            if ($iso !== $defaultIso) {
+                $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $iso));
 
                 if ($locale === null) {
                     Logger::write(sprintf('Could not find any locale for (%s)', $i18n->getLanguageISO()), Logger::WARNING, 'database');
@@ -127,8 +131,17 @@ class MeasurementUnit extends DataMapper
                     continue;
                 }
 
+                $shopMapper = Mmc::getMapper('Shop');
+                $shop = $shopMapper->findByLocale($locale->getLocale());
+
+                if ($shop === null) {
+                    Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso), Logger::WARNING, 'database');
+
+                    continue;
+                }
+
                 $translationUtil->write(
-                    $locale->getId(),
+                    $shop->getId(),
                     'config_units',
                     $unitSW->getId(),
                     array(
