@@ -1,3 +1,7 @@
+1.2.1
+-----
+- Added currency sync
+
 1.1.2
 -----
 - Fixed product variation language bug

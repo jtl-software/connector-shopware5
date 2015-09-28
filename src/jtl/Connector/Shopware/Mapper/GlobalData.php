@@ -16,8 +16,8 @@ class GlobalData extends DataMapper
         $result = new GlobalDataModel;
 
         // Companies
-        $configMapper = Mmc::getMapper('Config');
         /*
+        $configMapper = Mmc::getMapper('Config');
         foreach ($globalData->getCompanies() as $company) {
             $configMapper->update(array('name', 'company'), $company->getName(), Shopware()->Shop()->getId());
             $configMapper->update(array('name', 'address'), $company->getStreet(), Shopware()->Shop()->getId());
@@ -26,6 +26,13 @@ class GlobalData extends DataMapper
             $configMapper->update(array('name', 'vatcheckadvancednumber'), $company->getVatNumber(), Shopware()->Shop()->getId());
         }
         */
+
+        // Currencies
+        $currencyMapper = Mmc::getMapper('Currency');
+        foreach ($globalData->getCurrencies() as $currency) {
+            $currencyResult = $currencyMapper->save($currency);
+            $result->addCurrency($currencyResult);
+        }
 
         // CustomerGroups
         $customerGroupMapper = Mmc::getMapper('CustomerGroup');
