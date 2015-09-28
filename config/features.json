@@ -69,7 +69,7 @@
         "Currency": {
             "pull": true,
             "push": true,
-            "delete": true
+            "delete": false
         },
         "Customer": {
             "pull": true,
