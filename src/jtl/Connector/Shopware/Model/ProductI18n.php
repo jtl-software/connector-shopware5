@@ -20,10 +20,10 @@ class ProductI18n extends ProductI18nModel
         'name' => 'name',
         'urlPath' => '',
         'description' => 'descriptionLong',
-        'shortDescription' => 'description',
+        'shortDescription' => '',
         'deliveryStatus' => '',
         'measurementUnitName' => '',
-        'metaDescription' => '',
+        'metaDescription' => 'description',
         'metaKeywords' => '',
         'titleTag' => '',
         'unitName' => ''

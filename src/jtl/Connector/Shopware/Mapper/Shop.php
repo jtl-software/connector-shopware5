@@ -25,7 +25,7 @@ class Shop extends DataMapper
             ->leftJoin('shop.locale', 'locale')
             ->where('locale.locale = :locale')
             ->setParameter('locale', $locale)
-            ->getQuery()->getOneOrNullResult();
+            ->getQuery()->getResult();
     }
     
     public function findAll($limit = 100, $count = false)

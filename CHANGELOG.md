@@ -1,5 +1,9 @@
 1.2.1
 -----
+- Fixed product meta description sync
+- Fixed translation shop mapping with multiple same locale
+- Changed parent dummy generation in plugin install routine
+- Changed product attribute behavior
 - Added currency sync
 
 1.1.2

@@ -277,12 +277,12 @@ class CustomerOrder extends DataMapper
         }
 
         $shopMapper = Mmc::getMapper('Shop');
-        $shop = $shopMapper->findByLocale($localeSW->getLocale());
-        if ($shop === null) {
+        $shops = $shopMapper->findByLocale($localeSW->getLocale());
+        if ($shops === null) {
             throw new \Exception(sprintf('Shop with language iso (%s) and locale (%s) not found', $customerOrder->getLanguageISO(), $localeSW->getLocale()));
         }
 
-        $orderSW->setLanguageIso($shop->getId());
+        $orderSW->setLanguageIso($shops[0]->getId());
     }
 
     protected function prepareStatusAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)

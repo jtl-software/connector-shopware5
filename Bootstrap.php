@@ -5,6 +5,7 @@ use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Core\Config\Config;
 use \jtl\Connector\Core\Config\Loader\Json as ConfigJson;
 use \jtl\Connector\Core\IO\Path;
+use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
@@ -295,6 +296,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $productSW = Shopware()->Models()->find('Shopware\Models\Article\Article', (int) $product['articleID']);
             $detailSW = Shopware()->Models()->find('Shopware\Models\Article\Detail', (int) $product['id']);
 
+            if ($productSW === null || $detailSW === null) {
+                continue;
+            }
+
             //$detailSW->setKind(2);
             $parentDetailSW = new \Shopware\Models\Article\Detail();
             $parentDetailSW->setSupplierNumber($product['suppliernumber'])
@@ -308,6 +313,33 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
             $parentDetailSW->setArticle($productSW);
 
+            $prices = Shopware()->Db()->fetchAssoc(
+                'SELECT * FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ?',
+                array($productSW->getId(), $detailSW->getId())
+            );
+
+            $priceCollection = array();
+            foreach ($prices as $price) {
+                $customerGroupSW = CustomerGroupUtil::getByKey($price['pricegroup']);
+                if ($customerGroupSW === null) {
+                    continue;
+                }
+
+                $parentPriceSW = new Shopware\Models\Article\Price();
+                $parentPriceSW->setArticle($productSW)
+                    ->setCustomerGroup($customerGroupSW)
+                    ->setFrom($price['from'])
+                    ->setTo($price['to'])
+                    ->setDetail($parentDetailSW)
+                    ->setPrice($price['price'])
+                    ->setPseudoPrice($price['pseudoprice'])
+                    ->setBasePrice($price['baseprice'])
+                    ->setPercent($price['percent']);
+
+                $priceCollection[] = $parentPriceSW;
+            }
+
+            /*
             $priceCollection = array();
             foreach ($detailSW->getPrices() as $priceSW) {
                 $parentPriceSW = new Shopware\Models\Article\Price();
@@ -323,6 +355,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
                 $priceCollection[] = $parentPriceSW;
             }
+            */
 
             $parentDetailSW->setPrices($priceCollection);
 

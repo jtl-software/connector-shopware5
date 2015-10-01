@@ -130,9 +130,9 @@ class Customer extends DataMapper
         }
 
         $shopMapper = Mmc::getMapper('Shop');
-        $shop = $shopMapper->findByLocale(LanguageUtil::map($customer->getLanguageISO()));
-        if ($shop !== null) {
-            $customerSW->setLanguageSubShop($shop);
+        $shops = $shopMapper->findByLocale(LanguageUtil::map($customer->getLanguageISO()));
+        if ($shops !== null) {
+            $customerSW->setLanguageSubShop($shops[0]);
         }
 
         $customerSW->setEmail($customer->getEMail())

@@ -132,24 +132,26 @@ class MeasurementUnit extends DataMapper
                 }
 
                 $shopMapper = Mmc::getMapper('Shop');
-                $shop = $shopMapper->findByLocale($locale->getLocale());
+                $shops = $shopMapper->findByLocale($locale->getLocale());
 
-                if ($shop === null) {
+                if ($shops === null) {
                     Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso), Logger::WARNING, 'database');
 
                     continue;
                 }
 
-                $translationUtil->write(
-                    $shop->getId(),
-                    'config_units',
-                    $unitSW->getId(),
-                    array(
-                        'name' => $i18n->getName(),
-                        'unit' => ''
-                    ),
-                    true
-                );
+                foreach ($shops as $shop) {
+                    $translationUtil->write(
+                        $shop->getId(),
+                        'config_units',
+                        $unitSW->getId(),
+                        array(
+                            'name' => $i18n->getName(),
+                            'unit' => ''
+                        ),
+                        true
+                    );
+                }
             }
         }
     }

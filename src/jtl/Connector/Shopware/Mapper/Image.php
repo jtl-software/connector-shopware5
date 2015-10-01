@@ -186,7 +186,7 @@ class Image extends DataMapper
 
                 list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
 
-                // Special delete all images for a single product call
+                // Special delete (masterkill) all images for a single product call
                 if ($image->getSort() == 0 && strlen($image->getId()->getEndpoint()) == 0) {
                     $this->Manager()->createQueryBuilder()
                         ->delete('Shopware\Models\Article\Image', 'image')
