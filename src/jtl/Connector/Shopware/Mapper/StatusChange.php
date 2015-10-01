@@ -51,9 +51,11 @@ class StatusChange extends DataMapper
                 return $status;
             }
 
-            throw new DatabaseException(sprintf('Customer Order with Endpoint Id (%s) cannot be found', $customerOrderId));
+            //throw new DatabaseException(sprintf('Customer Order with Endpoint Id (%s) cannot be found', $customerOrderId));
         }
 
-        throw new DatabaseException('Customer Order Endpoint Id cannot be empty');
+        //throw new DatabaseException('Customer Order Endpoint Id cannot be empty');
+
+        return $status;
     }
 }

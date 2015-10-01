@@ -147,20 +147,23 @@ class ConfiguratorGroup extends DataMapper
         }
 
         $shopMapper = Mmc::getMapper('Shop');
-        $shop = $shopMapper->findByLocale($locale->getLocale());
+        $shops = $shopMapper->findByLocale($locale->getLocale());
 
-        if ($shop === null) {
+        if ($shops === null) {
             throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
         }
 
         $translationUtil = new TranslationUtil();
-        $translationUtil->delete('configuratorgroup', $id, $shop->getId());
-        $translationUtil->write(
-            $shop->getId(),
-            'configuratorgroup',
-            $configuratorGroup->getId(),
-            array('name' => $translation)
-        );
+
+        foreach ($shops as $shop) {
+            $translationUtil->delete('configuratorgroup', $id, $shop->getId());
+            $translationUtil->write(
+                $shop->getId(),
+                'configuratorgroup',
+                $configuratorGroup->getId(),
+                array('name' => $translation)
+            );
+        }
 
         return $configuratorGroup;
     }

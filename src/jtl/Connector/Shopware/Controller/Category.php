@@ -49,7 +49,7 @@ class Category extends DataController
             $rootCategoryIds = array();
             foreach ($shops as $shop) {
                 $rootCategory = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
-                        ->findOneById($shop['category']['id']);
+                    ->findOneById($shop['category']['id']);
 
                 if ($rootCategory !== null) {
                     $rootCategories[$shop['locale']['locale']] = $rootCategory;
