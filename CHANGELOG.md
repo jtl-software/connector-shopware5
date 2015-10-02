@@ -1,3 +1,8 @@
+1.3.0
+-----
+- Added product variation child option name if additional text is empty
+- Changed product image pull and delete handling
+
 1.2.1
 -----
 - Fixed product meta description sync

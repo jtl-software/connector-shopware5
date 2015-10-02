@@ -37,6 +37,27 @@ class Image extends DataMapper
 
         switch ($relationType) {
             case ImageRelationType::TYPE_PRODUCT:
+                return Shopware()->Db()->fetchAssoc(
+                        'SELECT i.id as cId, a.main_detail_id as detailId, i.*, m.path
+                      FROM s_articles_img i
+                      LEFT JOIN s_articles_img c ON c.parent_id = i.id
+                      LEFT JOIN s_articles a ON a.id = i.articleID
+                      LEFT JOIN jtl_connector_link_product_image l ON l.id = i.id
+                      JOIN s_media m ON m.id = i.media_id
+                      WHERE i.articleID IS NOT NULL
+                          AND c.id IS NULL
+                          AND l.host_id IS NULL
+                      UNION
+                      SELECT i.id as cId, i.article_detail_id as detailId, p.*, m.path
+                      FROM s_articles_img i
+                      JOIN s_articles_img p ON i.parent_id = p.id
+                      LEFT JOIN jtl_connector_link_product_image l ON l.id = p.id
+                      JOIN s_media m ON m.id = p.media_id
+                      WHERE i.articleID IS NULL
+                          AND l.host_id IS NULL
+                      LIMIT ' . intval($limit)
+                );
+                /*
                 return $this->Manager()->createQueryBuilder()
                     ->select(
                         'image',
@@ -55,6 +76,7 @@ class Image extends DataMapper
                     ->setMaxResults($limit)
                     ->where('linker.hostId IS NULL')
                     ->getQuery()->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+                */
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $query = Shopware()->Models()->createNativeQuery(
@@ -92,11 +114,37 @@ class Image extends DataMapper
         $count = 0;
         switch ($relationType) {
             case ImageRelationType::TYPE_PRODUCT:
+                $counts = Shopware()->Db()->fetchAssoc(
+                    'SELECT count(*) as count
+                      FROM s_articles_img i
+                      LEFT JOIN s_articles_img c ON c.parent_id = i.id
+                      LEFT JOIN s_articles a ON a.id = i.articleID
+                      LEFT JOIN jtl_connector_link_product_image l ON l.id = i.id
+                      JOIN s_media m ON m.id = i.media_id
+                      WHERE i.articleID IS NOT NULL
+                          AND c.id IS NULL
+                          AND l.host_id IS NULL
+                      UNION
+                      SELECT count(*) as count
+                      FROM s_articles_img i
+                      JOIN s_articles_img p ON i.parent_id = p.id
+                      LEFT JOIN jtl_connector_link_product_image l ON l.id = p.id
+                      JOIN s_media m ON m.id = p.media_id
+                      WHERE i.articleID IS NULL
+                          AND l.host_id IS NULL'
+                );
+
+                foreach ($counts as $c) {
+                    $count += (int) $c['count'];
+                }
+
+                /*
                 $query = Shopware()->Models()->createNativeQuery(
                     'SELECT count(*) as count 
                     FROM s_articles_img a
                     LEFT JOIN jtl_connector_link_product_image p ON p.id = a.id
                     WHERE p.host_id IS NULL', $rsm);
+                */
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $query = Shopware()->Models()->createNativeQuery(

@@ -87,7 +87,16 @@ class Product extends DataController
             $mapper = Mmc::getMapper('Product');
             $parentDetailId = $mapper->getParentDetailId((int) $data['articleId']);
             $data['masterProductId'] = IdConcatenator::link(array($parentDetailId, $data['articleId']));
-            $data['name'] = sprintf('%s %s', $data['name'], $data['additionalText']);
+
+            $variationName = $data['additionalText'];
+            if (strlen(trim($variationName)) == 0) {
+                foreach ($data['configuratorOptions'] as $i => $option) {
+                    $space = ($i > 0) ? ' ' : '';
+                    $variationName .= sprintf('%s%s', $space, $option['name']);
+                }
+            }
+
+            $data['name'] = sprintf('%s %s', $data['name'], $variationName);
         }
 
         $data['tax']['tax'] = floatval($data['tax']['tax']);

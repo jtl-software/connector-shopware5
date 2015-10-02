@@ -24,7 +24,6 @@
         "php": ">=5.4.0",
         "jtl/connector": "dev-master"
     },
-    "minimum-stability" : "dev",
     "autoload": {
         "psr-0": {
             "jtl\\Connector\\Shopware\\": "src/",
