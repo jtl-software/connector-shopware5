@@ -623,6 +623,12 @@ class Product extends DataMapper
             $this->Manager()->persist($attributeSW);
         }
 
+        // Reset
+        for ($i = 1; $i <= 20; $i++) {
+            $setter = "setAttr{$i}";
+            $attributeSW->{$setter}(null);
+        }
+
         $i = 2;
         foreach ($product->getAttributes() as $attribute) {
             if (!$attribute->getIsCustomProperty()) {
