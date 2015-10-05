@@ -274,7 +274,7 @@ class Specific extends DataMapper
 
             $shops = $shopMapper->findByLocale($locale->getLocale());
 
-            if ($shops === null) {
+            if ($shops === null || (is_array($shops) && count($shops) == 0)) {
                 Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $i18n->getLanguageISO()), Logger::WARNING, 'database');
                 continue;
             }
@@ -309,7 +309,7 @@ class Specific extends DataMapper
                         if ($locale !== null) {
                             $shops = $shopMapper->findByLocale($locale->getLocale());
 
-                            if ($shops === null) {
+                            if ($shops === null || (is_array($shops) && count($shops) == 0)) {
                                 Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $i18n->getLanguageISO()), Logger::WARNING, 'database');
                                 continue;
                             }

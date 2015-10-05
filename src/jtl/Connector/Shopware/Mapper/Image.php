@@ -372,31 +372,11 @@ class Image extends DataMapper
             throw new \Exception(sprintf('Cannot find product with id (%s)', $articleId));
         }
 
-        // Filename SEO
         list ($uuid, $ext) = explode('.', $image->getFilename());
-        $seo = new Seo();
 
-        $productSeo = sprintf('%s %s %s',
-            $productSW->getName(),
-            $detailSW->getAdditionalText(),
-            $image->getSort()
-        );
-
-        if (strlen($productSeo) > 60) {
-            $pos = strpos($productSeo, ' ', 60);
-            if ($pos === false) {
-                $pos = 60;
-            }
-
-            $productSeo = substr($productSeo, 0, $pos);
-        }
-
-        $filename = sprintf('%s.%s', $seo->create(
-            sprintf('%s %s',
-                $productSeo,
-                $detailSW->getNumber()
-            )
-        ), $ext);
+        // Seo
+        $productSeo = $this->getProductSeoName($productSW, $detailSW, $image);
+        $filename = sprintf('%s.%s', $productSeo, $ext);
 
         if (strlen($filename) > 100) {
             $filename = substr($filename, strlen($filename) - 100, 100);
@@ -798,5 +778,37 @@ class Image extends DataMapper
     protected function generadeMD5($path)
     {
         return md5_file(sprintf('%s%s', Shopware()->DocPath(), $path));
+    }
+
+    protected function getProductSeoName(ArticleSW $productSW, DetailSW $detailSW, ImageModel $image)
+    {
+        $seo = new Seo();
+
+        $sort = ' ' . $image->getSort();
+        if ($productSW->getConfiguratorSet() !== null) {  // Varkombi
+            $sort = '';
+        }
+
+        $productSeo = sprintf('%s %s%s',
+            $productSW->getName(),
+            $detailSW->getAdditionalText(),
+            $sort
+        );
+
+        if (strlen($productSeo) > 60) {
+            $pos = strpos($productSeo, ' ', 60);
+            if ($pos === false) {
+                $pos = 60;
+            }
+
+            $productSeo = substr($productSeo, 0, $pos);
+        }
+
+        return $seo->create(
+            sprintf('%s %s',
+                $productSeo,
+                $detailSW->getNumber()
+            )
+        );
     }
 }

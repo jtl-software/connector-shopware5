@@ -149,7 +149,7 @@ class ConfiguratorGroup extends DataMapper
         $shopMapper = Mmc::getMapper('Shop');
         $shops = $shopMapper->findByLocale($locale->getLocale());
 
-        if ($shops === null) {
+        if ($shops === null || (is_array($shops) && count($shops) == 0)) {
             throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
         }
 

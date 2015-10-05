@@ -932,7 +932,7 @@ class Product extends DataMapper
             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                 $shops = $shopMapper->findByLocale($locale->getLocale());
 
-                if ($shops !== null) {
+                if ($shops !== null && is_array($shops) && count($shops) > 0) {
                     $helper = ProductNameHelper::build($product, $i18n->getLanguageISO());
 
                     foreach ($shops as $shop) {
@@ -980,7 +980,7 @@ class Product extends DataMapper
 
                         $shops = $shopMapper->findByLocale($locale->getLocale());
 
-                        if ($shops !== null) {
+                        if ($shops !== null && is_array($shops) && count($shops) > 0) {
                             foreach ($shops as $shop) {
                                 $data = array();
                                 if (array_key_exists($shop->getId(), $cache)) {

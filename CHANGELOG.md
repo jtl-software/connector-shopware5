@@ -1,6 +1,7 @@
 1.2.2
 -----
 - Fixed product attribute delete bug
+- Fixed missing shop query
 - Added product variation child option name if additional text is empty
 - Changed product image pull and delete handling
 
