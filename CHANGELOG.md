@@ -1,9 +1,11 @@
-1.2.2
+1.2.2 (unreleased)
 -----
 - Fixed product attribute delete bug
 - Fixed missing shop query
 - Added product variation child option name if additional text is empty
 - Changed product image pull and delete handling
+- Changed to core connector version 2.0
+- Changed gitignore and other deprecated stuff
 
 1.2.1
 -----

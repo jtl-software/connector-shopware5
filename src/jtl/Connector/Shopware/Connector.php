@@ -5,9 +5,6 @@
  */
 namespace jtl\Connector\Shopware;
 
-use \jtl\Connector\Core\Config\Config;
-use \jtl\Connector\Core\Config\Loader\Json as ConfigJson;
-use \jtl\Connector\Core\Config\Loader\System as ConfigSystem;
 use \jtl\Connector\Core\Rpc\RequestPacket;
 use \jtl\Connector\Base\Connector as BaseConnector;
 use \jtl\Connector\Core\Utilities\RpcMethod;
@@ -18,7 +15,6 @@ use \jtl\Connector\Core\Rpc\Error;
 use \jtl\Connector\Shopware\Mapper\PrimaryKeyMapper;
 use \jtl\Connector\Shopware\Authentication\TokenLoader;
 use \jtl\Connector\Shopware\Checksum\ChecksumLoader;
-use \jtl\Connector\Session\SessionHelper;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Formatter\ExceptionFormatter;
@@ -70,35 +66,6 @@ class Connector extends BaseConnector
         $driverChain->addDriver($annotationDriver, 'jtl\\Connector\\Shopware\\Model\\');
         $driverChain->addDriver($annotationDriver, 'jtl\\Connector\\Shopware\\Model\\Linker\\');
         $config->setMetadataDriverImpl($driverChain);
-
-        $s = new SessionHelper('shopware');
-
-        $config = null;
-        if (isset($s->config)) {
-            $config = $s->config;
-        }
-                
-        if (empty($config)) {
-            if (!is_null($this->config)) {
-                $config = $this->getConfig();
-            }
-
-            if (empty($config)) {
-                // Application object is not initialized. Bypass by manually creating
-                // the Config object
-                $json = new ConfigJson(CONNECTOR_DIR . '/config/config.json');
-                $config = new Config(array(
-                    $json,
-                    new ConfigSystem()
-                ));
-
-                $this->setConfig($config);
-            }
-        }
-
-        if (!isset($s->config)) {
-            $s->config = $config;
-        }
     }
 
     /**
@@ -128,22 +95,10 @@ class Connector extends BaseConnector
      */
     public function handle(RequestPacket $requestpacket)
     {
-        $config = $this->getConfig();
-        
-        // Set the config to our controller
-        $this->controller->setConfig($config);
-
         // Set the method to our controller
         $this->controller->setMethod($this->getMethod());
 
         if ($this->action === Method::ACTION_PUSH || $this->action === Method::ACTION_DELETE) {
-            /*
-             * OLD single Image
-            if ($this->action === Method::ACTION_PUSH && $this->getMethod()->getController() === 'image') {
-                return $this->controller->{$this->action}($requestpacket->getParams());
-            }
-            */
-
             // Product Price work around
             if ($this->getMethod()->getController() === 'product_price') {
                 $action = new Action();
@@ -172,7 +127,6 @@ class Connector extends BaseConnector
 
             $action = new Action();
             $results = array();
-            $errors = array();
             $entities = $requestpacket->getParams();
             foreach ($entities as $entity) {
                 $result = $this->controller->{$this->action}($entity);

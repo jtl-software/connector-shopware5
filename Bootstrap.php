@@ -55,7 +55,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $configFile = Path::combine(__DIR__, 'config', 'config.json');
         if (!file_exists($configFile)) {
-            file_put_contents($configFile, '{}');
+            file_put_contents($configFile, json_encode(array('developer_logging' => false), JSON_PRETTY_PRINT));
         }
 
         $json = new ConfigJson($configFile);
@@ -87,6 +87,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $form = $this->Form();
 
+        // Connector Auth Token
         $form->setElement('text', 'auth_token',
             array(
                 'label' => 'Passwort',
@@ -103,6 +104,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $url = sprintf('%s://%s%s/%s', $proto, $shop['host'], $shop['base_path'], 'jtlconnector/');
         }
 
+        // Connector URL
         $form->setElement('text', 'connector_url',
             array(
                 'label' => 'Connector Url (Info! Bitte nicht bearbeiten)',
