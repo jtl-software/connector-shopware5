@@ -1301,6 +1301,14 @@ class Product extends DataMapper
                     Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
                     Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
                     Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
+                    Shopware()->Db()->query(
+                        'DELETE f, r
+                            FROM s_filter f
+                            LEFT JOIN s_filter_relations r ON r.groupID = f.id
+                            WHERE f.name = ?',
+                        array($detailSW->getNumber())
+                    );
+                    Shopware()->Db()->delete('s_filter_articles', array('articleID = ?' => $productSW->getId()));
 
                     $this->Manager()->remove($productSW);
                     $this->Manager()->flush($productSW);

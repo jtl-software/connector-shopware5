@@ -206,7 +206,7 @@ class Image extends DataMapper
 
             $manager = Shopware()->Container()->get('thumbnail_manager');
             $manager->createMediaThumbnail($mediaSW, array(), true);
-
+            
             // Result
             $result->setId(new Identity(ImageConModel::generateId($image->getRelationType(), $imageSW->getId(), $mediaSW->getId()), $image->getId()->getHost()))
                 ->setForeignKey(new Identity($image->getForeignKey()->getEndpoint(), $image->getForeignKey()->getHost()))
