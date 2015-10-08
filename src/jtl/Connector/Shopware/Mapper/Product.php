@@ -772,11 +772,14 @@ class Product extends DataMapper
             $optionMapper = Mmc::getMapper('ConfiguratorOption');
             $types = array();
             foreach ($product->getVariations() as $variation) {
-                if (!isset($types[$variation->getType()])) {
-                    $types[$variation->getType()] = 0;
-                }
 
-                $types[$variation->getType()]++;
+                if (strlen(trim($variation->getType())) > 0) {
+                    if (!isset($types[$variation->getType()])) {
+                        $types[$variation->getType()] = 0;
+                    }
+
+                    $types[$variation->getType()]++;
+                }
 
                 $variationName = null;
                 $variationValueName = null;
@@ -837,6 +840,10 @@ class Product extends DataMapper
 
     protected function calcVariationType(array $types)
     {
+        if (count($types) == 0) {
+            return ProductVariation::TYPE_SELECT;
+        }
+
         arsort($types);
 
         $checkEven = function($vTypes) {
