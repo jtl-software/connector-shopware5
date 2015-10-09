@@ -52,7 +52,7 @@ class Image extends DataMapper
                       SELECT i.id as cId, i.article_detail_id as detailId, p.*, m.path
                       FROM s_articles_img i
                       JOIN s_articles_img p ON i.parent_id = p.id
-                      LEFT JOIN jtl_connector_link_product_image l ON l.id = p.id
+                      LEFT JOIN jtl_connector_link_product_image l ON l.id = i.id
                       JOIN s_media m ON m.id = p.media_id
                       WHERE i.articleID IS NULL
                           AND l.host_id IS NULL
@@ -130,7 +130,7 @@ class Image extends DataMapper
                       SELECT count(*) as count
                       FROM s_articles_img i
                       JOIN s_articles_img p ON i.parent_id = p.id
-                      LEFT JOIN jtl_connector_link_product_image l ON l.id = p.id
+                      LEFT JOIN jtl_connector_link_product_image l ON l.id = i.id
                       JOIN s_media m ON m.id = p.media_id
                       WHERE i.articleID IS NULL
                           AND l.host_id IS NULL'
