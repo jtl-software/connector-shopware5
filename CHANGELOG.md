@@ -6,8 +6,10 @@
 - Added product variation child option name if additional text is empty
 - Added product specific relation deletion
 - Added product variation type fallback handling
+- Changed product image pull and delete handling
 - Changed to core connector version 2.0
 - Changed gitignore and other deprecated stuff
+- Changed specific value duplicates handling
 
 1.2.1
 -----

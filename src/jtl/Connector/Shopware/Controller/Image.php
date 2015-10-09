@@ -63,8 +63,7 @@ class Image extends DataController
                         case ImageRelationType::TYPE_PRODUCT:
                             $model = Mmc::getModel('Image');
 
-                            /*
-                            $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int) $modelSW['id'], (int) $modelSW['media_id']);
+                            $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int) $modelSW['cId'], (int) $modelSW['media_id']);
                             $path = $modelSW['path'];
                             $foreignKey = IdConcatenator::link(array($modelSW['detailId'], $modelSW['articleID']));
 
@@ -74,9 +73,9 @@ class Image extends DataController
                                 ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
                                 ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
                                 ->setSort((int) $modelSW['position']);
-                            */
 
                             // Parent
+                            /*
                             $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, $modelSW['id'], $modelSW['media']['id']);
                             $path = $modelSW['media']['path'];
 
@@ -95,6 +94,7 @@ class Image extends DataController
                                 ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
                                 ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
                                 ->setSort($modelSW['position']);
+                            */
 
                             $result[] = $model;
                             break;
