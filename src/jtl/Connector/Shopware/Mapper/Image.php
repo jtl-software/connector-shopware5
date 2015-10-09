@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Core\IO\Path;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Seo;
 use \jtl\Connector\Drawing\ImageRelationType;
@@ -37,6 +38,7 @@ class Image extends DataMapper
 
         switch ($relationType) {
             case ImageRelationType::TYPE_PRODUCT:
+                /*
                 return Shopware()->Db()->fetchAssoc(
                         'SELECT i.id as cId, a.main_detail_id as detailId, i.*, m.path
                       FROM s_articles_img i
@@ -57,7 +59,7 @@ class Image extends DataMapper
                           AND l.host_id IS NULL
                       LIMIT ' . intval($limit)
                 );
-                /*
+                */
                 return $this->Manager()->createQueryBuilder()
                     ->select(
                         'image',
@@ -76,7 +78,6 @@ class Image extends DataMapper
                     ->setMaxResults($limit)
                     ->where('linker.hostId IS NULL')
                     ->getQuery()->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
-                */
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $query = Shopware()->Models()->createNativeQuery(
@@ -114,6 +115,7 @@ class Image extends DataMapper
         $count = 0;
         switch ($relationType) {
             case ImageRelationType::TYPE_PRODUCT:
+                /*
                 $counts = Shopware()->Db()->fetchAssoc(
                     'SELECT count(*) as count
                       FROM s_articles_img i
@@ -137,14 +139,13 @@ class Image extends DataMapper
                 foreach ($counts as $c) {
                     $count += (int) $c['count'];
                 }
+                */
 
-                /*
                 $query = Shopware()->Models()->createNativeQuery(
                     'SELECT count(*) as count 
                     FROM s_articles_img a
                     LEFT JOIN jtl_connector_link_product_image p ON p.id = a.id
                     WHERE p.host_id IS NULL', $rsm);
-                */
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $query = Shopware()->Models()->createNativeQuery(
@@ -382,11 +383,31 @@ class Image extends DataMapper
             $filename = substr($filename, strlen($filename) - 100, 100);
         }
 
-        $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $filename;
+        $path = Path::combine(sys_get_temp_dir(), $filename);
         if (copy($image->getFilename(), $path)) {
             $file = new File($path);
             $image->setFilename($path);
         }
+
+        // Varkombi parent image feature, maybe later
+        /*
+        $parentExists = false;
+        if ($productSW->getConfiguratorSet() !== null) {
+            $parentImageSW = $this->findParentImage($articleId, $image->getFilename());
+            if ($parentImageSW && $parentImageSW !== null) {
+                $imageSW = $parentImageSW;
+                $mediaSW = $parentImageSW->getMedia();
+                $parentExists = true;
+            }
+        }
+
+        if (!$parentExists) {
+            $mediaSW = $this->getMedia($image, $file);
+
+            // parent image
+            $imageSW = $this->getParentImage($image, $mediaSW, $productSW);
+        }
+        */
 
         $mediaSW = $this->getMedia($image, $file);
 
@@ -435,7 +456,11 @@ class Image extends DataMapper
             $mappingSW = new \Shopware\Models\Article\Image\Mapping();
             $this->Manager()->persist($mappingSW);
         } else {
-            Shopware()->Db()->delete('s_article_img_mapping_rules', array('mapping_id = ?' => $mappingSW->getId()));
+            //Shopware()->Db()->delete('s_article_img_mapping_rules', array('mapping_id = ?' => $mappingSW->getId()));
+            //Varkombi parent image feature, maybe later
+            foreach ($detailSW->getConfiguratorOptions() as $optionSW) {
+                Shopware()->Db()->delete('s_article_img_mapping_rules', array('option_id = ?' => $optionSW->getId()));
+            }
         }
 
         $mappingSW->setImage($imageSW);
@@ -748,7 +773,7 @@ class Image extends DataMapper
 
     protected function copyNewMedia(ImageModel $image, MediaSW &$mediaSW, File $file)
     {
-        if ($mediaSW->getId() > 0 && file_exists($image->getFilename()) && $this->generadeMD5($mediaSW->getPath()) != md5_file($image->getFilename())) {
+        if ($mediaSW->getId() > 0 && file_exists($image->getFilename()) && $this->generadeMD5($mediaSW->getPath()) !== md5_file($image->getFilename())) {
             $stats = stat($image->getFilename());
             $infos = pathinfo($image->getFilename());
 
@@ -810,5 +835,39 @@ class Image extends DataMapper
                 $detailSW->getNumber()
             )
         );
+    }
+
+    protected function findParentImage($articleId, $imageFile)
+    {
+        $results = Shopware()->Db()->fetchAssoc(
+            'SELECT m.path, i.id
+             FROM s_articles_img i
+             JOIN s_media m ON m.id = i.media_id
+             WHERE i.articleID = ' . intval($articleId)
+        );
+
+        if (is_array($results) && count($results) > 0) {
+            foreach ($results as $result) {
+                $file = Path::combine(Shopware()->DocPath(), $result['path']);
+                if (file_exists($file)) {
+                    if (md5_file($imageFile) === md5_file($file)) {
+                        return $this->Manager()->find('Shopware\Models\Article\Image', (int) $result['id']);
+                        /*
+                        return $this->Manager()->createQueryBuilder()->select(
+                                'image',
+                                'media'
+                            )
+                            ->from('Shopware\Models\Article\Image', 'image')
+                            ->join('image.media', 'media')
+                            ->where('image.id = :imageId')
+                            ->setParameter('imageId', (int) $result['id'])
+                            ->getQuery()->getResult();
+                        */
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
