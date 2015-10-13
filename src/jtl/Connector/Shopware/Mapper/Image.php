@@ -11,11 +11,14 @@ use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Seo;
 use \jtl\Connector\Drawing\ImageRelationType;
 use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Linker\IdentityLinker;
 use \jtl\Connector\Model\Image as ImageModel;
 use \jtl\Connector\Shopware\Model\Image as ImageConModel;
 use \jtl\Connector\Model\Identity;
 use \Shopware\Models\Media\Media as MediaSW;
 use \Shopware\Models\Article\Image as ArticleImageSW;
+use \Shopware\Models\Article\Image\Mapping as MappingSW;
+use \Shopware\Models\Article\Image\Rule as RuleSW;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use \Shopware\Models\Article\Detail as DetailSW;
@@ -27,6 +30,24 @@ class Image extends DataMapper
     public function find($id)
     {
         return $this->Manager()->getRepository('Shopware\Models\Media\Media')->find((int) $id);
+    }
+
+    public function findArticleImage($id)
+    {
+        try {
+            return $this->Manager()->createQueryBuilder()
+                ->select(
+                    'image',
+                    'media'
+                )
+                ->from('Shopware\Models\Article\Image', 'image')
+                ->leftJoin('image.media', 'media')
+                ->where('image.id = :id')
+                ->setParameter('id', $id)
+                ->getQuery()->getOneOrNullResult();
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function findAll($limit = null, $count = false, $relationType = null)
@@ -206,11 +227,37 @@ class Image extends DataMapper
 
             $this->flush();
 
+            // Save product image variation mappings, if product is a child
+            if ($imageSW !== null && $imageSW->getParent() !== null
+                && $image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
+
+                // Save mapping and rule
+                $this->saveImageMapping($imageSW->getParent());
+                $this->flush();
+            }
+
             $manager = Shopware()->Container()->get('thumbnail_manager');
             $manager->createMediaThumbnail($mediaSW, array(), true);
+
+            $endpoint = ImageConModel::generateId($image->getRelationType(), $imageSW->getId(), $mediaSW->getId());
+            if (strlen($image->getId()->getEndpoint()) > 0 && $image->getId()->getHost() > 0
+                && $endpoint !== $image->getId()->getEndpoint()) {
+
+                Application()->getConnector()->getPrimaryKeyMapper()->delete(
+                    $image->getId()->getEndpoint(),
+                    $image->getId()->getHost(),
+                    IdentityLinker::TYPE_IMAGE
+                );
+
+                Application()->getConnector()->getPrimaryKeyMapper()->save(
+                    $endpoint,
+                    $image->getId()->getHost(),
+                    IdentityLinker::TYPE_IMAGE
+                );
+            }
             
             // Result
-            $result->setId(new Identity(ImageConModel::generateId($image->getRelationType(), $imageSW->getId(), $mediaSW->getId()), $image->getId()->getHost()))
+            $result->setId(new Identity($endpoint, $image->getId()->getHost()))
                 ->setForeignKey(new Identity($image->getForeignKey()->getEndpoint(), $image->getForeignKey()->getHost()))
                 ->setRelationType($image->getRelationType())
                 ->setFilename(sprintf('http://%s%s/%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBaseUrl(), $mediaSW->getPath()));
@@ -263,10 +310,17 @@ class Image extends DataMapper
                 if ($imageSW !== null) {
 
                     if ($imageSW->getParent() !== null) {
+                        $isParentRemoved = false;
                         if (!$this->isParentImageInUse($imageSW->getParent()->getId(), $detailId)) {
                             $this->Manager()->remove($imageSW->getParent());
+                            $isParentRemoved = true;
                         } else {
                             $deleteMedia = false;
+                        }
+
+                        $this->deleteProductImageMappings($imageSW->getParent()->getId());
+                        if (!$isParentRemoved) {
+                            $this->buildProductImageMappings($imageSW->getParent(), $detailId);
                         }
                     }
 
@@ -404,9 +458,8 @@ class Image extends DataMapper
             $image->setFilename($path);
         }
 
-        // Varkombi parent image feature, maybe later
-        /*
         $parentExists = false;
+        $childImageSW = null;
         if ($productSW->getConfiguratorSet() !== null) {
             $parentImageSW = $this->findParentImage($articleId, $image->getFilename());
             if ($parentImageSW && $parentImageSW !== null) {
@@ -422,25 +475,19 @@ class Image extends DataMapper
             // parent image
             $imageSW = $this->getParentImage($image, $mediaSW, $productSW);
         }
-        */
-
-        $mediaSW = $this->getMedia($image, $file);
-
-        // parent image
-        $imageSW = $this->getParentImage($image, $mediaSW, $productSW);
 
         // Varkombi?
         if ($productSW->getConfiguratorSet() !== null) {
-            if ($imageSW->getId() > 0 && $this->isParentImageInUse($imageSW->getId(), $detailSW->getId())) {
+            if (!$parentExists && $imageSW->getId() > 0 && $this->isParentImageInUse($imageSW->getId(), $detailSW->getId())) {
                 // Wenn es noch Kinder gibt die das Vaterbild nutzen, lege ein neues Vaterbild an
                 $mediaSW = $this->getNewMedia($image, $file);
+
+                $this->saveImageMapping($imageSW, $detailSW->getId());
 
                 $imageSW = $this->newParentImage($image, $mediaSW, $productSW);
                 $collection = new \Doctrine\Common\Collections\ArrayCollection;
                 $collection->add($imageSW);
                 $mediaSW->setArticles($collection);
-            } else {
-                $this->copyNewMedia($image, $mediaSW, $file);
             }
 
             $productMapper = Mmc::getMapper('Product');
@@ -448,10 +495,10 @@ class Image extends DataMapper
             // if detail is a child
             if ($imageSW->getParent() === null && $productMapper->isChildSW($productSW, $detailSW)) {
                 $childImageSW = $this->getChildImage($image, $mediaSW, $detailSW, $imageSW);
+
                 $this->Manager()->persist($childImageSW);
 
-                // Save mapping and rule
-                $this->saveImageMapping($imageSW, $detailSW);
+                $imageSW = $childImageSW;
             }
         } else {
             $this->copyNewMedia($image, $mediaSW, $file);
@@ -460,45 +507,10 @@ class Image extends DataMapper
         $this->copyNewMedia($image, $mediaSW, $file);
     }
 
-    protected function saveImageMapping(ArticleImageSW $imageSW, DetailSW $detailSW)
+    protected function saveImageMapping(ArticleImageSW $parentSW, $detailId = null)
     {
-        $mappingSW = null;
-        if ($imageSW->getId() > 0) {
-            $mappingSW = $this->Manager()->getRepository('Shopware\Models\Article\Image\Mapping')->findOneBy(array('image' => $imageSW->getId()));
-        }
-
-        if ($mappingSW === null) {
-            $mappingSW = new \Shopware\Models\Article\Image\Mapping();
-            $this->Manager()->persist($mappingSW);
-        } else {
-            Shopware()->Db()->delete('s_article_img_mapping_rules', array('mapping_id = ?' => $mappingSW->getId()));
-            //Varkombi parent image feature, maybe later
-            /*
-            foreach ($detailSW->getConfiguratorOptions() as $optionSW) {
-                Shopware()->Db()->delete('s_article_img_mapping_rules', array('option_id = ?' => $optionSW->getId()));
-            }
-            */
-        }
-
-        $mappingSW->setImage($imageSW);
-
-        $relations = Shopware()->Db()->fetchAssoc(
-            'SELECT * FROM s_article_configurator_option_relations WHERE article_id = ?',
-            array($detailSW->getId())
-        );
-
-        $optionMapper = Mmc::getMapper('ConfiguratorOption');
-        foreach ($relations as $relation) {
-            $optionSW = $optionMapper->find((int) $relation['option_id']);
-
-            if ($optionSW !== null) {
-                $ruleSW = new \Shopware\Models\Article\Image\Rule();
-                $ruleSW->setMapping($mappingSW);
-                $ruleSW->setOption($optionSW);
-
-                $this->Manager()->persist($ruleSW);
-            }
-        }
+        $this->deleteProductImageMappings($parentSW->getId());
+        $this->buildProductImageMappings($parentSW, $detailId);
     }
 
     protected function isParentImageInUse($parentId, $detailId)
@@ -537,7 +549,14 @@ class Image extends DataMapper
 
     protected function getChildImage(ImageModel $image, MediaSW $mediaSW, DetailSW $detailSW, ArticleImageSW $parentImageSW)
     {
-        $imageSW = $this->loadChildImage($parentImageSW->getId(), $detailSW->getId());
+        $imageId = (strlen($image->getId()->getEndpoint()) > 0) ? $image->getId()->getEndpoint() : null;
+
+        //$imageSW = $this->loadChildImage($parentImageSW->getId(), $detailSW->getId());
+
+        if ($imageId !== null) {
+            list($type, $id, $mediaId) = IdConcatenator::unlink($imageId);
+            $imageSW = $this->Manager()->getRepository('Shopware\Models\Article\Image')->find((int) $id);
+        }
 
         if ($imageSW === null) {
             $imageSW = new ArticleImageSW;
@@ -565,7 +584,11 @@ class Image extends DataMapper
         // Try to load Image
         if ($imageId !== null) {
             list($type, $id, $mediaId) = IdConcatenator::unlink($imageId);
-            $imageSW = $this->Manager()->getRepository('Shopware\Models\Article\Image')->find((int) $id);
+            $imageSW = $this->findArticleImage($id);
+
+            if ($imageSW !== null && $imageSW->getParent() !== null) {
+                $imageSW = $imageSW->getParent();
+            }
         }
 
         // New Image
@@ -881,5 +904,61 @@ class Image extends DataMapper
         }
 
         return null;
+    }
+
+    protected function buildProductImageMappings(ArticleImageSW $parentSW, $detailId = null)
+    {
+        try {
+            $builder = $this->Manager()->createQueryBuilder()->select(
+                'detail',
+                'options'
+            )
+                ->from('Shopware\Models\Article\Detail', 'detail')
+                ->join('detail.configuratorOptions', 'options')
+                ->join('detail.images', 'images')
+                ->where('images.parent = :parentId')
+                ->setParameter('parentId', $parentSW->getId());
+
+            if ($detailId !== null) {
+                $builder->andWhere('detail.id != :detailId')
+                    ->setParameter('detailId', $detailId);
+            }
+
+            $parentSW = $this->findArticleImage($parentSW->getId());
+            $detailsSW = $builder->getQuery()->getResult();
+
+            foreach ($detailsSW as $detailSW) {
+                $mappingSW = new MappingSW();
+                $mappingSW->setImage($parentSW);
+
+                $rules = [];
+                foreach ($detailSW->getConfiguratorOptions() as $optionSW) {
+                    $ruleSW = new RuleSW();
+                    $ruleSW->setOption($optionSW);
+                    $ruleSW->setMapping($mappingSW);
+                    $this->Manager()->persist($ruleSW);
+                }
+
+                $mappingSW->setRules($rules);
+                $this->Manager()->persist($mappingSW);
+            }
+        } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+        }
+    }
+
+    private function deleteProductImageMappings($imageParentId)
+    {
+        try {
+            Shopware()->Db()->query(
+                'DELETE m, r
+                    FROM s_article_img_mappings m
+                    LEFT JOIN s_article_img_mapping_rules r ON r.mapping_id = m.id
+                    WHERE m.image_id = ?',
+                [$imageParentId]
+            );
+        } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+        }
     }
 }

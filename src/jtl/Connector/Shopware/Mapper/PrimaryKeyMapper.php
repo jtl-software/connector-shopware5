@@ -183,8 +183,16 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     case IdentityLinker::TYPE_IMAGE:
                         list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
 
+                        $where = array($dbInfo['pk'] . ' = ?' => $mediaId);
+                        if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
+                            $where = array('id = ?' => $foreignId);
+                            $dbInfo['table'] = 'jtl_connector_link_product_image';
+                        }
+
+                        /*
                         $where = ($mediaType === Image::MEDIA_TYPE_PRODUCT) ?
                             array('id = ?' => $foreignId) : array($dbInfo['pk'] . ' = ?' => $mediaId);
+                        */
                         break;
                     default:
                         $where = array($dbInfo['pk'] . ' = ?' => $endpointId);
@@ -193,6 +201,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             }
 
             if ($hostId) {
+                // Cannot delete in product image table if ony hostId is set cause of missing mediaType
+
                 $where = array('host_id = ?' => $hostId);
             }
 
