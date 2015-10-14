@@ -302,6 +302,28 @@ class Image extends DataMapper
                         ->getQuery()
                         ->execute();
 
+                    $medias = Shopware()->Db()->fetchAssoc(
+                        'SELECT m.id
+                          FROM s_media m
+                          LEFT JOIN s_articles_img i ON i.media_id = m.id
+                          WHERE i.id IS NULL'
+                    );
+
+                    if (is_array($medias) && count($medias) > 0) {
+                        foreach ($medias as $media) {
+                            $mediaSW = $this->find($media['id']);
+                            if ($mediaSW !== null) {
+                                $manager = Shopware()->Container()->get('thumbnail_manager');
+                                $manager->removeMediaThumbnails($mediaSW);
+
+                                @unlink(sprintf('%s%s', Shopware()->OldPath(), $mediaSW->getPath()));
+                                $this->Manager()->remove($mediaSW);
+                            }
+                        }
+
+                        $this->Manager()->flush();
+                    }
+
                     return;
                 }
 
@@ -372,8 +394,15 @@ class Image extends DataMapper
                 break;
         }
 
+        if ($deleteMedia) {
+            $this->deleteMedia($mediaId);
+        }
+    }
+
+    protected function deleteMedia($mediaId)
+    {
         $mediaSW = $this->Manager()->getRepository('Shopware\Models\Media\Media')->find((int) $mediaId);
-        if ($mediaSW !== null && $deleteMedia) {
+        if ($mediaSW !== null) {
             @unlink(sprintf('%s%s', Shopware()->OldPath(), $mediaSW->getPath()));
 
             try {
@@ -460,7 +489,7 @@ class Image extends DataMapper
 
         $parentExists = false;
         $childImageSW = null;
-        if ($productSW->getConfiguratorSet() !== null) {
+        if ($productSW->getConfiguratorSet() !== null && $productSW->getConfiguratorSet()->getId() > 0) {
             $parentImageSW = $this->findParentImage($articleId, $image->getFilename());
             if ($parentImageSW && $parentImageSW !== null) {
                 $imageSW = $parentImageSW;
@@ -477,7 +506,7 @@ class Image extends DataMapper
         }
 
         // Varkombi?
-        if ($productSW->getConfiguratorSet() !== null) {
+        if ($productSW->getConfiguratorSet() !== null && $productSW->getConfiguratorSet()->getId() > 0) {
             if (!$parentExists && $imageSW->getId() > 0 && $this->isParentImageInUse($imageSW->getId(), $detailSW->getId())) {
                 // Wenn es noch Kinder gibt die das Vaterbild nutzen, lege ein neues Vaterbild an
                 $mediaSW = $this->getNewMedia($image, $file);
@@ -610,6 +639,13 @@ class Image extends DataMapper
         if ($imageSW->getParent() === null) {
             $imageSW->setPath($mediaSW->getName());
             $imageSW->setMedia($mediaSW);
+
+            if ($imageSW->getId() > 0) {
+                Shopware()->Db()->query(
+                    'UPDATE s_articles_img SET main = ?, position = ? WHERE id = ?',
+                    [$main, $image->getSort(), $imageSW->getId()]
+                );
+            }
         }
 
         return $imageSW;
@@ -813,7 +849,8 @@ class Image extends DataMapper
 
     protected function copyNewMedia(ImageModel $image, MediaSW &$mediaSW, File $file)
     {
-        if ($mediaSW->getId() > 0 && file_exists($image->getFilename()) && $this->generadeMD5($mediaSW->getPath()) !== md5_file($image->getFilename())) {
+        //if ($mediaSW->getId() > 0 && file_exists($image->getFilename()) && $this->generadeMD5($mediaSW->getPath()) !== md5_file($image->getFilename())) {
+        if ($mediaSW->getId() > 0 && file_exists($image->getFilename())) {
             $stats = stat($image->getFilename());
             $infos = pathinfo($image->getFilename());
 
@@ -821,6 +858,7 @@ class Image extends DataMapper
             $manager->removeMediaThumbnails($mediaSW);
 
             @unlink(sprintf('%s%s', Shopware()->DocPath(), $mediaSW->getPath()));
+
             $file = $file->move($this->getUploadDir(), $image->getFilename());
             $mediaSW->setFileSize($stats['size'])
                 ->setExtension(strtolower($infos['extension']))
@@ -844,15 +882,15 @@ class Image extends DataMapper
     {
         $seo = new Seo();
 
-        $sort = ' ' . $image->getSort();
-        if ($productSW->getConfiguratorSet() !== null) {  // Varkombi
-            $sort = '';
+        $pk = ' ' . $image->getId()->getHost();
+        if ($productSW->getConfiguratorSet() !== null && $productSW->getConfiguratorSet()->getId() > 0) {  // Varkombi
+            $pk = '';
         }
 
         $productSeo = sprintf('%s %s%s',
             $productSW->getName(),
             $detailSW->getAdditionalText(),
-            $sort
+            $pk
         );
 
         if (strlen($productSeo) > 60) {
