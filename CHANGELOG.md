@@ -1,4 +1,4 @@
-1.2.2 (unreleased)
+1.2.2
 -----
 - Fixed product attribute delete bug
 - Fixed missing shop query
