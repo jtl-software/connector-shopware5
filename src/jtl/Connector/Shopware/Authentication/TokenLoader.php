@@ -38,7 +38,5 @@ class TokenLoader implements ITokenLoader
         }
 
         return trim($token);
-
-        //return Application()->getConnector()->getConfig()->read('auth_token');
     }
 }

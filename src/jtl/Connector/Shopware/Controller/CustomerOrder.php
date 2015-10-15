@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
+use jtl\Connector\Core\Utilities\Money;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Result\Action;
@@ -84,6 +85,10 @@ class CustomerOrder extends DataController
                         // Tax Free
                         if ((int) $orderSW['taxFree'] == 1) {
                             $detailSW['taxRate'] = 0.0;
+                        }
+
+                        if ($orderSW['net'] == 1) {
+                            $detailSW['price'] = Money::AsGross($detailSW['price'], $detailSW['taxRate']);
                         }
 
                         $orderItem = Mmc::getModel('CustomerOrderItem');

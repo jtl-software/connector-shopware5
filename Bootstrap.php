@@ -27,7 +27,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.2.1';
+        return '1.2.2';
     }
 
     public function getInfo()
@@ -55,7 +55,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $configFile = Path::combine(__DIR__, 'config', 'config.json');
         if (!file_exists($configFile)) {
-            file_put_contents($configFile, '{}');
+            file_put_contents($configFile, json_encode(array('developer_logging' => false), JSON_PRETTY_PRINT));
         }
 
         $json = new ConfigJson($configFile);
@@ -87,6 +87,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $form = $this->Form();
 
+        // Connector Auth Token
         $form->setElement('text', 'auth_token',
             array(
                 'label' => 'Passwort',
@@ -103,6 +104,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $url = sprintf('%s://%s%s/%s', $proto, $shop['host'], $shop['base_path'], 'jtlconnector/');
         }
 
+        // Connector URL
         $form->setElement('text', 'connector_url',
             array(
                 'label' => 'Connector Url (Info! Bitte nicht bearbeiten)',
@@ -176,6 +178,17 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.1.1':
                 break;
             case '1.1.2':
+                break;
+            case '1.2.1':
+                Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_product_image` ADD `media_id` INT(10) UNSIGNED NOT NULL AFTER `image_id`');
+                Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_product_image` ADD INDEX `id_media_id` (`id`, `media_id`)');
+
+                Shopware()->Db()->query(
+                    'UPDATE jtl_connector_link_product_image l
+                    JOIN s_articles_img i ON i.id = l.id
+                    JOIN s_articles_img p ON p.id = i.parent_id
+                    SET l.media_id = if (i.media_id > 0, i.media_id, p.media_id)'
+                );
                 break;
             default:
                 return false;
@@ -667,11 +680,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               `id` int(11) NOT NULL,
               `host_id` int(10) unsigned NOT NULL,
               `image_id` varchar(255) NOT NULL,
+              `media_id` INT(10) UNSIGNED NOT NULL,
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_product_image`
             ADD CONSTRAINT `jtl_connector_link_product_image_1` FOREIGN KEY (`id`) REFERENCES `s_articles_img` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_product_image` ADD INDEX(`host_id`);
+            ALTER TABLE `jtl_connector_link_product_image` ADD INDEX `id_media_id` (`id`, `media_id`);
         ';
 
         Shopware()->Db()->query($sql);

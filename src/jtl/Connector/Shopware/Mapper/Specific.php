@@ -7,6 +7,7 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\Utilities\Seo;
 use \jtl\Connector\Model\Specific as SpecificModel;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
@@ -218,6 +219,7 @@ class Specific extends DataMapper
         // SpecificValues
         $optionSW->getValues()->clear();
         $values = array();
+        $seo = new Seo();
         foreach ($specific->getValues() as $specificValue) {
             $valueSW = null;
 
@@ -234,11 +236,11 @@ class Specific extends DataMapper
             }
 
             // Check
-            if ($value === null || in_array(strtolower(str_replace('ß', 'ss', $value)), $values)) {
+            if ($value === null || in_array(strtolower($seo->replaceDiacritics($value)), $values)) {
                 continue;
             }
 
-            $values[] = strtolower(str_replace('ß', 'ss', $value));
+            $values[] = strtolower($seo->replaceDiacritics($value));
 
             if ($valueSW === null && $optionSW->getId() > 0) {
                 $valueSW = $this->findValueBy(array('option' => $optionSW->getId(), 'value' => $value));
@@ -274,7 +276,7 @@ class Specific extends DataMapper
 
             $shops = $shopMapper->findByLocale($locale->getLocale());
 
-            if ($shops === null) {
+            if ($shops === null || (is_array($shops) && count($shops) == 0)) {
                 Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $i18n->getLanguageISO()), Logger::WARNING, 'database');
                 continue;
             }
@@ -309,7 +311,7 @@ class Specific extends DataMapper
                         if ($locale !== null) {
                             $shops = $shopMapper->findByLocale($locale->getLocale());
 
-                            if ($shops === null) {
+                            if ($shops === null || (is_array($shops) && count($shops) == 0)) {
                                 Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $i18n->getLanguageISO()), Logger::WARNING, 'database');
                                 continue;
                             }

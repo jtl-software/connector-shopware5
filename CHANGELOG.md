@@ -1,3 +1,17 @@
+1.2.2
+-----
+- Fixed product attribute delete bug
+- Fixed missing shop query
+- Fixed customer order detail price net
+- Added product variation child option name if additional text is empty
+- Added product specific relation deletion
+- Added product variation type fallback handling
+- Changed product image pull and delete handling
+- Changed product image push handling (total rework)
+- Changed to core connector version 2.0
+- Changed gitignore and other deprecated stuff
+- Changed specific value duplicates handling
+
 1.2.1
 -----
 - Fixed product meta description sync

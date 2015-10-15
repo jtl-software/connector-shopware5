@@ -142,7 +142,7 @@ class Category extends DataController
                     $this->addPos($category, 'addI18n', 'CategoryI18n', $categorySW);
 
                     // Other languages
-                    if ($this->getConfig()->read('category_mapping')) {
+                    if (Application()->getConfig()->read('category_mapping')) {
                         $mappings = $mapper->findAllCategoryMappingByParent($category->getId()->getEndpoint());
                         foreach ($mappings as $mapping) {
                             $mapping['category']['id'] = $category->getId()->getEndpoint();

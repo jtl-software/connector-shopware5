@@ -22,9 +22,8 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "jtl/connector": "dev-master"
+        "jtl/connector": "~2.0"
     },
-    "minimum-stability" : "dev",
     "autoload": {
         "psr-0": {
             "jtl\\Connector\\Shopware\\": "src/",
