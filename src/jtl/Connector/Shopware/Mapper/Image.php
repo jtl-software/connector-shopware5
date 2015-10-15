@@ -15,6 +15,7 @@ use jtl\Connector\Linker\IdentityLinker;
 use \jtl\Connector\Model\Image as ImageModel;
 use \jtl\Connector\Shopware\Model\Image as ImageConModel;
 use \jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Model\Linker\Detail;
 use \Shopware\Models\Media\Media as MediaSW;
 use \Shopware\Models\Article\Image as ArticleImageSW;
 use \Shopware\Models\Article\Image\Mapping as MappingSW;
@@ -337,7 +338,6 @@ class Image extends DataMapper
                 if ($imageSW !== null) {
                     if ($imageSW->getParent() !== null) {
                         $isParentRemoved = false;
-
                         if (!$this->isParentImageInUse($imageSW->getParent()->getId(), $detailId) && !$this->isParentImageInUseByMain($imageSW->getId(), $mediaId)) {
                             $this->Manager()->remove($imageSW->getParent());
                             $isParentRemoved = true;
@@ -366,6 +366,16 @@ class Image extends DataMapper
                     try {
                         $this->Manager()->remove($imageSW);
                         $this->Manager()->flush();
+
+                        $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
+                        if ($detailSW !== null && $detailSW->getKind() == 0) {
+                            Shopware()->Db()->query(
+                                'UPDATE s_articles_img
+                                SET main = 1, position = 1
+                                WHERE articleID = ' . intval($articleId) . '
+                                LIMIT 1'
+                            );
+                        }
                     } catch (\Exception $e) {
                         Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
                     }
@@ -507,7 +517,7 @@ class Image extends DataMapper
             $mediaSW = $this->getMedia($image, $file);
 
             // parent image
-            $imageSW = $this->getParentImage($image, $mediaSW, $productSW);
+            $imageSW = $this->getParentImage($image, $mediaSW, $productSW, $detailSW);
         }
 
         // Varkombi?
@@ -612,16 +622,18 @@ class Image extends DataMapper
             $this->Manager()->persist($imageSW);
         }
 
+        $sort = $image->getSort() + 1;
+
         $imageSW->setExtension($mediaSW->getExtension());
-        $imageSW->setPosition($image->getSort());
-        $main = ($image->getSort() == 1) ? 1 : 2;
+        $imageSW->setPosition($sort);
+        $main = ($sort == 1) ? 1 : 2;
         $imageSW->setMain($main);
         $imageSW->setParent($parentImageSW);
 
         return $imageSW;
     }
 
-    protected function getParentImage(ImageModel $image, MediaSW $mediaSW, ArticleSW $productSW)
+    protected function getParentImage(ImageModel $image, MediaSW $mediaSW, ArticleSW $productSW, DetailSW $detailSW)
     {
         $imageId = (strlen($image->getId()->getEndpoint()) > 0) ? $image->getId()->getEndpoint() : null;
 
@@ -647,8 +659,14 @@ class Image extends DataMapper
             $this->Manager()->persist($imageSW);
         }
 
-        $imageSW->setPosition($image->getSort());
-        $main = ($image->getSort() == 1) ? 1 : 2;
+        $sort = $image->getSort();
+        $productMapper = Mmc::getMapper('Product');
+        if ($productMapper->isChildSW($productSW, $detailSW)) {
+            $sort += 1;
+        }
+
+        $imageSW->setPosition($sort);
+        $main = ($sort == 1) ? 1 : 2;
         $imageSW->setMain($main);
 
         if ($imageSW->getParent() === null) {
