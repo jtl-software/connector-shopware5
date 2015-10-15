@@ -242,6 +242,7 @@ class Image extends DataMapper
                 list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
                 $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
                 if ($imageSW->getParent() === null && $detailSW !== null && $detailSW->getKind() == 0 && $image->getSort() == 1) {
+                    Shopware()->Db()->query('UPDATE s_articles_img SET main = 2 WHERE articleID = ' . intval($articleId));
                     Shopware()->Db()->query(
                         'UPDATE s_articles_img
                         SET main = 1, position = 1
