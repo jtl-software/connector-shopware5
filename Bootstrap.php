@@ -27,7 +27,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.2.2';
+        return '1.2.3';
     }
 
     public function getInfo()
@@ -189,6 +189,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     JOIN s_articles_img p ON p.id = i.parent_id
                     SET l.media_id = if (i.media_id > 0, i.media_id, p.media_id)'
                 );
+                break;
+            case '1.2.2':
                 break;
             default:
                 return false;
