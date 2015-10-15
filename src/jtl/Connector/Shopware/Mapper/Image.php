@@ -293,6 +293,14 @@ class Image extends DataMapper
 
                 // Special delete (masterkill) all images for a single product call
                 if ($image->getSort() == 0 && strlen($image->getId()->getEndpoint()) == 0) {
+                    $mediaResults = Shopware()->Db()->fetchAssoc(
+                        'SELECT i.media_id
+                         FROM s_articles_img i
+                         JOIN s_media m ON m.id = i.media_id
+                         WHERE i.articleID = ' . intval($articleId) . '
+                         GROUP BY i.media_id'
+                    );
+
                     Shopware()->Db()->query(
                         'DELETE i, m, r
                           FROM s_articles_img i
@@ -308,6 +316,18 @@ class Image extends DataMapper
                         ->setParameter('detailId', $detailId)
                         ->getQuery()
                         ->execute();
+
+                    $manager = Shopware()->Container()->get('thumbnail_manager');
+                    foreach ($mediaResults as $mediaResult) {
+                        $mediaSW = $this->find($mediaResult['media_id']);
+                        if ($mediaSW !== null) {
+                            $manager->removeMediaThumbnails($mediaSW);
+                            @unlink(sprintf('%s%s', Shopware()->DocPath(), $mediaSW->getPath()));
+                            $this->Manager()->remove($mediaSW);
+                        }
+                    }
+
+                    $this->Manager()->flush();
 
                     return;
                 }
