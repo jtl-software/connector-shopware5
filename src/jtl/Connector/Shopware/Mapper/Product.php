@@ -596,7 +596,6 @@ class Product extends DataMapper
                     }
 
                     $optionSW = $optionMapper->findOneBy(array('name' => $name, 'groupId' => $groupSW->getId()));
-
                     if ($optionSW === null) {
                         continue;
                     }
