@@ -315,12 +315,12 @@ class Image extends DataMapper
                 $imageSW = $this->Manager()->getRepository('Shopware\Models\Article\Image')->find((int) $imageId);
 
                 if ($imageSW !== null) {
-
                     if ($imageSW->getParent() !== null) {
                         $isParentRemoved = false;
                         $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
+
                         if ($detailSW !== null && $detailSW->getKind() == 0
-                            &&!$this->isParentImageInUse($imageSW->getParent()->getId(), $detailId)) {
+                            && !$this->isParentImageInUse($imageSW->getParent()->getId(), $detailId)) {
 
                             $this->Manager()->remove($imageSW->getParent());
                             $isParentRemoved = true;
