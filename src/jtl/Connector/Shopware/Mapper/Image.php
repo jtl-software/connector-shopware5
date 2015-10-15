@@ -317,11 +317,8 @@ class Image extends DataMapper
                 if ($imageSW !== null) {
                     if ($imageSW->getParent() !== null) {
                         $isParentRemoved = false;
-                        $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
 
-                        if ($detailSW !== null && $detailSW->getKind() == 0
-                            && !$this->isParentImageInUse($imageSW->getParent()->getId(), $detailId)) {
-
+                        if (!$this->isParentImageInUse($imageSW->getParent()->getId(), $detailId) && !$this->isParentImageInUseByMain($imageSW->getId(), $mediaId)) {
                             $this->Manager()->remove($imageSW->getParent());
                             $isParentRemoved = true;
                         } else {
@@ -542,6 +539,18 @@ class Image extends DataMapper
             ->getQuery()->getResult();
 
         return (is_array($results) && count($results) > 0);
+    }
+
+    protected function isParentImageInUseByMain($childImageId, $mediaId)
+    {
+        $count = Shopware()->Db()->fetchOne(
+            'SELECT count(*) as count
+              FROM jtl_connector_link_product_image l
+              WHERE l.id != ' . intval($childImageId) . '
+                  AND l.media_id = ' . intval($mediaId)
+        );
+
+        return ($count !== null && intval($count) > 0);
     }
 
     protected function loadChildImage($parentId, $detailId)
