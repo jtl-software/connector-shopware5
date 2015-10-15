@@ -236,12 +236,25 @@ class Image extends DataMapper
             $this->flush();
 
             // Save product image variation mappings, if product is a child
-            if ($imageSW !== null && $imageSW instanceof ArticleImageSW && $imageSW->getParent() !== null
-                && $image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
+            if ($imageSW !== null && $imageSW instanceof ArticleImageSW && $image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
+
+                $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? $image->getForeignKey()->getEndpoint() : null;
+                list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
+                $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
+                if ($imageSW->getParent() === null && $detailSW !== null && $detailSW->getKind() == 0 && $image->getSort() == 1) {
+                    Shopware()->Db()->query(
+                        'UPDATE s_articles_img
+                        SET main = 1, position = 1
+                        WHERE id = ' . $imageSW->getId() . '
+                        LIMIT 1'
+                    );
+                }
 
                 // Save mapping and rule
-                $this->saveImageMapping($imageSW->getParent());
-                $this->flush();
+                if ($imageSW->getParent() !== null) {
+                    $this->saveImageMapping($imageSW->getParent());
+                    $this->flush();
+                }
             }
 
             $manager = Shopware()->Container()->get('thumbnail_manager');
@@ -543,7 +556,7 @@ class Image extends DataMapper
                 $imageSW = $childImageSW;
             }
         } else {
-            $this->copyNewMedia($image, $mediaSW, $file, $parentExists);
+            //$this->copyNewMedia($image, $mediaSW, $file, $parentExists);
         }
 
         $this->copyNewMedia($image, $mediaSW, $file, $parentExists);
@@ -583,6 +596,17 @@ class Image extends DataMapper
         return ($count !== null && intval($count) > 0);
     }
 
+    protected function getArticleImageCount($articleId)
+    {
+        $count = Shopware()->Db()->fetchOne(
+            'SELECT count(*) as count
+            FROM s_articles_img
+            WHERE articleID = ' . intval($articleId)
+        );
+
+        return ($count !== null) ? intval($count) : 0;
+    }
+
     protected function loadChildImage($parentId, $detailId)
     {
         try {
@@ -603,9 +627,10 @@ class Image extends DataMapper
 
     protected function getChildImage(ImageModel $image, MediaSW $mediaSW, DetailSW $detailSW, ArticleImageSW $parentImageSW)
     {
+        $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? $image->getForeignKey()->getEndpoint() : null;
         $imageId = (strlen($image->getId()->getEndpoint()) > 0) ? $image->getId()->getEndpoint() : null;
 
-        //$imageSW = $this->loadChildImage($parentImageSW->getId(), $detailSW->getId());
+        list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
 
         if ($imageId !== null) {
             list($type, $id, $mediaId) = IdConcatenator::unlink($imageId);
@@ -622,7 +647,10 @@ class Image extends DataMapper
             $this->Manager()->persist($imageSW);
         }
 
-        $sort = $image->getSort() + 1;
+        $sort = $image->getSort();
+        if ($this->getArticleImageCount($articleId) > 0) {
+            $sort = $image->getSort() + 1;
+        }
 
         $imageSW->setExtension($mediaSW->getExtension());
         $imageSW->setPosition($sort);
@@ -661,7 +689,7 @@ class Image extends DataMapper
 
         $sort = $image->getSort();
         $productMapper = Mmc::getMapper('Product');
-        if ($productMapper->isChildSW($productSW, $detailSW)) {
+        if ($productMapper->isChildSW($productSW, $detailSW) && $this->getArticleImageCount($productSW->getId()) > 0) {
             $sort += 1;
         }
 
