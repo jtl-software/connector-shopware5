@@ -242,6 +242,7 @@ class Image extends DataMapper
                 list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
                 $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
                 if ($imageSW->getParent() === null && $detailSW !== null && $detailSW->getKind() == 0 && $image->getSort() == 1) {
+                    Shopware()->Db()->query('UPDATE s_articles_img SET main = 2 WHERE articleID = ' . intval($articleId));
                     Shopware()->Db()->query(
                         'UPDATE s_articles_img
                         SET main = 1, position = 1
@@ -316,20 +317,22 @@ class Image extends DataMapper
                     );
 
                     Shopware()->Db()->query(
-                        'DELETE i, m, r
+                        'DELETE i, l, m, r
                           FROM s_articles_img i
+                          LEFT JOIN jtl_connector_link_product_image l ON l.id = i.id
                           LEFT JOIN s_article_img_mappings m ON m.image_id = i.id
                           LEFT JOIN s_article_img_mapping_rules r ON r.mapping_id = m.id
                           WHERE i.articleID = ?',
                         array($articleId)
                     );
 
-                    $this->Manager()->createQueryBuilder()
-                        ->delete('Shopware\Models\Article\Image', 'image')
-                        ->where('image.articleDetailId = :detailId')
-                        ->setParameter('detailId', $detailId)
-                        ->getQuery()
-                        ->execute();
+                    Shopware()->Db()->query(
+                        'DELETE i, l
+                          FROM s_articles_img i
+                          LEFT JOIN jtl_connector_link_product_image l ON l.id = i.id
+                          WHERE i.article_detail_id = ?',
+                        array($detailId)
+                    );
 
                     $manager = Shopware()->Container()->get('thumbnail_manager');
                     foreach ($mediaResults as $mediaResult) {
@@ -987,6 +990,7 @@ class Image extends DataMapper
         );
 
         if (is_array($results) && count($results) > 0) {
+            clearstatcache();
             foreach ($results as $result) {
                 $file = Path::combine(Shopware()->DocPath(), $result['path']);
                 if (file_exists($file)) {
