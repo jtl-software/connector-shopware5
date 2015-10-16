@@ -1,3 +1,7 @@
+1.2.3
+-----
+- Changed product image main and position handling
+
 1.2.2
 -----
 - Fixed product attribute delete bug
