@@ -1,7 +1,8 @@
 1.2.4 (unreleased)
 -----
-- Added product variation and variation value sorting
 - Fixed product attribute regex
+- Added product variation and variation value sorting
+- Changed product attribute start value from 3 to 4
 
 1.2.3
 -----
