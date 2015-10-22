@@ -1,3 +1,8 @@
+1.2.4 (unreleased)
+-----
+- Added product variation and variation value sorting
+- Fixed product attribute regex
+
 1.2.3
 -----
 - Changed product image main and position handling
