@@ -86,8 +86,6 @@ class Product extends DataMapper
             'discounts',
             'customergroups',
             'configuratorOptions',
-            'propertygroup',
-            'propertyoptions',
             'propertyvalues'
         )
             ->from('jtl\Connector\Shopware\Model\Linker\Detail', 'detail')
@@ -107,9 +105,7 @@ class Product extends DataMapper
             ->leftJoin('pricegroup.discounts', 'discounts')
             ->leftJoin('article.customerGroups', 'customergroups')
             ->leftJoin('detail.configuratorOptions', 'configuratorOptions')
-            ->leftJoin('article.propertyGroup', 'propertygroup')
-            ->leftJoin('propertygroup.options', 'propertyoptions')
-            ->leftJoin('propertyoptions.values', 'propertyvalues')
+            ->leftJoin('article.propertyValues', 'propertyvalues')
             ->where('linker.hostId IS NULL')
             ->orderBy('detail.kind', 'ASC')
             ->setFirstResult(0)
