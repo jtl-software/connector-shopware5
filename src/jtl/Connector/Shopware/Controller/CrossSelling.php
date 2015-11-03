@@ -36,6 +36,7 @@ class CrossSelling extends DataController
             $crossSellingSWs = $mapper->findAll($limit);
 
             if (is_array($crossSellingSWs) && count($crossSellingSWs) > 0) {
+                $lastArticleId = null;
                 $lastProductId = null;
                 $crossSelling = null;
                 foreach ($crossSellingSWs as $crossSellingSW) {
@@ -44,11 +45,16 @@ class CrossSelling extends DataController
 
                     if ($lastProductId !== $productId) {
                         $crossSelling = Mmc::getModel('CrossSelling');
-                        $crossSelling->setProductId(new Identity($lastProductId));
+                        $crossSelling->setId(new Identity($lastArticleId))
+                            ->setProductId(new Identity($lastProductId));
+
                         $lastProductId = $productId;
+                        $lastArticleId = $crossSellingSW['articleID'];
 
                         if ($lastProductId !== null) {
-                            $crossSelling->setProductId(new Identity($productId));
+                            $crossSelling->setId(new Identity($crossSellingSW['articleID']))
+                                ->setProductId(new Identity($productId));
+
                             $result[] = $crossSelling;
                         }
                     }

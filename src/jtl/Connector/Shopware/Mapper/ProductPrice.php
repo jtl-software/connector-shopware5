@@ -66,8 +66,8 @@ class ProductPrice extends DataMapper
         array $productPrices,
         ArticleSW &$productSW = null,
         DetailSW &$detailSW = null,
-        $recommendedRetailPrice = 0.0,
-        $purchasePrice = 0.0
+        $recommendedRetailPrice = null,
+        $purchasePrice = null
     ) {
         // Price
         $collection = array();
@@ -142,7 +142,7 @@ class ProductPrice extends DataMapper
         }
 
         // Find pseudoprice
-        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && $recommendedRetailPrice === 0.0) {
+        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && $recommendedRetailPrice === null) {
             $recommendedRetailPrice = Shopware()->Db()->fetchOne(
                 'SELECT if(pseudoprice, pseudoprice, 0.0) FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
                 array($productSW->getId(), $detailSW->getId())
@@ -150,7 +150,7 @@ class ProductPrice extends DataMapper
         }
 
         // Find baseprice
-        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && $purchasePrice === 0.0) {
+        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && $purchasePrice === null) {
             $purchasePrice = Shopware()->Db()->fetchOne(
                 'SELECT if(baseprice, baseprice, 0.0) FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
                 array($productSW->getId(), $detailSW->getId())

@@ -300,6 +300,20 @@ class Image extends DataMapper
         switch ($image->getRelationType()) {
             case ImageRelationType::TYPE_PRODUCT:
                 $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? $image->getForeignKey()->getEndpoint() : null;
+
+                Logger::write(
+                    sprintf(
+                        'DELETE Product (%s/%s) - Image (%s/%s) - Sort (%s)',
+                        $image->getForeignKey()->getEndpoint(),
+                        $image->getForeignKey()->getHost(),
+                        $image->getId()->getEndpoint(),
+                        $image->getId()->getHost(),
+                        $image->getSort()
+                    ),
+                    Logger::DEBUG,
+                    'image'
+                );
+
                 if ($foreignId === null) {
                     return;
                 }
@@ -380,10 +394,14 @@ class Image extends DataMapper
                     */
 
                     try {
+                        $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
+                        if ($detailSW !== null && $detailSW->getKind() == 0 && $this->isParentImageInUse($imageSW->getId(), $detailSW->getId())) {
+                            return;
+                        }
+
                         $this->Manager()->remove($imageSW);
                         $this->Manager()->flush();
 
-                        $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
                         if ($detailSW !== null && $detailSW->getKind() == 0) {
                             Shopware()->Db()->query(
                                 'UPDATE s_articles_img
@@ -520,14 +538,14 @@ class Image extends DataMapper
 
         $parentExists = false;
         $childImageSW = null;
-        if ($productMapper->isChildSW($productSW, $detailSW)) {
+        //if ($productMapper->isChildSW($productSW, $detailSW)) {
             $parentImageSW = $this->findParentImage($articleId, $image->getFilename());
             if ($parentImageSW && $parentImageSW !== null) {
                 $imageSW = $parentImageSW;
                 $mediaSW = $parentImageSW->getMedia();
                 $parentExists = true;
             }
-        }
+        //}
 
         if (!$parentExists) {
             $mediaSW = $this->getMedia($image, $file);
@@ -535,6 +553,19 @@ class Image extends DataMapper
             // parent image
             $imageSW = $this->getParentImage($image, $mediaSW, $productSW, $detailSW);
         }
+
+        Logger::write(
+            sprintf(
+                'SAVE Product (%s/%s) - Image (%s/%s) - Sort (%s)',
+                $image->getForeignKey()->getEndpoint(),
+                $image->getForeignKey()->getHost(),
+                $image->getId()->getEndpoint(),
+                $image->getId()->getHost(),
+                $image->getSort()
+            ),
+            Logger::DEBUG,
+            'image'
+        );
 
         // Varkombi?
         if ($productMapper->isChildSW($productSW, $detailSW)) {
@@ -552,7 +583,7 @@ class Image extends DataMapper
 
             // if detail is a child
             if ($imageSW->getParent() === null) {
-                $childImageSW = $this->getChildImage($image, $mediaSW, $detailSW, $imageSW);
+                $childImageSW = $this->getChildImage($image, $mediaSW, $productSW, $detailSW, $imageSW);
 
                 $this->Manager()->persist($childImageSW);
 
@@ -592,8 +623,23 @@ class Image extends DataMapper
         $count = Shopware()->Db()->fetchOne(
             'SELECT count(*) as count
               FROM jtl_connector_link_product_image l
+              LEFT JOIN s_articles_img i ON i.id = l.id
               WHERE l.id != ' . intval($childImageId) . '
-                  AND l.media_id = ' . intval($mediaId)
+                  AND l.media_id = ' . intval($mediaId) . '
+                  AND i.articleID IS NOT NULL'
+        );
+
+        return ($count !== null && intval($count) > 0);
+    }
+
+    protected function existsParentImageWithoutChild($articleId)
+    {
+        $count = Shopware()->Db()->fetchOne(
+            'SELECT count(*) as count
+                FROM s_articles_img p
+                LEFT JOIN s_articles_img i ON i.parent_id = p.id
+                WHERE i.id IS NULL
+                    AND p.articleID = ' . intval($articleId)
         );
 
         return ($count !== null && intval($count) > 0);
@@ -628,7 +674,7 @@ class Image extends DataMapper
         }
     }
 
-    protected function getChildImage(ImageModel $image, MediaSW $mediaSW, DetailSW $detailSW, ArticleImageSW $parentImageSW)
+    protected function getChildImage(ImageModel $image, MediaSW $mediaSW, ArticleSW $productSW, DetailSW $detailSW, ArticleImageSW $parentImageSW)
     {
         $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? $image->getForeignKey()->getEndpoint() : null;
         $imageId = (strlen($image->getId()->getEndpoint()) > 0) ? $image->getId()->getEndpoint() : null;
@@ -651,7 +697,23 @@ class Image extends DataMapper
         }
 
         $sort = $image->getSort();
-        if ($this->getArticleImageCount($articleId) > 0) {
+        //if ($this->getArticleImageCount($articleId) > 0) {
+        if (!$this->existsParentImageWithoutChild($productSW->getId()) && $productSW->getMainDetail()->getId() == $detailSW->getId()) {
+            $main = ($sort == 1) ? 1 : 2;
+
+            if ($main == 1) {
+                Shopware()->Db()->query(
+                    'UPDATE s_articles_img p
+                      LEFT JOIN s_articles_img i ON i.parent_id = p.id
+                      SET p.main = 2, p.position = 2, i.main = 2, i.position = 2
+                      WHERE p.articleID = ' . intval($productSW->getId()));
+            }
+
+            $parentImageSW->setMain($main);
+            $parentImageSW->setPosition($sort);
+
+            $this->Manager()->persist($parentImageSW);
+        } else {
             $sort = $image->getSort() + 1;
         }
 
@@ -664,7 +726,7 @@ class Image extends DataMapper
         return $imageSW;
     }
 
-    protected function getParentImage(ImageModel $image, MediaSW $mediaSW, ArticleSW $productSW, DetailSW $detailSW)
+    protected function loadParentImage(ImageModel $image)
     {
         $imageId = (strlen($image->getId()->getEndpoint()) > 0) ? $image->getId()->getEndpoint() : null;
 
@@ -676,7 +738,16 @@ class Image extends DataMapper
             if ($imageSW !== null && $imageSW->getParent() !== null) {
                 $imageSW = $imageSW->getParent();
             }
+
+            return $imageSW;
         }
+
+        return null;
+    }
+
+    protected function getParentImage(ImageModel $image, MediaSW $mediaSW, ArticleSW $productSW, DetailSW $detailSW)
+    {
+        $imageSW = $this->loadParentImage($image);
 
         // New Image
         if ($imageSW === null) {

@@ -1,6 +1,8 @@
 1.2.4 (unreleased)
 -----
 - Fixed product attribute regex
+- Fixed product specific pull mapping
+- Fixed product pseudo and base price reset
 - Added product variation and variation value sorting
 - Changed product attribute start value from 3 to 4
 

@@ -402,7 +402,8 @@ class Product extends DataController
         if (isset($data['propertyValues']) && isset($data['propertyValues'])) {
             foreach ($data['propertyValues'] as $value) {
                 $productSpecific = Mmc::getModel('ProductSpecific');
-                $productSpecific->setProductId(new Identity($data['id']))
+                $productSpecific->setId(new Identity($data['optionId']))
+                    ->setProductId(new Identity($data['id']))
                     ->setSpecificValueId(new Identity($value['id']));
 
                 $product->addSpecific($productSpecific);
