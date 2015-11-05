@@ -638,10 +638,12 @@ class Product extends DataMapper
 
                         // active
                         if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
+                            $isActive = (strtolower($attributeI18n->getValue()) === 'false'
+                                || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
                             if ($isChild) {
-                                $detailSW->setActive((int) $attributeI18n->getValue());
+                                $detailSW->setActive((int) $isActive);
                             } else {
-                                $productSW->setActive((int) $attributeI18n->getValue());
+                                $productSW->setActive((int) $isActive);
                             }
                         }
 
@@ -652,12 +654,11 @@ class Product extends DataMapper
                                 $number = str_replace('attr', '', $attributeI18n->getName());
                                 $s_setter = "setAttr{$number}";
                                 $s_getter = "getAttr{$number}";
-
                                 if (method_exists($attributeSW, $s_setter)) {
                                     $oldValue = $attributeSW->{$s_getter}();
                                     $attributeSW->{$s_setter}($attributeI18n->getValue());
 
-                                    if (method_exists($attributeSW, $setter)) {
+                                    if ($number != $i && method_exists($attributeSW, $setter)) {
                                         $attributeSW->{$setter}($oldValue);
                                     }
 
@@ -674,57 +675,7 @@ class Product extends DataMapper
             }
         }
 
-        /*
-        $i = 0;
-        $occupieds = array();
-        foreach ($product->getAttributes() as $attribute) {
-            if (!$attribute->getIsCustomProperty()) {
-                $i++;
-                foreach ($attribute->getI18ns() as $attributeI18n) {
-                    if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-
-                        if (preg_match('/attr(20|1[1-9]{1}|[1-9]{1})/', $attributeI18n->getName(), $matches)) {
-                            if (strlen($matches[0]) == strlen($attributeI18n->getName())) {
-                                $number = str_replace('attr', '', $attributeI18n->getName());
-                                $setter = "setAttr{$number}";
-
-                                if (method_exists($attributeSW, $setter)) {
-                                    $attributeSW->{$setter}($attributeI18n->getValue());
-                                    $occupieds[] = $number;
-
-                                    continue;
-                                }
-                            }
-                        }
-
-                        if (in_array($i, $occupieds)) {
-                            $i++;
-                        }
-
-                        // Work Around, thx @db structure
-                        if ($i == 17) {
-                            $i++;
-                        }
-
-                        $setter = "setAttr{$i}";
-
-                        // active
-                        if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
-                            if ($isChild) {
-                                $detailSW->setActive((int)$attributeI18n->getValue());
-                            } else {
-                                $productSW->setActive((int)$attributeI18n->getValue());
-                            }
-                        }
-
-                        if (method_exists($attributeSW, $setter)) {
-                            $attributeSW->{$setter}($attributeI18n->getValue());
-                        }
-                    }
-                }
-            }
-        }
-        */
+        $this->Manager()->persist($attributeSW);
 
         $detailSW->setAttribute($attributeSW);
         $productSW->setAttribute($attributeSW);

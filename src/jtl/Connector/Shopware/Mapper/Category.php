@@ -361,7 +361,7 @@ class Category extends DataMapper
                     $allowedActiveValues = array('0', '1', 0, 1, false, true);
                     if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::IS_ACTIVE)
                         && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                        $categorySW->setActive((bool)$attributeI18n->getValue());
+                        $categorySW->setActive((bool) $attributeI18n->getValue());
                     }
 
                     if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
