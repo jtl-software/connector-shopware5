@@ -3,6 +3,7 @@
 - Fixed product attribute regex
 - Fixed product specific pull mapping
 - Fixed product pseudo and base price reset
+- Fixed category sorting for different languages
 - Added product variation and variation value sorting
 - Changed product attribute start value from 3 to 4
 

@@ -455,11 +455,12 @@ class Category extends DataMapper
                     }
 
                     $categoryMappingSW->setParent($parentCategorySW);
-                    $categoryMappingSW->setPosition(1);
+                    $categoryMappingSW->setPosition($category->getSort());
                     $categoryMappingSW->setNoViewSelect(false);
                 }
 
                 $categoryMappingSW->setName($i18n->getName());
+                $categoryMappingSW->setPosition($category->getSort());
                 $categoryMappingSW->setMetaDescription($i18n->getMetaDescription());
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
                 //$categoryMappingSW->setCmsHeadline($i18n->getMetaKeywords());
