@@ -86,8 +86,6 @@ class Product extends DataMapper
             'discounts',
             'customergroups',
             'configuratorOptions',
-            'propertygroup',
-            'propertyoptions',
             'propertyvalues'
         )
             ->from('jtl\Connector\Shopware\Model\Linker\Detail', 'detail')
@@ -107,9 +105,7 @@ class Product extends DataMapper
             ->leftJoin('pricegroup.discounts', 'discounts')
             ->leftJoin('article.customerGroups', 'customergroups')
             ->leftJoin('detail.configuratorOptions', 'configuratorOptions')
-            ->leftJoin('article.propertyGroup', 'propertygroup')
-            ->leftJoin('propertygroup.options', 'propertyoptions')
-            ->leftJoin('propertyoptions.values', 'propertyvalues')
+            ->leftJoin('article.propertyValues', 'propertyvalues')
             ->where('linker.hostId IS NULL')
             ->orderBy('detail.kind', 'ASC')
             ->setFirstResult(0)
@@ -628,7 +624,7 @@ class Product extends DataMapper
             $attributeSW->{$setter}(null);
         }
 
-        $i = 2;
+        $i = 3;
         foreach ($product->getAttributes() as $attribute) {
             if (!$attribute->getIsCustomProperty()) {
                 $i++;
@@ -642,26 +638,27 @@ class Product extends DataMapper
 
                         // active
                         if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
+                            $isActive = (strtolower($attributeI18n->getValue()) === 'false'
+                                || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
                             if ($isChild) {
-                                $detailSW->setActive((int) $attributeI18n->getValue());
+                                $detailSW->setActive((int) $isActive);
                             } else {
-                                $productSW->setActive((int) $attributeI18n->getValue());
+                                $productSW->setActive((int) $isActive);
                             }
                         }
 
                         $setter = "setAttr{$i}";
 
-                        if (preg_match('/attr(20|1[1-9]{1}|[1-9]{1})/', $attributeI18n->getName(), $matches)) {
+                        if (preg_match('/attr(20|1[0-9]{1}|[1-9]{1})/', $attributeI18n->getName(), $matches)) {
                             if (strlen($matches[0]) == strlen($attributeI18n->getName())) {
                                 $number = str_replace('attr', '', $attributeI18n->getName());
                                 $s_setter = "setAttr{$number}";
                                 $s_getter = "getAttr{$number}";
-
                                 if (method_exists($attributeSW, $s_setter)) {
                                     $oldValue = $attributeSW->{$s_getter}();
                                     $attributeSW->{$s_setter}($attributeI18n->getValue());
 
-                                    if (method_exists($attributeSW, $setter)) {
+                                    if ($number != $i && method_exists($attributeSW, $setter)) {
                                         $attributeSW->{$setter}($oldValue);
                                     }
 
@@ -678,57 +675,7 @@ class Product extends DataMapper
             }
         }
 
-        /*
-        $i = 0;
-        $occupieds = array();
-        foreach ($product->getAttributes() as $attribute) {
-            if (!$attribute->getIsCustomProperty()) {
-                $i++;
-                foreach ($attribute->getI18ns() as $attributeI18n) {
-                    if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-
-                        if (preg_match('/attr(20|1[1-9]{1}|[1-9]{1})/', $attributeI18n->getName(), $matches)) {
-                            if (strlen($matches[0]) == strlen($attributeI18n->getName())) {
-                                $number = str_replace('attr', '', $attributeI18n->getName());
-                                $setter = "setAttr{$number}";
-
-                                if (method_exists($attributeSW, $setter)) {
-                                    $attributeSW->{$setter}($attributeI18n->getValue());
-                                    $occupieds[] = $number;
-
-                                    continue;
-                                }
-                            }
-                        }
-
-                        if (in_array($i, $occupieds)) {
-                            $i++;
-                        }
-
-                        // Work Around, thx @db structure
-                        if ($i == 17) {
-                            $i++;
-                        }
-
-                        $setter = "setAttr{$i}";
-
-                        // active
-                        if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
-                            if ($isChild) {
-                                $detailSW->setActive((int)$attributeI18n->getValue());
-                            } else {
-                                $productSW->setActive((int)$attributeI18n->getValue());
-                            }
-                        }
-
-                        if (method_exists($attributeSW, $setter)) {
-                            $attributeSW->{$setter}($attributeI18n->getValue());
-                        }
-                    }
-                }
-            }
-        }
-        */
+        $this->Manager()->persist($attributeSW);
 
         $detailSW->setAttribute($attributeSW);
         $productSW->setAttribute($attributeSW);
@@ -791,12 +738,14 @@ class Product extends DataMapper
                 $groupSW = $groupMapper->findOneBy(array('name' => $variationName));
                 if ($groupSW === null) {
                     $groupSW = new \Shopware\Models\Article\Configurator\Group();
-                    $groupSW->setName($variationName);
-                    $groupSW->setDescription('');
-                    $groupSW->setPosition(0);
-
-                    $this->Manager()->persist($groupSW);
                 }
+
+                $groupSW->setName($variationName);
+                $groupSW->setDescription('');
+                //$groupSW->setPosition(0);
+                $groupSW->setPosition($variation->getSort());
+
+                $this->Manager()->persist($groupSW);
 
                 //$groups->add($groupSW);
                 $groups[] = $groupSW;
@@ -815,12 +764,14 @@ class Product extends DataMapper
 
                     if ($optionSW === null) {
                         $optionSW = new \Shopware\Models\Article\Configurator\Option();
-                        $optionSW->setName($variationValueName);
-                        $optionSW->setPosition(($i + 1));
-                        $optionSW->setGroup($groupSW);
-
-                        $this->Manager()->persist($optionSW);
                     }
+
+                    $optionSW->setName($variationValueName);
+                    //$optionSW->setPosition(($i + 1));
+                    $optionSW->setPosition($variationValue->getSort());
+                    $optionSW->setGroup($groupSW);
+
+                    $this->Manager()->persist($optionSW);
 
                     //$options->add($optionSW);
                     $options[] = $optionSW;
@@ -829,7 +780,8 @@ class Product extends DataMapper
 
             $confiSet->setOptions($options)
                 ->setGroups($groups)
-                ->setType($this->calcVariationType($types));
+                //->setType($this->calcVariationType($types));
+                ->setType(0);
 
             $this->Manager()->persist($confiSet);
 

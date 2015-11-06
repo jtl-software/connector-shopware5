@@ -399,15 +399,14 @@ class Product extends DataController
         }
 
         // ProductSpecific
-        if (isset($data['propertyGroup']) && isset($data['propertyGroup']['options'])) {
-            foreach ($data['propertyGroup']['options'] as $option) {
-                foreach ($option['values'] as $value) {
-                    $productSpecific = Mmc::getModel('ProductSpecific');
-                    $productSpecific->setProductId(new Identity($data['id']))
-                        ->setSpecificValueId(new Identity($value['id']));
+        if (isset($data['propertyValues']) && isset($data['propertyValues'])) {
+            foreach ($data['propertyValues'] as $value) {
+                $productSpecific = Mmc::getModel('ProductSpecific');
+                $productSpecific->setId(new Identity($data['optionId']))
+                    ->setProductId(new Identity($data['id']))
+                    ->setSpecificValueId(new Identity($value['id']));
 
-                    $product->addSpecific($productSpecific);
-                }
+                $product->addSpecific($productSpecific);
             }
         }
 

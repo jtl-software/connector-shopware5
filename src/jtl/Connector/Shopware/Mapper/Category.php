@@ -361,7 +361,7 @@ class Category extends DataMapper
                     $allowedActiveValues = array('0', '1', 0, 1, false, true);
                     if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::IS_ACTIVE)
                         && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                        $categorySW->setActive((bool)$attributeI18n->getValue());
+                        $categorySW->setActive((bool) $attributeI18n->getValue());
                     }
 
                     if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
@@ -455,11 +455,12 @@ class Category extends DataMapper
                     }
 
                     $categoryMappingSW->setParent($parentCategorySW);
-                    $categoryMappingSW->setPosition(1);
+                    $categoryMappingSW->setPosition($category->getSort());
                     $categoryMappingSW->setNoViewSelect(false);
                 }
 
                 $categoryMappingSW->setName($i18n->getName());
+                $categoryMappingSW->setPosition($category->getSort());
                 $categoryMappingSW->setMetaDescription($i18n->getMetaDescription());
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
                 //$categoryMappingSW->setCmsHeadline($i18n->getMetaKeywords());
