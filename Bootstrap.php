@@ -36,7 +36,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'version' => $this->getVersion(),
             'label' => $this->getLabel(),
             'author' => 'JTL-Software GmbH',
-            'description' => '',
+            'description' => 'Verbinden Sie Ihren Shop mit JTL-Wawi, der kostenlosen Multichannel-Warenwirtschaft für den Versandhandel.',
             'support' => 'JTL-Software Forum',
             'link' => 'http://www.jtl-software.de'
         );

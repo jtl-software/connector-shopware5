@@ -1,6 +1,7 @@
 1.2.5 (unreleased)
 -----
 - Fixed product attribute type
+- Added product attribute multilanguage support
 
 1.2.4
 -----
