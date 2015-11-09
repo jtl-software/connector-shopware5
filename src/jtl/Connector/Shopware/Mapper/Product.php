@@ -632,7 +632,6 @@ class Product extends DataMapper
                 $i++;
                 foreach ($attribute->getI18ns() as $attributeI18n) {
                     if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-
                         // Work Around, thx @db structure
                         if ($i == 17) {
                             $i++;
@@ -660,10 +659,12 @@ class Product extends DataMapper
                                     $oldValue = $attributeSW->{$s_getter}();
                                     $attributeSW->{$s_setter}($attributeI18n->getValue());
 
-                                    if ($number != $i && method_exists($attributeSW, $setter)) {
+                                    if ($oldValue !== null && $number != $i && method_exists($attributeSW, $setter)) {
                                         $attributeSW->{$setter}($oldValue);
                                         $hostId = $attrMappings[$number];
                                         $attrMappings[$i] = $hostId;
+                                    } elseif ($number < $i && $i > 4) {
+                                        $i--;
                                     }
 
                                     $attrMappings[$number] = $attribute->getId()->getHost();
@@ -924,10 +925,7 @@ class Product extends DataMapper
                             'metaTitle' => $i18n->getTitleTag(),
                             'description' => $i18n->getMetaDescription(),
                             'keywords' => $i18n->getMetaKeywords(),
-                            'packUnit' => '',
-                            'attr1' => '',
-                            'attr2' => '',
-                            'attr3' => ''
+                            'packUnit' => ''
                         );
 
                         if (isset($attrI18ns[$i18n->getLanguageISO()])) {
