@@ -632,6 +632,7 @@ class Product extends DataMapper
                 $i++;
                 foreach ($attribute->getI18ns() as $attributeI18n) {
                     if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                        
                         // Work Around, thx @db structure
                         if ($i == 17) {
                             $i++;
