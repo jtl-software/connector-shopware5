@@ -1,4 +1,4 @@
-1.2.5 (unreleased)
+1.2.5
 -----
 - Fixed product attribute type
 - Added product attribute multilanguage support
