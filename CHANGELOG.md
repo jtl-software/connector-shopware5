@@ -1,3 +1,8 @@
+1.2.5
+-----
+- Fixed product attribute type
+- Added product attribute multilanguage support
+
 1.2.4
 -----
 - Fixed product attribute regex
