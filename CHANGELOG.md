@@ -1,3 +1,7 @@
+1.2.6 (unreleased)
+-----
+- Added connector install, phar and suhosin check
+
 1.2.5
 -----
 - Fixed product attribute type

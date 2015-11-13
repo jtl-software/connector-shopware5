@@ -274,6 +274,16 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
             if (is_writable(sys_get_temp_dir())) {
+                if (!extension_loaded('phar')) {
+                    throw new \Exception('PHP Extension \'phar\' is not loaded');
+                }
+
+                if (extension_loaded('suhosin')) {
+                    if (strpos(ini_get('suhosin.executor.include.whitelist'), 'phar') === false) {
+                        throw new \Exception('Suhosin is active and the PHP extension \'phar\' needs to be on the executor include whitelist');
+                    }
+                }
+
                 require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
             } else {
                 throw new \Exception(sprintf('Das Verzeichnis %s ist nicht beschreibbar. Bitte kontaktieren Sie Ihren Administrator oder Hoster.', sys_get_temp_dir()));
