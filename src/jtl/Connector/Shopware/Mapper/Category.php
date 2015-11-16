@@ -293,7 +293,7 @@ class Category extends DataMapper
         if ($categorySW === null) {
             $name = null;
             foreach ($category->getI18ns() as $i18n) {
-                if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) == Shopware()->Shop()->getLocale()->getLocale()) {
+                if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) === Shopware()->Shop()->getLocale()->getLocale()) {
                     $name = $i18n->getName();
                     break;
                 }
@@ -327,8 +327,11 @@ class Category extends DataMapper
     protected function prepareI18nAssociatedData(CategoryModel $category, CategorySW &$categorySW)
     {
         // I18n
+        $exists = false;
         foreach ($category->getI18ns() as $i18n) {
-            if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) == Shopware()->Shop()->getLocale()->getLocale()) {
+            if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) === Shopware()->Shop()->getLocale()->getLocale()) {
+                $exists = true;
+
                 $categorySW->setName($i18n->getName());
                 $categorySW->setMetaDescription($i18n->getMetaDescription());
                 $categorySW->setMetaKeywords($i18n->getMetaKeywords());
@@ -338,6 +341,10 @@ class Category extends DataMapper
                 $this->Manager()->persist($categorySW);
                 $this->Manager()->flush();
             }
+        }
+
+        if (!$exists) {
+            throw new \Exception(sprintf('Main Shop locale (%s) does not exists in category languages', Shopware()->Shop()->getLocale()->getLocale()));
         }
     }
 
@@ -439,7 +446,7 @@ class Category extends DataMapper
     public function prepareCategoryMapping(CategoryModel $category, CategorySW $categorySW)
     {
         foreach ($category->getI18ns() as $i18n) {
-            if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) != Shopware()->Shop()->getLocale()->getLocale()) {
+            if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) !== Shopware()->Shop()->getLocale()->getLocale()) {
                 $categoryMappingSW = $this->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
 
                 if ($categoryMappingSW === null) {

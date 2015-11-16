@@ -7,7 +7,8 @@
 		<mkdir dir="./dist/Frontend/jtlconnector/plugins" />
         <mkdir dir="./dist/Frontend/jtlconnector/config" />
 		<mkdir dir="./dist/Frontend/jtlconnector/logs" />
-		<mkdir dir="./dist/Frontend/jtlconnector/db" />
+        <mkdir dir="./dist/Frontend/jtlconnector/db" />
+        <mkdir dir="./dist/Frontend/jtlconnector/validation" />
         <copy todir="./dist/Frontend/jtlconnector/config">
             <fileset dir="./config">
                 <include name="features.json" />
@@ -72,6 +73,9 @@
         <fileset dir="./dist" id="zipFiles">
             <include name="Frontend/**" />
         </fileset>
+
+        <exec command="php jtlasc.phar validation:create:file ${project.basedir}/dist/Frontend/jtlconnector/ ${project.basedir}/dist/Frontend/jtlconnector/validation/files.json -e 'config' -p '*.ph*'" />
+        <exec command="php jtlasc.phar validation:create:mysql localhost s1_sw5 XRZVHJ7uKVZwZwwd s1_sw5 ${project.basedir}/dist/Frontend/jtlconnector/validation/mysql.json -p '/jtl_connector_[\w]+/i'" />
 
         <zip destfile="./dist/jtl-connector-shopware5-1.2.5.zip">
             <fileset refid="zipFiles" />

@@ -1,6 +1,7 @@
 1.2.6 (unreleased)
 -----
 - Added connector install, phar and suhosin check
+- Added category language locale check
 
 1.2.5
 -----
