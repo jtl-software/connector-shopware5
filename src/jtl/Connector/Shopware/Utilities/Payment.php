@@ -16,7 +16,8 @@ final class Payment
         PaymentTypes::TYPE_INVOICE => 'invoice',
         PaymentTypes::TYPE_PREPAYMENT => 'prepayment',
         PaymentTypes::TYPE_PAYPAL_EXPRESS => 'paypal',
-        PaymentTypes::TYPE_SOFORT => 'sofortbanking'
+        PaymentTypes::TYPE_SOFORT => 'sofortbanking',
+        PaymentTypes::TYPE_BILLSAFE => 'billsafe_invoice'
     );
 
     public static function map($paymentModuleCode = null, $swCode = null)

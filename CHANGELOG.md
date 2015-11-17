@@ -2,6 +2,7 @@
 -----
 - Added connector install, phar and suhosin check
 - Added category language locale check
+- Added billsafe to payment types
 
 1.2.5
 -----

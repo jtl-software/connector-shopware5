@@ -9,6 +9,11 @@
 		<mkdir dir="./dist/Frontend/jtlconnector/logs" />
         <mkdir dir="./dist/Frontend/jtlconnector/db" />
         <mkdir dir="./dist/Frontend/jtlconnector/validation" />
+        <copy todir="./dist/Frontend/jtlconnector/validation">
+            <fileset dir="./config">
+                <include name=".htaccess" />
+            </fileset>
+        </copy>
         <copy todir="./dist/Frontend/jtlconnector/config">
             <fileset dir="./config">
                 <include name="features.json" />
