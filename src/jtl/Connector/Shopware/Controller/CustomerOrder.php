@@ -9,6 +9,7 @@ namespace jtl\Connector\Shopware\Controller;
 use jtl\Connector\Core\Utilities\Money;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Identity;
+use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Result\Action;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
@@ -58,6 +59,18 @@ class CustomerOrder extends DataController
                     $paymentModuleCode = PaymentUtil::map(null, $orderSW['payment']['name']);
                     $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $orderSW['payment']['name'];
                     $order->setPaymentModuleCode($paymentModuleCode);
+
+                    // Billsafe
+                    if ($paymentModuleCode === PaymentTypes::TYPE_BILLSAFE
+                    && isset($orderSW['attribute']['swagBillsafeIban'])
+                    && isset($orderSW['attribute']['swagBillsafeBic'])) {
+                        $order->setPui(sprintf(
+                            'Bitte bezahlen Sie %s %s an folgendes Konto: %s',
+                            $orderSW['invoiceAmount'],
+                            $order->getCurrencyIso(),
+                            sprintf('IBAN: %s, BIC: %s', $orderSW['attribute']['swagBillsafeIban'], $orderSW['attribute']['swagBillsafeBic'])
+                        ));
+                    }
 
                     // CustomerOrderStatus
                     $customerOrderStatus = StatusUtil::map(null, $orderSW['status']);

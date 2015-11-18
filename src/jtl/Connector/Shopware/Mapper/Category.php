@@ -29,13 +29,22 @@ class Category extends DataMapper
         return $this->Manager()->find('Shopware\Models\Category\Category', $id);
     }
 
-    public function findByNameAndLevel($name, $parentId = null)
+    public function findByNameAndLevel($name, $level, $parentId = null)
     {
         $sql = ' AND c.parent IS NULL';
         $params = array($name);
         if ($parentId !== null) {
             $sql = ' AND c.parent = ?';
+
             $params[] = $parentId;
+        } elseif ($level == 1) {
+            $id = Shopware()->Db()->fetchOne(
+                'SELECT c.id FROM s_categories c WHERE c.parent IS NULL', []
+            );
+
+            if ((int) $id > 0) {
+                $sql = ' AND c.parent = ' . intval($id);
+            }
         }
 
         $id = Shopware()->Db()->fetchOne(
@@ -284,7 +293,7 @@ class Category extends DataMapper
 
         if ($categoryId !== null && $categoryId > 0) {
             $categorySW = $this->find($categoryId);
-            if ($categorySW->getLevel() > 0 && $parentId === null) {
+            if ($categorySW !== null && $categorySW->getLevel() > 0 && $parentId === null) {
                 $parentId = $categorySW->getParent()->getId();
             }
         }
@@ -300,7 +309,7 @@ class Category extends DataMapper
             }
 
             if ($name !== null) {
-                $categorySW = $this->findByNameAndLevel($name, $parentId);
+                $categorySW = $this->findByNameAndLevel($name, ($category->getLevel() + 1), $parentId);
             }
         }
 

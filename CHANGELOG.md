@@ -3,6 +3,8 @@
 - Added connector install, phar and suhosin check
 - Added category language locale check
 - Added billsafe to payment types
+- Added billsafe customer order support
+- Changed payment mysql trigger to trigger only at state 'payment completed'
 
 1.2.5
 -----
