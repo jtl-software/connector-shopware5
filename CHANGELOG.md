@@ -4,6 +4,7 @@
 - Added category language locale check
 - Added billsafe to payment types
 - Added billsafe customer order support
+- Added shopware 5.1 media service support
 - Changed payment mysql trigger to trigger only at state 'payment completed'
 
 1.2.5

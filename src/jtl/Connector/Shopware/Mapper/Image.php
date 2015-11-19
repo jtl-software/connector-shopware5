@@ -16,6 +16,7 @@ use \jtl\Connector\Model\Image as ImageModel;
 use \jtl\Connector\Shopware\Model\Image as ImageConModel;
 use \jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Model\Linker\Detail;
+use jtl\Connector\Shopware\Utilities\MediaService as MediaServiceUtil;
 use \Shopware\Models\Media\Media as MediaSW;
 use \Shopware\Models\Article\Image as ArticleImageSW;
 use \Shopware\Models\Article\Image\Mapping as MappingSW;
@@ -349,11 +350,17 @@ class Image extends DataMapper
                     );
 
                     $manager = Shopware()->Container()->get('thumbnail_manager');
+                    $service = MediaServiceUtil::get();
                     foreach ($mediaResults as $mediaResult) {
                         $mediaSW = $this->find($mediaResult['media_id']);
                         if ($mediaSW !== null) {
                             $manager->removeMediaThumbnails($mediaSW);
-                            @unlink(sprintf('%s%s', Shopware()->DocPath(), $mediaSW->getPath()));
+                            if ($service !== null) {
+                                $service->delete($mediaSW->getPath());
+                            } else {
+                                @unlink(sprintf('%s%s', Shopware()->DocPath(), $mediaSW->getPath()));
+                            }
+
                             $this->Manager()->remove($mediaSW);
                         }
                     }
@@ -451,8 +458,13 @@ class Image extends DataMapper
     protected function deleteMedia($mediaId)
     {
         $mediaSW = $this->Manager()->getRepository('Shopware\Models\Media\Media')->find((int) $mediaId);
+        $service = MediaServiceUtil::get();
         if ($mediaSW !== null) {
-            @unlink(sprintf('%s%s', Shopware()->OldPath(), $mediaSW->getPath()));
+            if ($service !== null) {
+                $service->delete($mediaSW->getPath());
+            } else {
+                @unlink(sprintf('%s%s', Shopware()->OldPath(), $mediaSW->getPath()));
+            }
 
             try {
                 $this->Manager()->remove($mediaSW);
@@ -1062,8 +1074,15 @@ class Image extends DataMapper
 
         if (is_array($results) && count($results) > 0) {
             clearstatcache();
+            $service = MediaServiceUtil::get();
             foreach ($results as $result) {
-                $file = Path::combine(Shopware()->DocPath(), $result['path']);
+                if ($service !== null) {
+                    $path = $service->encode($result['path']);
+                    $file = Path::combine(Shopware()->DocPath(), $path);
+                } else {
+                    $file = Path::combine(Shopware()->DocPath(), $result['path']);
+                }
+
                 if (file_exists($file)) {
                     if (md5_file($imageFile) === md5_file($file)) {
                         return $this->Manager()->find('Shopware\Models\Article\Image', (int) $result['id']);

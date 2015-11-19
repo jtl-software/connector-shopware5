@@ -15,3 +15,4 @@ db/**
 phing.phar
 jtlasc.phar
 stub.php
+validation/**
