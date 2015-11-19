@@ -164,6 +164,8 @@ class CustomerOrder extends DataController
                         ->setQuantity(1)
                         ->setVat(self::calcShippingVat($order));
 
+                    $order->addItem($item);
+
                     // Attributes
                     for ($i = 1; $i <= 6; $i++) {
                         if (isset($orderSW['attribute']["attribute{$i}"]) && strlen($orderSW['attribute']["attribute{$i}"]) > 0) {
