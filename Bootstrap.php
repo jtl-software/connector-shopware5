@@ -196,6 +196,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.2.4':
                 break;
+            case '1.2.5':
+                $this->createPaymentTrigger();
+                break;
             default:
                 return false;
         }

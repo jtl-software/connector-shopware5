@@ -1,10 +1,11 @@
-1.2.6 (unreleased)
+1.3.0 (unreleased)
 -----
 - Added connector install, phar and suhosin check
 - Added category language locale check
 - Added billsafe to payment types
 - Added billsafe customer order support
 - Added shopware 5.1 media service support
+- Added file and mysql validation files
 - Changed payment mysql trigger to trigger only at state 'payment completed'
 
 1.2.5
