@@ -154,18 +154,15 @@ class CustomerOrder extends DataController
                     }
 
                     // Adding shipping item
-                    if ($orderSW['invoiceShippingNet'] > 0) {
-                        $item = Mmc::getModel('CustomerOrderItem');
-                        $item->setType(\jtl\Connector\Model\CustomerOrderItem::TYPE_SHIPPING)
-                            ->setId(new Identity(sprintf('%s_ship', $orderSW['id'])))
-                            ->setCustomerOrderId($order->getId())
-                            ->setName('Shipping')
-                            ->setPrice($orderSW['invoiceShippingNet'])
-                            ->setQuantity(1)
-                            ->setVat(self::calcShippingVat($order));
-
-                        $order->addItem($item);
-                    }
+                    $shippingPrice = (isset($orderSW['invoiceShippingNet'])) ? (float) $orderSW['invoiceShippingNet'] : 0.0;
+                    $item = Mmc::getModel('CustomerOrderItem');
+                    $item->setType(\jtl\Connector\Model\CustomerOrderItem::TYPE_SHIPPING)
+                        ->setId(new Identity(sprintf('%s_ship', $orderSW['id'])))
+                        ->setCustomerOrderId($order->getId())
+                        ->setName('Shipping')
+                        ->setPrice($shippingPrice)
+                        ->setQuantity(1)
+                        ->setVat(self::calcShippingVat($order));
 
                     // Attributes
                     for ($i = 1; $i <= 6; $i++) {
