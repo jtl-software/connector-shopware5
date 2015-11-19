@@ -1,6 +1,7 @@
 composer.lock
 composer
 vendor/**
+dist/**
 plugins/**
 !plugins/.gitkeep
 .idea/**
@@ -12,4 +13,6 @@ config/**
 db/**
 !db/.htaccess
 phing.phar
+jtlasc.phar
 stub.php
+validation/**

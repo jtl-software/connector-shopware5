@@ -27,7 +27,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.2.5';
+        return '1.3.0';
     }
 
     public function getInfo()
@@ -196,6 +196,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.2.4':
                 break;
+            case '1.2.5':
+                $this->createPaymentTrigger();
+                break;
             default:
                 return false;
         }
@@ -274,6 +277,16 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
             if (is_writable(sys_get_temp_dir())) {
+                if (!extension_loaded('phar')) {
+                    throw new \Exception('PHP Extension \'phar\' is not loaded');
+                }
+
+                if (extension_loaded('suhosin')) {
+                    if (strpos(ini_get('suhosin.executor.include.whitelist'), 'phar') === false) {
+                        throw new \Exception('Suhosin is active and the PHP extension \'phar\' needs to be on the executor include whitelist');
+                    }
+                }
+
                 require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
             } else {
                 throw new \Exception(sprintf('Das Verzeichnis %s ist nicht beschreibbar. Bitte kontaktieren Sie Ihren Administrator oder Hoster.', sys_get_temp_dir()));
@@ -488,7 +501,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             (
               SELECT null, id, '', ordertime, '', invoice_amount, transactionID
               FROM s_order
-              WHERE LENGTH(transactionID) > 0
+              WHERE LENGTH(transactionID) > 0 AND cleared = 12
             )"
         );
     }
@@ -806,13 +819,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             CREATE TRIGGER `jtl_connector_payment` AFTER UPDATE ON `s_order`
             FOR EACH ROW
             BEGIN
-            IF LENGTH(NEW.transactionID) > 0 THEN
+            IF LENGTH(NEW.transactionID) > 0 AND NEW.cleared = 12 THEN
                     SET @paymentId = (SELECT id FROM jtl_connector_payment WHERE customerOrderId = NEW.id);
                     DELETE FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
                     INSERT IGNORE INTO jtl_connector_payment VALUES (if(@paymentId > 0, @paymentId, null), NEW.id, '', now(), '', NEW.invoice_amount, NEW.transactionID);
                 END IF;
             END;
         ";
+
         Shopware()->Db()->query($sql);
     }
 }

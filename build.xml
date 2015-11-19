@@ -7,7 +7,13 @@
 		<mkdir dir="./dist/Frontend/jtlconnector/plugins" />
         <mkdir dir="./dist/Frontend/jtlconnector/config" />
 		<mkdir dir="./dist/Frontend/jtlconnector/logs" />
-		<mkdir dir="./dist/Frontend/jtlconnector/db" />
+        <mkdir dir="./dist/Frontend/jtlconnector/db" />
+        <mkdir dir="./dist/Frontend/jtlconnector/validation" />
+        <copy todir="./dist/Frontend/jtlconnector/validation">
+            <fileset dir="./config">
+                <include name=".htaccess" />
+            </fileset>
+        </copy>
         <copy todir="./dist/Frontend/jtlconnector/config">
             <fileset dir="./config">
                 <include name="features.json" />
@@ -59,7 +65,7 @@
                 <include name="**/**" />
             </fileset>
             <metadata>
-                <element name="version" value="1.2.5" />
+                <element name="version" value="1.3.0" />
                 <element name="authors">
                     <element name="Daniel Böhmer">
                         <element name="email" value="daniel.boehmer@jtl-software.com" />
@@ -73,7 +79,10 @@
             <include name="Frontend/**" />
         </fileset>
 
-        <zip destfile="./dist/jtl-connector-shopware5-1.2.5.zip">
+        <exec command="php jtlasc.phar validation:create:file ${project.basedir}/dist/Frontend/jtlconnector/ ${project.basedir}/dist/Frontend/jtlconnector/validation/files.json -e 'config' -p '*.ph*'" />
+        <exec command="php jtlasc.phar validation:create:mysql localhost s1_sw5 XRZVHJ7uKVZwZwwd s1_sw5 ${project.basedir}/dist/Frontend/jtlconnector/validation/mysql.json -p '/jtl_connector_[\w]+/i'" />
+
+        <zip destfile="./dist/jtl-connector-shopware5-1.3.0.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>

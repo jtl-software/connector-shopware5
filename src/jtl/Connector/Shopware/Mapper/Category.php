@@ -29,13 +29,22 @@ class Category extends DataMapper
         return $this->Manager()->find('Shopware\Models\Category\Category', $id);
     }
 
-    public function findByNameAndLevel($name, $parentId = null)
+    public function findByNameAndLevel($name, $level, $parentId = null)
     {
         $sql = ' AND c.parent IS NULL';
         $params = array($name);
         if ($parentId !== null) {
             $sql = ' AND c.parent = ?';
+
             $params[] = $parentId;
+        } elseif ($level == 1) {
+            $id = Shopware()->Db()->fetchOne(
+                'SELECT c.id FROM s_categories c WHERE c.parent IS NULL', []
+            );
+
+            if ((int) $id > 0) {
+                $sql = ' AND c.parent = ' . intval($id);
+            }
         }
 
         $id = Shopware()->Db()->fetchOne(
@@ -284,7 +293,7 @@ class Category extends DataMapper
 
         if ($categoryId !== null && $categoryId > 0) {
             $categorySW = $this->find($categoryId);
-            if ($categorySW->getLevel() > 0 && $parentId === null) {
+            if ($categorySW !== null && $categorySW->getLevel() > 0 && $parentId === null) {
                 $parentId = $categorySW->getParent()->getId();
             }
         }
@@ -293,14 +302,14 @@ class Category extends DataMapper
         if ($categorySW === null) {
             $name = null;
             foreach ($category->getI18ns() as $i18n) {
-                if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) == Shopware()->Shop()->getLocale()->getLocale()) {
+                if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) === Shopware()->Shop()->getLocale()->getLocale()) {
                     $name = $i18n->getName();
                     break;
                 }
             }
 
             if ($name !== null) {
-                $categorySW = $this->findByNameAndLevel($name, $parentId);
+                $categorySW = $this->findByNameAndLevel($name, ($category->getLevel() + 1), $parentId);
             }
         }
 
@@ -327,8 +336,11 @@ class Category extends DataMapper
     protected function prepareI18nAssociatedData(CategoryModel $category, CategorySW &$categorySW)
     {
         // I18n
+        $exists = false;
         foreach ($category->getI18ns() as $i18n) {
-            if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) == Shopware()->Shop()->getLocale()->getLocale()) {
+            if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) === Shopware()->Shop()->getLocale()->getLocale()) {
+                $exists = true;
+
                 $categorySW->setName($i18n->getName());
                 $categorySW->setMetaDescription($i18n->getMetaDescription());
                 $categorySW->setMetaKeywords($i18n->getMetaKeywords());
@@ -338,6 +350,10 @@ class Category extends DataMapper
                 $this->Manager()->persist($categorySW);
                 $this->Manager()->flush();
             }
+        }
+
+        if (!$exists) {
+            throw new \Exception(sprintf('Main Shop locale (%s) does not exists in category languages', Shopware()->Shop()->getLocale()->getLocale()));
         }
     }
 
@@ -439,7 +455,7 @@ class Category extends DataMapper
     public function prepareCategoryMapping(CategoryModel $category, CategorySW $categorySW)
     {
         foreach ($category->getI18ns() as $i18n) {
-            if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) != Shopware()->Shop()->getLocale()->getLocale()) {
+            if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) !== Shopware()->Shop()->getLocale()->getLocale()) {
                 $categoryMappingSW = $this->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
 
                 if ($categoryMappingSW === null) {

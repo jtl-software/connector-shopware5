@@ -891,6 +891,7 @@ class Product extends DataMapper
                 if ($attrI18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                     if (!isset($attrI18ns[$attrI18n->getLanguageISO()])) {
                         $attrI18ns[$attrI18n->getLanguageISO()] = [];
+
                     }
 
                     if (($index = array_search($attr->getId()->getHost(), $attrMappings)) !== false) {
