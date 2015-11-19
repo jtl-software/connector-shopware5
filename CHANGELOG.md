@@ -1,4 +1,4 @@
-1.3.0 (unreleased)
+1.3.0
 -----
 - Added connector install, phar and suhosin check
 - Added category language locale check
