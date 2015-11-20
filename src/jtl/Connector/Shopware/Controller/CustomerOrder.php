@@ -187,6 +187,31 @@ class CustomerOrder extends DataController
                         $order->setPaymentInfo($customerOrderPaymentInfo);
                     }
 
+                    // Payment Data
+                    if (isset($orderSW['customer']['paymentData']) && is_array($orderSW['customer']['paymentData'])) {
+                        $customerOrderPaymentInfo = $order->getPaymentInfo();
+                        if ($customerOrderPaymentInfo === null) {
+                            $customerOrderPaymentInfo = Mmc::getModel('CustomerOrderPaymentInfo');
+                            $customerOrderPaymentInfo->setCustomerOrderId($order->getId())
+                                ->setAccountHolder(sprintf(
+                                    '%s %s',
+                                    $orderSW['billing']['firstName'],
+                                    $orderSW['billing']['lastName']
+                                ));
+                        }
+
+                        foreach ($orderSW['customer']['paymentData'] as $dataSW) {
+                            if (isset($dataSW['bic']) && strlen($dataSW['bic']) > 0
+                                && isset($dataSW['iban']) && strlen($dataSW['iban']) > 0) {
+                                $customerOrderPaymentInfo->setBic($dataSW['bic'])
+                                    ->setIban($dataSW['iban']);
+                                break;
+                            }
+                        }
+
+                        $order->setPaymentInfo($customerOrderPaymentInfo);
+                    }
+
                     $result[] = $order;
                 } catch (\Exception $exc) {
                     Logger::write(ExceptionFormatter::format($exc), Logger::WARNING, 'controller');

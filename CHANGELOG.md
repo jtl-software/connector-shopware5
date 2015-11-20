@@ -1,3 +1,7 @@
+1.3.1 (unreleased)
+-----
+- Added customer payment sepa support
+
 1.3.0
 -----
 - Added connector install, phar and suhosin check
