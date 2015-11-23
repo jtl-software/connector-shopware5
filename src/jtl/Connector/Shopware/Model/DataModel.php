@@ -83,6 +83,8 @@ abstract class DataModel
                         case 'boolean':
                         case 'bool':
                             return (bool) $value;
+                        case 'DateTime':
+                            return new \DateTime($value);
                     }
                 }
             }

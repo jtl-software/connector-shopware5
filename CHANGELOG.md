@@ -2,6 +2,7 @@
 -----
 - Added customer payment sepa support
 - Added specific value image support
+- Changed payment pull error tolerance
 
 1.3.0
 -----
