@@ -18,6 +18,7 @@ class Image extends ImageModel
     const MEDIA_TYPE_PRODUCT = 'a';
     const MEDIA_TYPE_CATEGORY = 'c';
     const MEDIA_TYPE_MANUFACTURER = 's';
+    const MEDIA_TYPE_SPECIFIC_VALUE = 'pv';
 
     protected $fields = array(
         'id' => 'id',
@@ -45,6 +46,8 @@ class Image extends ImageModel
                 return sprintf('%s_%s_%s', self::MEDIA_TYPE_CATEGORY, $id, $mediaId);
             case ImageRelationType::TYPE_MANUFACTURER:
                 return sprintf('%s_%s_%s', self::MEDIA_TYPE_MANUFACTURER, $id, $mediaId);
+            case ImageRelationType::TYPE_SPECIFIC_VALUE:
+                return sprintf('%s_%s_%s', self::MEDIA_TYPE_SPECIFIC_VALUE, $id, $mediaId);
         }
     }
 }

@@ -1,6 +1,7 @@
 1.3.1 (unreleased)
 -----
 - Added customer payment sepa support
+- Added specific value image support
 
 1.3.0
 -----
