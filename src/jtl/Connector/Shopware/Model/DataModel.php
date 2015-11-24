@@ -84,7 +84,7 @@ abstract class DataModel
                         case 'bool':
                             return (bool) $value;
                         case 'DateTime':
-                            return new \DateTime($value);
+                            return (is_string($value)) ? new \DateTime($value) : $value;
                     }
                 }
             }
