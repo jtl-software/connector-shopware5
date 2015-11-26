@@ -550,6 +550,15 @@ class Product extends DataMapper
 
         if ($product->getSupplierDeliveryTime() > 0) {
             $detailSW->setShippingTime($product->getSupplierDeliveryTime());
+        } else {
+            foreach ($product->getI18ns() as $i18n) {
+                if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    $days = str_replace(' Tage', '', $i18n->getDeliveryStatus());
+                    if (strlen($days) > 0 && $days !== '0') {
+                        $detailSW->setShippingTime($days);
+                    }
+                }
+            }
         }
 
         // Base Price
