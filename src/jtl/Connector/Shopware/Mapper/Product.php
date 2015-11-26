@@ -553,7 +553,7 @@ class Product extends DataMapper
         } else {
             foreach ($product->getI18ns() as $i18n) {
                 if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                    $days = str_replace(' Tage', '', $i18n->getDeliveryStatus());
+                    $days = trim(str_replace(['Tage', 'Days', 'Tag', 'Day'], '', $i18n->getDeliveryStatus()));
                     if (strlen($days) > 0 && $days !== '0') {
                         $detailSW->setShippingTime($days);
                     }
