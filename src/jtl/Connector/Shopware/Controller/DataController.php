@@ -52,7 +52,8 @@ abstract class DataController extends CoreController
 
             $statModel->setControllerName(lcfirst($class));
 
-            $action->setResult($statModel->getPublic());
+            //$action->setResult($statModel->getPublic());
+            $action->setResult($statModel);
         } catch (\Exception $exc) {
             $action->setError($this->handleException($exc));
         }
