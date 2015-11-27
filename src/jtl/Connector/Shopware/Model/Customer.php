@@ -14,33 +14,33 @@ use \jtl\Connector\Model\Customer as CustomerModel;
  */
 class Customer extends CustomerModel
 {
-    protected $fields = array(
+    protected $fields = [
         'id' => 'id',
-        'customerGroupId' => array('group', 'id'),
-        //'languageISO' => array('languageSubShop', 'locale', 'locale'),
-        'customerNumber' => array('billing', 'number'),
+        'customerGroupId' => ['group', 'id'],
+        //'languageISO' => ['languageSubShop', 'locale', 'locale'],
+        'customerNumber' => ['billing', 'number'],
         //'password' => 'hashPassword',
-        'salutation' => array('billing', 'salutation'),
+        'salutation' => ['billing', 'salutation'],
         'title' => '',
-        'firstName' => array('billing', 'firstName'),
-        'lastName' => array('billing', 'lastName'),
-        'company' => array('billing', 'company'),
-        'street' => array('billing', 'street'),
-        'deliveryInstruction' => array('billing', 'department'),
-        'extraAddressLine' => '',
-        'zipCode' => array('billing', 'zipCode'),
-        'city' => array('billing', 'city'),
+        'firstName' => ['billing', 'firstName'],
+        'lastName' => ['billing', 'lastName'],
+        'company' => ['billing', 'company'],
+        'street' => ['billing', 'street'],
+        'deliveryInstruction' => ['billing', 'department'],
+        'extraAddressLine' => ['billing', 'additionalAddressLine1'],
+        'zipCode' => ['billing', 'zipCode'],
+        'city' => ['billing', 'city'],
         'state' => '',
         'countryIso' => '',
-        'phone' => array('billing', 'phone'),
+        'phone' => ['billing', 'phone'],
         'mobile' => '',
-        'fax' => array('billing', 'fax'),
+        'fax' => ['billing', 'fax'],
         'eMail' => 'email',
-        'vatNumber' => array('billing', 'vatId'),
+        'vatNumber' => ['billing', 'vatId'],
         'websiteUrl' => '',
         'accountCredit' => '',
         'hasNewsletterSubscription' => 'newsletter',
-        //'birthday' => array('billing', 'birthday'),
+        'birthday' => ['billing', 'birthday'],
         'discount' => '',
         'origin' => '',
         'creationDate' => 'firstLogin',
@@ -48,7 +48,7 @@ class Customer extends CustomerModel
         'isActive' => 'active',
         'isFetched' => '',
         'hasCustomerAccount' => ''
-    );
+    ];
     
     /**
      * (non-PHPdoc)
