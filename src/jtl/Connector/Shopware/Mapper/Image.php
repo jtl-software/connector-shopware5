@@ -312,7 +312,9 @@ class Image extends DataMapper
 
     protected function deleteImageData(ImageModel &$image)
     {
-        list($type, $imageId, $mediaId) = IdConcatenator::unlink($image->getId()->getEndpoint());
+        if (strlen($image->getId()->getEndpoint()) > 0) {
+            list($type, $imageId, $mediaId) = IdConcatenator::unlink($image->getId()->getEndpoint());
+        }
 
         $deleteMedia = true;
         switch ($image->getRelationType()) {

@@ -548,6 +548,7 @@ class Product extends DataMapper
         $detailSW->setLen($product->getLength());
         $detailSW->setHeight($product->getHeight());
 
+        // Delivery time
         if ($product->getSupplierDeliveryTime() > 0) {
             $detailSW->setShippingTime($product->getSupplierDeliveryTime());
         } else {

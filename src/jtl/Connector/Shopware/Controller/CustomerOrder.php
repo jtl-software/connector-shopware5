@@ -125,9 +125,10 @@ class CustomerOrder extends DataController
                     $this->addPos($order, 'setBillingAddress', 'CustomerOrderBillingAddress', $orderSW['billing']);
                     $this->addPos($order, 'setShippingAddress', 'CustomerOrderShippingAddress', $orderSW['shipping']);
 
-                    // Salutation
+                    // Salutation and Email
                     if ($order->getBillingAddress() !== null) {
-                        $order->getBillingAddress()->setSalutation(Salutation::toConnector($orderSW['billing']['salutation']));
+                        $order->getBillingAddress()->setSalutation(Salutation::toConnector($orderSW['billing']['salutation']))
+                            ->setEmail($orderSW['customer']['email']);
                     }
 
                     if ($order->getShippingAddress() !== null) {
@@ -150,7 +151,8 @@ class CustomerOrder extends DataController
                         }
 
                         $order->getShippingAddress()->setExtraAddressLine($extraAddressLine)
-                            ->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']));
+                            ->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']))
+                            ->setEmail($orderSW['customer']['email']);
                     }
 
                     // Adding shipping item
