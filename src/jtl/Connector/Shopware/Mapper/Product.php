@@ -537,6 +537,7 @@ class Product extends DataMapper
             ->setActive($active)
             ->setKind($kind)
             ->setStockMin(0)
+            ->setPosition($product->getSort())
             ->setWeight($product->getProductWeight())
             ->setInStock($product->getStockLevel()->getStockLevel())
             ->setStockMin($product->getMinimumQuantity())
