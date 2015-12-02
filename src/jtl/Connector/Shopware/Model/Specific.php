@@ -17,7 +17,7 @@ class Specific extends SpecificModel
     protected $fields = array(
         'id' => 'id',
         'sort' => '',
-        'isGlobal' => '',
+        'isGlobal' => 'filterable',
         'type' => ''
     );
     

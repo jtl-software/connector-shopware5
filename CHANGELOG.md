@@ -5,6 +5,7 @@
 - Added product delivery time manuell and fixed value
 - Added customer additional text and birthday
 - Added product sort
+- Added specific filterable via isGlobal
 - Fixed customer order shipping and billing additional text handling
 - Changed payment pull error tolerance
 

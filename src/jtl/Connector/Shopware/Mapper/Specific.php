@@ -201,7 +201,7 @@ class Specific extends DataMapper
             $this->Manager()->persist($optionSW);
         }
 
-        $optionSW->setFilterable(true);
+        $optionSW->setFilterable($specific->getIsGlobal());
     }
 
     protected function prepareI18nAssociatedData(SpecificModel $specific, OptionSW &$optionSW)
