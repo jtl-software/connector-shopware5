@@ -43,6 +43,7 @@ class CustomerOrder extends DataMapper
             'customer_shipping',
             'customer_shipping_attribute',
             'debit',
+            'paymentData',
             'attribute',
             'details',
             'tax',
@@ -62,6 +63,7 @@ class CustomerOrder extends DataMapper
             ->leftJoin('customer.shipping', 'customer_shipping')
             ->leftJoin('customer_shipping.attribute', 'customer_shipping_attribute')
             ->leftJoin('customer.debit', 'debit')
+            ->leftJoin('customer.paymentData', 'paymentData')
             ->leftJoin('orders.attribute', 'attribute')
             ->join('orders.details', 'details')
             ->leftJoin('details.tax', 'tax')

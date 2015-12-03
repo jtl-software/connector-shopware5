@@ -537,6 +537,7 @@ class Product extends DataMapper
             ->setActive($active)
             ->setKind($kind)
             ->setStockMin(0)
+            ->setPosition($product->getSort())
             ->setWeight($product->getProductWeight())
             ->setInStock($product->getStockLevel()->getStockLevel())
             ->setStockMin($product->getMinimumQuantity())
@@ -548,8 +549,18 @@ class Product extends DataMapper
         $detailSW->setLen($product->getLength());
         $detailSW->setHeight($product->getHeight());
 
+        // Delivery time
         if ($product->getSupplierDeliveryTime() > 0) {
             $detailSW->setShippingTime($product->getSupplierDeliveryTime());
+        } else {
+            foreach ($product->getI18ns() as $i18n) {
+                if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    $days = trim(str_replace(['Tage', 'Days', 'Tag', 'Day'], '', $i18n->getDeliveryStatus()));
+                    if (strlen($days) > 0 && $days !== '0') {
+                        $detailSW->setShippingTime($days);
+                    }
+                }
+            }
         }
 
         // Base Price

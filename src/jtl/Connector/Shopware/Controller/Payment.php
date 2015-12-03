@@ -33,6 +33,16 @@ class Payment extends DataController
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
             $mapper = Mmc::getMapper('Payment');
+            $payments = $mapper->findAllNative($limit);
+
+            foreach ($payments as $paymentSW) {
+                $payment = Mmc::getModel('Payment');
+                $payment->map(true, DataConverter::toObject($paymentSW, true));
+
+                $result[] = $payment;
+            }
+
+            /*
             $payments = $mapper->findAll($limit);
 
             foreach ($payments as $paymentSW) {
@@ -52,6 +62,7 @@ class Payment extends DataController
                     $result[] = $payment;
                 }
             }
+            */
 
             $action->setResult($result);
         } catch (\Exception $exc) {

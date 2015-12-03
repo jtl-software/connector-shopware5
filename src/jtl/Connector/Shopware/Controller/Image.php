@@ -48,7 +48,8 @@ class Image extends DataController
                 $relationTypes = array(
                     ImageRelationType::TYPE_PRODUCT,
                     ImageRelationType::TYPE_CATEGORY,
-                    ImageRelationType::TYPE_MANUFACTURER
+                    ImageRelationType::TYPE_MANUFACTURER,
+                    ImageRelationType::TYPE_SPECIFIC_VALUE
                 );
 
                 foreach ($relationTypes as $relationType) {
@@ -122,6 +123,18 @@ class Image extends DataController
 
                             $result[] = $model;
                             break;
+                        case ImageRelationType::TYPE_SPECIFIC_VALUE:
+                            $model = Mmc::getModel('Image');
+
+                            $model->setId(new Identity(ImageModel::generateId(ImageRelationType::TYPE_SPECIFIC_VALUE, $modelSW['id'], $modelSW['mediaId'])));
+
+                            $model->setRelationType($relationType)
+                                ->setForeignKey(new Identity($modelSW['id']))
+                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
+                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
+
+                            $result[] = $model;
+                            break;
                         /*
                         case ImageRelationType::TYPE_PRODUCT_VARIATION_VALUE:
                             $model = Mmc::getModel('Image');
@@ -176,7 +189,8 @@ class Image extends DataController
                 $relationTypes = array(
                     ImageRelationType::TYPE_PRODUCT,
                     ImageRelationType::TYPE_CATEGORY,
-                    ImageRelationType::TYPE_MANUFACTURER
+                    ImageRelationType::TYPE_MANUFACTURER,
+                    ImageRelationType::TYPE_SPECIFIC_VALUE
                 );
 
                 foreach ($relationTypes as $relationType) {

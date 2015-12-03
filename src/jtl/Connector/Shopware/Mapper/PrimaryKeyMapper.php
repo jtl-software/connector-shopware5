@@ -81,7 +81,18 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                             array($hostId)
                         );
                     } else {
-                        $prefix = ($relationType === ImageRelationType::TYPE_CATEGORY) ? Image::MEDIA_TYPE_CATEGORY : Image::MEDIA_TYPE_MANUFACTURER;
+                        $prefix = '';
+                        switch ($relationType) {
+                            case ImageRelationType::TYPE_MANUFACTURER:
+                                $prefix = Image::MEDIA_TYPE_MANUFACTURER;
+                                break;
+                            case ImageRelationType::TYPE_CATEGORY:
+                                $prefix = Image::MEDIA_TYPE_CATEGORY;
+                                break;
+                            case ImageRelationType::TYPE_SPECIFIC_VALUE:
+                                $prefix = Image::MEDIA_TYPE_SPECIFIC_VALUE;
+                                break;
+                        }
 
                         $endpointId = Shopware()->Db()->fetchOne(
                             "SELECT image_id FROM " . $dbInfo['table'] . " WHERE host_id = ? AND image_id LIKE '{$prefix}_%'",

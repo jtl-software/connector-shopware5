@@ -1,3 +1,14 @@
+1.3.1
+-----
+- Added customer payment sepa support
+- Added specific value image support
+- Added product delivery time manuell and fixed value
+- Added customer additional text and birthday
+- Added product sort
+- Added specific filterable via isGlobal
+- Fixed customer order shipping and billing additional text handling
+- Changed payment pull error tolerance
+
 1.3.0
 -----
 - Added connector install, phar and suhosin check

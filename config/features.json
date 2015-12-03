@@ -448,7 +448,7 @@
         "category_images_supported": true,
         "manufacturer_images_supported": true,
         "specific_images_supported": false,
-        "specific_value_images_supported": false,
+        "specific_value_images_supported": true,
         "config_group_images_supported": false,
         "product_variation_value_images_supported": false,
         "variation_products_supported": false,

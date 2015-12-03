@@ -45,7 +45,7 @@ class Product extends ProductModel
         'basePriceUnitCode' => array('unit', 'unit'),
         'basePriceUnitName' => array('unit', 'name'),
         //'keywords' => 'keywords',
-        'sort' => '',
+        'sort' => 'position',
         'creationDate' => 'added',
         //'availableFrom' => 'availableFrom',
         'availableFrom' => 'releaseDate',

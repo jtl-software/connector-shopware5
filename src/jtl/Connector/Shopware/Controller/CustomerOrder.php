@@ -125,9 +125,10 @@ class CustomerOrder extends DataController
                     $this->addPos($order, 'setBillingAddress', 'CustomerOrderBillingAddress', $orderSW['billing']);
                     $this->addPos($order, 'setShippingAddress', 'CustomerOrderShippingAddress', $orderSW['shipping']);
 
-                    // Salutation
+                    // Salutation and Email
                     if ($order->getBillingAddress() !== null) {
-                        $order->getBillingAddress()->setSalutation(Salutation::toConnector($orderSW['billing']['salutation']));
+                        $order->getBillingAddress()->setSalutation(Salutation::toConnector($orderSW['billing']['salutation']))
+                            ->setEmail($orderSW['customer']['email']);
                     }
 
                     if ($order->getShippingAddress() !== null) {
@@ -150,7 +151,8 @@ class CustomerOrder extends DataController
                         }
 
                         $order->getShippingAddress()->setExtraAddressLine($extraAddressLine)
-                            ->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']));
+                            ->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']))
+                            ->setEmail($orderSW['customer']['email']);
                     }
 
                     // Adding shipping item
@@ -183,6 +185,31 @@ class CustomerOrder extends DataController
                         $customerOrderPaymentInfo = Mmc::getModel('CustomerOrderPaymentInfo');
                         $customerOrderPaymentInfo->map(true, DataConverter::toObject($orderSW['customer']['debit']));
                         $customerOrderPaymentInfo->setCustomerOrderId($order->getId());
+
+                        $order->setPaymentInfo($customerOrderPaymentInfo);
+                    }
+
+                    // Payment Data
+                    if (isset($orderSW['customer']['paymentData']) && is_array($orderSW['customer']['paymentData'])) {
+                        $customerOrderPaymentInfo = $order->getPaymentInfo();
+                        if ($customerOrderPaymentInfo === null) {
+                            $customerOrderPaymentInfo = Mmc::getModel('CustomerOrderPaymentInfo');
+                            $customerOrderPaymentInfo->setCustomerOrderId($order->getId())
+                                ->setAccountHolder(sprintf(
+                                    '%s %s',
+                                    $orderSW['billing']['firstName'],
+                                    $orderSW['billing']['lastName']
+                                ));
+                        }
+
+                        foreach ($orderSW['customer']['paymentData'] as $dataSW) {
+                            if (isset($dataSW['bic']) && strlen($dataSW['bic']) > 0
+                                && isset($dataSW['iban']) && strlen($dataSW['iban']) > 0) {
+                                $customerOrderPaymentInfo->setBic($dataSW['bic'])
+                                    ->setIban($dataSW['iban']);
+                                break;
+                            }
+                        }
 
                         $order->setPaymentInfo($customerOrderPaymentInfo);
                     }

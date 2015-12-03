@@ -128,6 +128,15 @@ class Image extends DataMapper
                     WHERE i.host_id IS NULL
                     LIMIT ' . $limit, $rsm);
                 break;
+            case ImageRelationType::TYPE_SPECIFIC_VALUE:
+                $query = Shopware()->Models()->createNativeQuery(
+                    'SELECT v.id, m.id AS mediaId, m.path
+                    FROM s_filter_values v
+                    JOIN s_media m ON m.id = v.media_id
+                    LEFT JOIN jtl_connector_link_image i ON i.media_id = m.id
+                    WHERE i.host_id IS NULL
+                    LIMIT ' . $limit, $rsm);
+                break;
         }
 
         if ($query !== null) {
@@ -188,11 +197,19 @@ class Image extends DataMapper
                 break;
             case ImageRelationType::TYPE_MANUFACTURER:
                 $query = Shopware()->Models()->createNativeQuery(
-                    'SELECT count(*) as count 
+                    'SELECT count(*) as count
                     FROM s_articles_supplier s
                     JOIN s_media m ON m.path = s.img
                     LEFT JOIN jtl_connector_link_image i ON i.media_id = m.id
                     WHERE LENGTH(s.img) > 0 AND i.host_id IS NULL', $rsm);
+                break;
+            case ImageRelationType::TYPE_SPECIFIC_VALUE:
+                $query = Shopware()->Models()->createNativeQuery(
+                    'SELECT count(*) as count
+                    FROM s_filter_values v
+                    JOIN s_media m ON m.id = v.media_id
+                    LEFT JOIN jtl_connector_link_image i ON i.media_id = m.id
+                    WHERE v.media_id IS NOT NULL AND i.host_id IS NULL', $rsm);
                 break;
         }
 
@@ -295,7 +312,9 @@ class Image extends DataMapper
 
     protected function deleteImageData(ImageModel &$image)
     {
-        list($type, $imageId, $mediaId) = IdConcatenator::unlink($image->getId()->getEndpoint());
+        if (strlen($image->getId()->getEndpoint()) > 0) {
+            list($type, $imageId, $mediaId) = IdConcatenator::unlink($image->getId()->getEndpoint());
+        }
 
         $deleteMedia = true;
         switch ($image->getRelationType()) {
@@ -506,6 +525,9 @@ class Image extends DataMapper
                 break;
             case ImageRelationType::TYPE_MANUFACTURER:
                 $this->prepareManufacturerImageAssociateData($image, $mediaSW, $imageSW);
+                break;
+            case ImageRelationType::TYPE_SPECIFIC_VALUE:
+                $this->prepareSpecificValueImageAssociateDate($image, $mediaSW, $imageSW);
                 break;
         }
     }
@@ -934,6 +956,23 @@ class Image extends DataMapper
         $imageSW->setMedia($mediaSW);
     }
 
+    protected function prepareSpecificValueImageAssociateDate(ImageModel &$image, MediaSW &$mediaSW, ArticleImageSW &$imageSW = null)
+    {
+        $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? (int) $image->getForeignKey()->getEndpoint() : null;
+
+        if ($foreignId !== null) {
+            $imageSW = $this->Manager()->getRepository('Shopware\Models\Property\Value')->find((int) $foreignId);
+        } else {
+            throw new \Exception('Category foreign key cannot be null');
+        }
+
+        if ($imageSW === null) {
+            throw new \Exception(sprintf('Cannot find specific value with id (%s)', $foreignId));
+        }
+
+        $imageSW->setMedia($mediaSW);
+    }
+
     protected function getMedia(ImageModel $image, File $file)
     {
         $mediaSW = null;
@@ -962,6 +1001,7 @@ class Image extends DataMapper
                 $albumId = -1;
                 break;
             case ImageRelationType::TYPE_CATEGORY:
+            case ImageRelationType::TYPE_SPECIFIC_VALUE:
                 $albumId = -9;
                 break;
             case ImageRelationType::TYPE_MANUFACTURER:
