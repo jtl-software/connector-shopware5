@@ -27,7 +27,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.3.0';
+        return '1.3.1';
     }
 
     public function getInfo()
@@ -198,6 +198,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.2.5':
                 $this->createPaymentTrigger();
+                break;
+            case '1.3.0':
                 break;
             default:
                 return false;
