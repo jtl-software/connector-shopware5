@@ -29,7 +29,7 @@ class CategoryAttr extends CategoryAttrModel
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
      */
     public function map($toWawi = false, \stdClass $obj = null)
-    {
+        {
         return DataModel::map($toWawi, $obj, $this);
     }
 }

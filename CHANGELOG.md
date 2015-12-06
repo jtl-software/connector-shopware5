@@ -1,3 +1,7 @@
+1.3.2 (unreleased)
+-----
+- Fixed customer order missing or nulled birthday
+
 1.3.1
 -----
 - Added customer payment sepa support

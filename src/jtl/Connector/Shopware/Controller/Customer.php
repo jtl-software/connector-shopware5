@@ -51,6 +51,14 @@ class Customer extends DataController
 
                     $iso = ($country !== null) ? $country->getIso() : 'DE';
 
+                    // Birthday
+                    try {
+                        if (isset($customerSW['billing']['birthday']) && strlen($customerSW['billing']['birthday']) > 0
+                            && $customerSW['billing']['birthday'] !== '0000-00-00') {
+                            $customer->setBirthday(new \DateTime($customerSW['billing']['birthday']));
+                        }
+                    } catch (\Exception $e) { }
+
                     // Salutation
                     $customer->setSalutation(Salutation::toConnector($customer->getSalutation()))
                         ->setCountryIso($iso)

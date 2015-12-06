@@ -40,7 +40,7 @@ class Customer extends CustomerModel
         'websiteUrl' => '',
         'accountCredit' => '',
         'hasNewsletterSubscription' => 'newsletter',
-        'birthday' => ['billing', 'birthday'],
+        'birthday' => '',
         'discount' => '',
         'origin' => '',
         'creationDate' => 'firstLogin',
