@@ -1,4 +1,4 @@
-1.3.2 (unreleased)
+1.3.2
 -----
 - Fixed customer order missing or nulled birthday
 
