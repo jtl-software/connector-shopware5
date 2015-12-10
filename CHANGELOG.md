@@ -1,6 +1,10 @@
+1.4.0
+-----
+- Added billsafe btn tansaction number
+
 1.3.2
 -----
-- Fixed customer order missing or nulled birthday
+- Fixed customer missing or nulled birthday
 
 1.3.1
 -----
