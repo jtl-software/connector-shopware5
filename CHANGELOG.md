@@ -1,6 +1,7 @@
 1.4.0
 -----
 - Added billsafe btn tansaction number
+- Added product first import unit name
 
 1.3.2
 -----

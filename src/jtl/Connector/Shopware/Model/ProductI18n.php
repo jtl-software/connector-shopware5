@@ -26,7 +26,7 @@ class ProductI18n extends ProductI18nModel
         'metaDescription' => 'description',
         'metaKeywords' => '',
         'titleTag' => '',
-        'unitName' => ''
+        'unitName' => 'packUnit'
     );
     
     /**
