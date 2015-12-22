@@ -12,7 +12,7 @@ final class VariationType
 {
     private static $mappings = array(
         ProductVariation::TYPE_RADIO => 0,
-        ProductVariation::TYPE_SELECT => 0,
+        ProductVariation::TYPE_SELECT => 1,
         ProductVariation::TYPE_TEXTBOX => 0,
         ProductVariation::TYPE_FREE_TEXT => 0,
         ProductVariation::TYPE_FREE_TEXT_OBLIGATORY => 0,

@@ -2,6 +2,7 @@
 -----
 - Added billsafe btn tansaction number
 - Added product first import unit name
+- Added product variation set default (standard) type
 
 1.3.2
 -----
