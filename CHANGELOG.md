@@ -1,3 +1,7 @@
+1.4.1 (unreleased)
+-----
+- Fixed type hints in customer mapper
+
 1.4.0
 -----
 - Added billsafe btn tansaction number
