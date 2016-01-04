@@ -116,7 +116,7 @@ class Customer extends DataMapper
         }
     }
 
-    protected function prepareCustomerAssociatedData(CustomerModel &$customer, CategorySW &$customerSW = null, BillingSW &$billingSW = null)
+    protected function prepareCustomerAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW = null, BillingSW &$billingSW = null)
     {
         $customerId = (strlen($customer->getId()->getEndpoint()) > 0) ? (int)$customer->getId()->getEndpoint() : null;
 
@@ -141,7 +141,7 @@ class Customer extends DataMapper
             ->setFirstLogin($customer->getCreationDate());
     }
 
-    protected function prepareCustomerGroupAssociatedData(CustomerModel &$customer, CategorySW &$customerSW)
+    protected function prepareCustomerGroupAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW)
     {
         // CustomerGroup
         $customerGroupMapper = Mmc::getMapper('CustomerGroup');
@@ -151,7 +151,7 @@ class Customer extends DataMapper
         }
     }
 
-    protected function prepareBillingAssociatedData(CustomerModel &$customer, CategorySW &$customerSW, BillingSW &$billingSW)
+    protected function prepareBillingAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW, BillingSW &$billingSW)
     {
         // Billing
         if (!$billingSW) {

@@ -3,6 +3,7 @@
 - Added billsafe btn tansaction number
 - Added product first import unit name
 - Added product variation set default (standard) type
+- Fixed wrong customer type hint in customer mapper class
 
 1.3.2
 -----
