@@ -62,7 +62,8 @@ class CrossSelling extends DataMapper
     public function save(CrossSellingModel $crossSelling)
     {
         $this->delete($crossSelling);
-        foreach ($crossSelling->getItems() as $item) {
+        list ($sDetailId, $sProductId) = IdConcatenator::unlink($crossSelling->getProductId()->getEndpoint());
+        foreach ($crossSelling->getItems() as &$item) {
             if (count($item->getProductIds()) > 0) {
                 $sql = 'INSERT INTO s_articles_relationships VALUES ';
                 $isValid = false;
@@ -103,6 +104,8 @@ class CrossSelling extends DataMapper
                 }
             }
         }
+
+        $crossSelling->getId()->setEndpoint($sProductId);
 
         return $crossSelling;
     }
