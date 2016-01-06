@@ -160,6 +160,10 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                         $statement = Shopware()->Db()->query($sql, array($endpointId, $mediaId, $hostId));
                     }
                     break;
+                case IdentityLinker::TYPE_CROSSSELLING_GROUP:
+                    $sql = 'UPDATE jtl_connector_crosssellinggroup SET host_id = ? WHERE id = ?';
+                    $statement = Shopware()->Db()->query($sql, array($hostId, $endpointId));
+                    break;
                 default:
                     $sql = '
                         INSERT IGNORE INTO ' . $dbInfo['table'] . '
@@ -205,6 +209,11 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                             array('id = ?' => $foreignId) : array($dbInfo['pk'] . ' = ?' => $mediaId);
                         */
                         break;
+                    case IdentityLinker::TYPE_CROSSSELLING_GROUP:
+                        $sql = 'UPDATE jtl_connector_crosssellinggroup SET host_id = 0 WHERE id = ?';
+                        $statement = Shopware()->Db()->query($sql, array($endpointId));
+
+                        return $statement ? true : false;
                     default:
                         $where = array($dbInfo['pk'] . ' = ?' => $endpointId);
                         break;
@@ -240,7 +249,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
              TRUNCATE TABLE jtl_connector_link_specific;
              TRUNCATE TABLE jtl_connector_link_specific_value;
              TRUNCATE TABLE jtl_connector_link_payment;
-             TRUNCATE TABLE jtl_connector_crossselling;'
+             TRUNCATE TABLE jtl_connector_crossselling;
+             UPDATE jtl_connector_crosssellinggroup SET host_id = 0;
+             '
         );
 
         return $statement ? true : false;
@@ -308,6 +319,11 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 return array(
                     'table' => 'jtl_connector_crossselling',
                     'pk' => 'product_id'
+                );
+            case IdentityLinker::TYPE_CROSSSELLING_GROUP:
+                return array(
+                    'table' => 'jtl_connector_crosssellinggroup',
+                    'pk' => 'id'
                 );
         }
 

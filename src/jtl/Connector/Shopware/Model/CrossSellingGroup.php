@@ -14,12 +14,28 @@ use \jtl\Connector\Model\CrossSellingGroup as CrossSellingGroupModel;
  */
 class CrossSellingGroup extends CrossSellingGroupModel
 {
+    const RELATED = 'sw_related';
+    const SIMILAR = 'sw_similar';
+
     protected $fields = array(
-        'id' => '',
-        'languageISO' => '',
-        'name' => '',
-        'description' => ''
+        'id' => 'id'
     );
+
+    /**
+     * @return string
+     */
+    public function getTable()
+    {
+        if (count($this->getI18ns()) > 0) {
+            foreach ($this->getI18ns() as $i18n) {
+                if ($i18n->getName() === self::SIMILAR) {
+                    return 's_articles_similar';
+                }
+            }
+        }
+
+        return 's_articles_relationships';
+    }
     
     /**
      * (non-PHPdoc)

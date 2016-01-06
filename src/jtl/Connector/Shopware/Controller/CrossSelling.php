@@ -14,6 +14,7 @@ use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Result\Action;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Utilities\CrossSellingGroup as CrossSellingGroupUtil;
 
 class CrossSelling extends DataController
 {
@@ -62,6 +63,11 @@ class CrossSelling extends DataController
                     $crossSellingItem = Mmc::getModel('CrossSellingItem');
                     $crossSellingItem->addProductId(new Identity($relatedId));
 
+                    $crossSellingGroup = CrossSellingGroupUtil::get($crossSellingSW['group_id']);
+                    if ($crossSellingGroup !== null) {
+                        $crossSellingItem->setCrossSellingGroupId($crossSellingGroup->getId());
+                    }
+
                     $crossSelling->addItem($crossSellingItem);
                 }
             }
@@ -78,6 +84,4 @@ class CrossSelling extends DataController
 
         return $action;
     }
-
-
 }
