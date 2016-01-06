@@ -6,6 +6,7 @@
 - Added crossselling group support (sw_related, sw_similar)
 - Fixed wrong customer type hint in customer mapper class
 - Fixed missing crossselling linking
+- Fixed duplicate payments
 
 1.3.2
 -----

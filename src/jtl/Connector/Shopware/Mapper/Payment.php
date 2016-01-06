@@ -26,6 +26,8 @@ class Payment extends DataMapper
             FROM jtl_connector_payment p
             JOIN s_order o ON o.id = p.customerOrderId
             JOIN s_core_paymentmeans m ON m.id = o.paymentID
+            LEFT JOIN jtl_connector_link_payment pl ON pl.payment_id = p.id
+            WHERE pl.payment_id IS NULL
             limit ' . $limit
         );
     }
@@ -52,11 +54,14 @@ class Payment extends DataMapper
 
     public function fetchCount($limit = 100)
     {
-        return (int) Shopware()->Db()->fetchOne('SELECT count(*) as count
+        return (int) Shopware()->Db()->fetchOne(
+            'SELECT count(*) as count
             FROM jtl_connector_payment p
             JOIN s_order o ON o.id = p.customerOrderId
             JOIN s_core_paymentmeans m ON m.id = o.paymentID
-            limit ' . $limit);
+            LEFT JOIN jtl_connector_link_payment pl ON pl.payment_id = p.id
+            WHERE pl.payment_id IS NULL'
+        );
 
         //return $this->findAll($limit, true);
     }
