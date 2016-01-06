@@ -80,7 +80,7 @@
         </fileset>
 
         <exec command="php jtlasc.phar validation:create:file ${project.basedir}/dist/Frontend/jtlconnector/ ${project.basedir}/dist/Frontend/jtlconnector/validation/files.json -e 'config' -p '*.ph*'" />
-        <exec command="php jtlasc.phar validation:create:mysql localhost s1_sw5 XRZVHJ7uKVZwZwwd s1_sw5 ${project.basedir}/dist/Frontend/jtlconnector/validation/mysql.json -p '/jtl_connector_[\w]+/i'" />
+        <exec command="php jtlasc.phar validation:create:mysql localhost s1_sw51 s6nK8c2WjRLYYHTr s1_sw51 ${project.basedir}/dist/Frontend/jtlconnector/validation/mysql.json -p '/jtl_connector_[\w]+/i'" />
 
         <zip destfile="./dist/jtl-connector-shopware5-1.4.0.zip">
             <fileset refid="zipFiles" />
