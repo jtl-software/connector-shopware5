@@ -811,7 +811,7 @@ class Product extends DataMapper
     protected function calcVariationType(array $types)
     {
         if (count($types) == 0) {
-            return ProductVariation::TYPE_SELECT;
+            return ProductVariation::TYPE_RADIO;
         }
 
         arsort($types);
@@ -826,7 +826,7 @@ class Product extends DataMapper
         };
 
         reset($types);
-        $key = $checkEven($types) ? ProductVariation::TYPE_SELECT : key($types);
+        $key = $checkEven($types) ? ProductVariation::TYPE_RADIO : key($types);
 
         return VariationType::map($key);
     }

@@ -57,13 +57,13 @@
             "delete": false
         },
         "CrossSellingGroup": {
-            "pull": false,
-            "push": false,
+            "pull": true,
+            "push": true,
             "delete": false
         },
         "CrossSellingGroupI18n": {
-            "pull": false,
-            "push": false,
+            "pull": true,
+            "push": true,
             "delete": false
         },
         "Currency": {

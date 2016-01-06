@@ -1,6 +1,16 @@
+1.4.0
+-----
+- Added billsafe btn tansaction number
+- Added product first import unit name
+- Added product variation set default (standard) type
+- Added crossselling group support (sw_related, sw_similar)
+- Fixed wrong customer type hint in customer mapper class
+- Fixed missing crossselling linking
+- Fixed duplicate payments
+
 1.3.2
 -----
-- Fixed customer order missing or nulled birthday
+- Fixed customer missing or nulled birthday
 
 1.3.1
 -----

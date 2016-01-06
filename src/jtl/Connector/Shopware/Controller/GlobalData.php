@@ -93,6 +93,25 @@ class GlobalData extends DataController
             // CustomerGroupAttrs
 
             // CrossSellingGroups
+            $crossSellingGroupMapper = Mmc::getMapper('CrossSellingGroup');
+            $crossSellingGroupSWs = $crossSellingGroupMapper->fetchAll($limit);
+            foreach ($crossSellingGroupSWs as $crossSellingGroupSW) {
+                $crossSellingGroup = Mmc::getModel('CrossSellingGroup');
+                $crossSellingGroup->map(true, DataConverter::toObject($crossSellingGroupSW, true));
+
+                $crossSellingGroup->getId()->setHost((int) $crossSellingGroupSW['host_id']);
+
+                foreach ($crossSellingGroupSW['i18ns'] as $crossSellingGroupI18nSW) {
+                    $crossSellingGroupI18n = Mmc::getModel('CrossSellingGroupI18n');
+                    $crossSellingGroupI18n->map(true, DataConverter::toObject($crossSellingGroupI18nSW, true));
+
+                    $crossSellingGroupI18n->getCrossSellingGroupId()->setHost($crossSellingGroup->getId()->getHost());
+
+                    $crossSellingGroup->addI18n($crossSellingGroupI18n);
+                }
+
+                $globalData->addCrossSellingGroup($crossSellingGroup);
+            }
 
             // Units
             $mapper = Mmc::getMapper('Unit');

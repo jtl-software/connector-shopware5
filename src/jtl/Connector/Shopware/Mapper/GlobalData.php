@@ -61,6 +61,13 @@ class GlobalData extends DataMapper
             $taxRateResult = $taxRateMapper->save($taxRate);
             $result->addTaxRate($taxRateResult);
         }
+
+        // CrossSellingGroups
+        $crossSellingGroupMapper = Mmc::getMapper('CrossSellingGroup');
+        foreach ($globalData->getCrossSellingGroups() as $crossSellingGroup) {
+            $crossSellingGroupResult = $crossSellingGroupMapper->save($crossSellingGroup);
+            $result->addCrossSellingGroup($crossSellingGroupResult);
+        }
         
         return $result->getPublic();
     }

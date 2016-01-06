@@ -27,7 +27,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.3.2';
+        return '1.4.0';
     }
 
     public function getInfo()
@@ -119,6 +119,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->fillCategoryLevelTable();
         $this->fillCategoryTable();
         $this->fillPaymentTable();
+        $this->fillCrossSellingGroupTable();
 
         return array(
             'success' => true,
@@ -129,6 +130,15 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public function update($oldVersion)
     {
         ini_set('max_execution_time', 0);
+
+        try {
+            $this->runAutoload();
+        } catch (\Exception $e) {
+            return array(
+                'success' => false,
+                'message' => $e->getMessage()
+            );
+        }
 
         switch ($oldVersion) {
             case '1.0.0':
@@ -203,6 +213,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.3.1':
                 break;
+            case '1.3.2':
+                $this->createCrossSellingGroupTable();
+                $this->fillCrossSellingGroupTable();
+                break;
             default:
                 return false;
         }
@@ -229,6 +243,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->createPaymentTrigger();
         $this->createUnitTable();
         $this->createCategoryTable();
+        $this->createCrossSellingGroupTable();
     }
 
     private function dropMappingTable()
@@ -251,6 +266,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_payment`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_crossselling`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_category`');
+        Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_crosssellinggroup_i18n`');
+        Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_crosssellinggroup`');
         Shopware()->Db()->query('DROP TRIGGER IF EXISTS `jtl_connector_payment`');
     }
 
@@ -510,6 +527,31 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         );
     }
 
+    private function fillCrossSellingGroupTable()
+    {
+        Shopware()->Db()->insert('jtl_connector_crosssellinggroup', [
+            'host_id' => 0
+        ]);
+
+        Shopware()->Db()->insert('jtl_connector_crosssellinggroup_i18n', [
+            'group_id' => Shopware()->Db()->lastInsertId(),
+            'languageISO' => 'ger',
+            'name' => jtl\Connector\Shopware\Model\CrossSellingGroup::RELATED,
+            'description' => 'Zubehör Artikel'
+        ]);
+
+        Shopware()->Db()->insert('jtl_connector_crosssellinggroup', [
+            'host_id' => 0
+        ]);
+
+        Shopware()->Db()->insert('jtl_connector_crosssellinggroup_i18n', [
+            'group_id' => Shopware()->Db()->lastInsertId(),
+            'languageISO' => 'ger',
+            'name' => jtl\Connector\Shopware\Model\CrossSellingGroup::SIMILAR,
+            'description' => 'Ähnliche Artikel'
+        ]);
+    }
+
     private function createUnitTable()
     {
         $sql = '
@@ -553,6 +595,36 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ALTER TABLE `jtl_connector_category`
             ADD CONSTRAINT `jtl_connector_category_2` FOREIGN KEY (`category_id`) REFERENCES `s_categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_category` ADD INDEX(`category_id`);
+        ';
+
+        Shopware()->Db()->query($sql);
+    }
+
+    private function createCrossSellingGroupTable()
+    {
+        $sql = '
+            CREATE TABLE IF NOT EXISTS `jtl_connector_crosssellinggroup` (
+                `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `host_id` INT(10) UNSIGNED NOT NULL,
+                PRIMARY KEY (`id`)
+            ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+            ALTER TABLE `jtl_connector_crosssellinggroup` ADD INDEX( `host_id`);
+        ';
+
+        Shopware()->Db()->query($sql);
+
+        $sql = '
+            CREATE TABLE IF NOT EXISTS `jtl_connector_crosssellinggroup_i18n` (
+                `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `group_id` INT(10) UNSIGNED NOT NULL,
+                `languageISO` varchar(255) NOT NULL,
+                `name` varchar(255) NOT NULL,
+                `description` varchar(255) NOT NULL,
+                PRIMARY KEY (`id`)
+            ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+            ALTER TABLE `jtl_connector_crosssellinggroup_i18n`
+            ADD CONSTRAINT `jtl_connector_crosssellinggroup_i18n_1` FOREIGN KEY (`group_id`) REFERENCES `jtl_connector_crosssellinggroup` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ALTER TABLE `jtl_connector_crosssellinggroup_i18n` ADD INDEX( `group_id`, `languageISO`);
         ';
 
         Shopware()->Db()->query($sql);
