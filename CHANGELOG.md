@@ -1,3 +1,7 @@
+1.4.1 (unreleased)
+-----
+- Fixed payment module code
+
 1.4.0
 -----
 - Added billsafe btn tansaction number

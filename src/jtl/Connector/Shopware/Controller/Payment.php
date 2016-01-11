@@ -36,8 +36,12 @@ class Payment extends DataController
             $payments = $mapper->findAllNative($limit);
 
             foreach ($payments as $paymentSW) {
+                $paymentModuleCode = PaymentUtil::map(null, $paymentSW['paymentModuleCode']);
+                $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $paymentSW['paymentModuleCode'];
+
                 $payment = Mmc::getModel('Payment');
                 $payment->map(true, DataConverter::toObject($paymentSW, true));
+                $payment->setPaymentModuleCode($paymentModuleCode);
 
                 $result[] = $payment;
             }
