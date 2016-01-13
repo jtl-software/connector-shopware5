@@ -27,7 +27,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.4.0';
+        return '1.4.1';
     }
 
     public function getInfo()
@@ -216,6 +216,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.3.2':
                 $this->createCrossSellingGroupTable();
                 $this->fillCrossSellingGroupTable();
+                break;
+            case '1.4.0':
                 break;
             default:
                 return false;
