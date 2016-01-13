@@ -74,11 +74,18 @@ class DeliveryNote extends DataMapper
 
         $this->prepareDeliveryNoteAssociatedData($deliveryNote, $deliveryNoteSW);
 
-        $this->Manager()->persist($deliveryNoteSW);
-        $this->flush();
+        $endpointId = 0;
+        $hostId = 0;
+        if ($deliveryNoteSW !== null) {
+            $this->Manager()->persist($deliveryNoteSW);
+            $this->flush();
+
+            $endpointId = $deliveryNoteSW->getId();
+            $hostId = $deliveryNote->getId()->getHost();
+        }
 
         // Result
-        $result->setId(new Identity($deliveryNoteSW->getId(), $deliveryNote->getId()->getHost()));
+        $result->setId(new Identity($endpointId, $hostId));
 
         return $result;
     }
@@ -108,7 +115,6 @@ class DeliveryNote extends DataMapper
         $orderSW = $orderMapper->find($deliveryNote->getCustomerOrderId()->getEndpoint());
 
         if ($orderSW !== null) {
-            die("test");
             if ($deliveryNoteSW === null) {
                 $deliveryNoteSW = new DocumentSW;
             }
