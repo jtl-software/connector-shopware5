@@ -12,7 +12,7 @@ class Locale extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->find('Shopware\Models\Shop\Locale', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Shop\Locale', $id);
     }
 
     public function findOneBy(array $kv)

@@ -20,7 +20,7 @@ class Manufacturer extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->find('Shopware\Models\Article\Supplier', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Supplier', $id);
     }
     
     public function findOneBy(array $kv)

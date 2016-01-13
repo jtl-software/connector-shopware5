@@ -26,7 +26,7 @@ class Category extends DataMapper
 
     public function find($id)
     {
-        return $this->Manager()->find('Shopware\Models\Category\Category', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Category\Category', $id);
     }
 
     public function findByNameAndLevel($name, $level, $parentId = null)

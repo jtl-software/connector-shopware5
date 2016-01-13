@@ -18,7 +18,7 @@ class Unit extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\Unit')->find($id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\Unit')->find($id);
     }
 
     public function findI18n($unitId, $languageIso)

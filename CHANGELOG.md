@@ -2,6 +2,7 @@
 -----
 - Fixed payment module code
 - Changed product name helper to ignore variations
+- Changed all db classes and added more safety
 
 1.4.0
 -----
