@@ -15,7 +15,7 @@ class Payment extends DataMapper
 
     public function find($id)
     {
-        return $this->Manager()->find('jtl\Connector\Shopware\Model\Linker\Payment', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('jtl\Connector\Shopware\Model\Linker\Payment', $id);
     }
 
     public function findAllNative($limit = 100)

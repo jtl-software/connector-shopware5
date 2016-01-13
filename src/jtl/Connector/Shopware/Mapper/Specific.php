@@ -21,7 +21,7 @@ class Specific extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Property\Option')->find($id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Property\Option')->find($id);
     }
 
     public function findOneBy(array $kv)
@@ -31,7 +31,7 @@ class Specific extends DataMapper
 
     public function findValue($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Property\Value')->find($id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Property\Value')->find($id);
     }
 
     public function findValueBy(array $kv)

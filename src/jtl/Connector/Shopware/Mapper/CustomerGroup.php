@@ -23,7 +23,7 @@ class CustomerGroup extends DataMapper
 
     public function find($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Customer\Group')->find($id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Customer\Group')->find($id);
     }
 
     public function findOneBy(array $kv)

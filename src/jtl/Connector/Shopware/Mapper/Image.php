@@ -31,7 +31,7 @@ class Image extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Media\Media')->find((int) $id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Media\Media')->find((int) $id);
     }
 
     public function findBy(array $kv)
@@ -1125,7 +1125,7 @@ class Image extends DataMapper
 
                 if (file_exists($file)) {
                     if (md5_file($imageFile) === md5_file($file)) {
-                        return $this->Manager()->find('Shopware\Models\Article\Image', (int) $result['id']);
+                        return (intval($result['id']) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Image', (int) $result['id']);
                         /*
                         return $this->Manager()->createQueryBuilder()->select(
                                 'image',

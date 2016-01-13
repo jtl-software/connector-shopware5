@@ -12,7 +12,7 @@ class Shop extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->find('Shopware\Models\Shop\Shop', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Shop\Shop', $id);
     }
 
     public function findByLocale($locale)

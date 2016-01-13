@@ -10,7 +10,7 @@ class Shipping extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($id);
     }
     
     public function findAll($limit = 100, $count = false)

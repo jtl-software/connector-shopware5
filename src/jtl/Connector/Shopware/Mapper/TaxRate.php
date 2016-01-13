@@ -14,7 +14,7 @@ class TaxRate extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Tax\Tax')->find($id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Tax\Tax')->find($id);
     }
 
     public function findOneBy(array $kv)

@@ -18,7 +18,7 @@ class ProductPrice extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->find('Shopware\Models\Article\Price', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Price', $id);
     }
 
     public function save(array $prices)

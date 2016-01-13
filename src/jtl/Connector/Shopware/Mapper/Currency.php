@@ -15,7 +15,7 @@ class Currency extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->find('Shopware\Models\Shop\Currency', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Shop\Currency', $id);
     }
 
     public function findOneBy(array $kv)

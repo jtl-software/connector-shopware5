@@ -42,12 +42,12 @@ class Product extends DataMapper
 
     public function find($id)
     {
-        return $this->Manager()->find('Shopware\Models\Article\Article', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Article', $id);
     }
 
     public function findDetail($id)
     {
-        return $this->Manager()->find('Shopware\Models\Article\Detail', $id);
+        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Detail', $id);
     }
 
     public function findDetailBy(array $kv)

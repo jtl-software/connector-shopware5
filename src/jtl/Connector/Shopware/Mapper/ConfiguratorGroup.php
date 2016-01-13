@@ -21,7 +21,7 @@ class ConfiguratorGroup extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Group')->find($id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Group')->find($id);
     }
 
     public function findOneBy(array $kv)

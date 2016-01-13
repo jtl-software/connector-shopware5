@@ -1,3 +1,9 @@
+1.4.1
+-----
+- Fixed payment module code
+- Changed product name helper to ignore variations
+- Changed all db classes and added more safety
+
 1.4.0
 -----
 - Added billsafe btn tansaction number

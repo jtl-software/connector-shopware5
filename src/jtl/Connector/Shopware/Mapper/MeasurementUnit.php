@@ -19,7 +19,7 @@ class MeasurementUnit extends DataMapper
 {
     public function find($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Article\Unit')->find($id);
+        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Unit')->find($id);
     }
     
     public function findAll($limit = 100, $count = false)
