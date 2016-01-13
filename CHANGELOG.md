@@ -1,6 +1,7 @@
 1.4.1 (unreleased)
 -----
 - Fixed payment module code
+- Changed product name helper to ignore variations
 
 1.4.0
 -----

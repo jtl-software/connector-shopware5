@@ -125,7 +125,7 @@ class ProductNameHelper
 
         if ($this->isProductName()) {
             $this->setAdditionalName(implode(' / ', $this->getValueNames()));
-            $this->setProductName(str_replace($this->getAdditionalName(), '', $this->getProductName()));
+            //$this->setProductName(str_replace($this->getAdditionalName(), '', $this->getProductName()));
         }
     }
 
