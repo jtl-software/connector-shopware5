@@ -22,7 +22,7 @@ class CrossSelling extends DataMapper
             'SELECT *
              FROM
              (
-                 SELECT r.*, ss.detailId, if (a.configurator_set_id > 0, d.id, a.main_detail_id) as relatedDetailId, gi.group_id
+                 SELECT r.id, r.articleID, r.relatedarticle, ss.detailId, if (a.configurator_set_id > 0, d.id, a.main_detail_id) as relatedDetailId, gi.group_id
                  FROM s_articles_relationships r
                  JOIN
                  (
@@ -38,7 +38,7 @@ class CrossSelling extends DataMapper
                      AND d.kind = 0
                  JOIN jtl_connector_crosssellinggroup_i18n gi ON gi.languageISO = \'ger\' AND gi.name = \'' . CrossSellingGroupModel::RELATED . '\'
                  UNION
-                 SELECT s.*, ss.detailId, if (a.configurator_set_id > 0, d.id, a.main_detail_id) as relatedDetailId, gi.group_id
+                 SELECT s.id, s.articleID, s.relatedarticle, ss.detailId, if (a.configurator_set_id > 0, d.id, a.main_detail_id) as relatedDetailId, gi.group_id
                  FROM s_articles_similar s
                  JOIN
                  (
