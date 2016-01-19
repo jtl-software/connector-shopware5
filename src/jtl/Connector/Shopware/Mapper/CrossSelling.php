@@ -100,7 +100,7 @@ class CrossSelling extends DataMapper
     {
         $this->delete($crossSelling);
         list ($sDetailId, $sProductId) = IdConcatenator::unlink($crossSelling->getProductId()->getEndpoint());
-        foreach ($crossSelling->getItems() as &$item) {
+        foreach ($crossSelling->getItems() as $item) {
             if (count($item->getProductIds()) > 0) {
                 $isValid = false;
                 $group = CrossSellingGroupUtil::get($item->getCrossSellingGroupId()->getEndpoint());

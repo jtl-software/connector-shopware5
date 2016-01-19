@@ -1,3 +1,7 @@
+1.4.2 (unreleased)
+-----
+- Fixed crossselling reference to elements of a temporary array expression
+
 1.4.1
 -----
 - Fixed payment module code
