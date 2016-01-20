@@ -69,6 +69,86 @@ class Product extends DataMapper
             return $paginator->count();
         }
 
+        /*
+        $details = Shopware()->Db()->fetchAll(
+            'SELECT d.id
+              FROM s_articles_details d
+              LEFT JOIN jtl_connector_link_detail l ON l.product_id = d.articleID AND l.detail_id = d.id
+              WHERE l.host_id IS NULL
+              ORDER BY d.kind
+              LIMIT ' . intval($limit)
+        );
+
+        if (is_array($details) && count($details) > 0) {
+            $ids = [];
+            foreach ($details as $detail) {
+                $ids[] = $detail['id'];
+            }
+
+            $qb = $this->Manager()->createQueryBuilder()->select(
+                'detail',
+                'article.id',
+                'unit',
+                'tax',
+                'categories',
+                'maindetail',
+                'detailprices',
+                'prices',
+                'links',
+                'attribute',
+                'downloads',
+                'supplier',
+                'pricegroup',
+                'discounts',
+                'customergroups',
+                'configuratorOptions',
+                'propertyvalues'
+            )
+                ->from('jtl\Connector\Shopware\Model\Linker\Detail', 'detail')
+                ->leftJoin('detail.linker', 'linker')
+                ->leftJoin('detail.article', 'article')
+                ->leftJoin('detail.prices', 'detailprices')
+                ->leftJoin('detail.unit', 'unit')
+                ->leftJoin('article.tax', 'tax')
+                ->leftJoin('article.categories', 'categories')
+                ->leftJoin('article.mainDetail', 'maindetail')
+                ->leftJoin('maindetail.prices', 'prices')
+                ->leftJoin('article.links', 'links')
+                ->leftJoin('article.attribute', 'attribute', \Doctrine\ORM\Query\Expr\Join::WITH, 'attribute.articleDetailId = detail.id')
+                ->leftJoin('article.downloads', 'downloads')
+                ->leftJoin('article.supplier', 'supplier')
+                ->leftJoin('article.priceGroup', 'pricegroup')
+                ->leftJoin('pricegroup.discounts', 'discounts')
+                ->leftJoin('article.customerGroups', 'customergroups')
+                ->leftJoin('detail.configuratorOptions', 'configuratorOptions')
+                ->leftJoin('article.propertyValues', 'propertyvalues');
+
+            $qb->add('where', $qb->expr()->in('detail.id', ':ids'))->setParameter(':ids', $ids);
+
+            $query = $qb->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+
+            $products = $query->getArrayResult();
+
+            $shopMapper = Mmc::getMapper('Shop');
+            $shops = $shopMapper->findAll(null, null);
+
+            $translationUtil = new TranslationUtil();
+            for ($i = 0; $i < count($products); $i++) {
+                foreach ($shops as $shop) {
+                    $translation = $translationUtil->read($shop['id'], 'article', $products[$i]['articleId']);
+                    if (!empty($translation)) {
+                        $translation['shopId'] = $shop['id'];
+                        $products[$i]['translations'][$shop['locale']['locale']] = $translation;
+                    }
+                }
+            }
+
+            return $products[0];
+        }
+
+        return [];
+        */
+
         $query = $this->Manager()->createQueryBuilder()->select(
             'detail',
             'article',
