@@ -219,6 +219,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.4.0':
                 break;
+            case '1.4.1':
+                break;
             default:
                 return false;
         }
