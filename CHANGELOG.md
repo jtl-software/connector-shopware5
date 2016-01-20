@@ -1,4 +1,4 @@
-1.4.2 (unreleased)
+1.4.2
 -----
 - Fixed crossselling reference to elements of a temporary array expression
 - Changed crosselling find sql to select fixed columns
