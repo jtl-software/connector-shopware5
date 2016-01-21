@@ -1,6 +1,7 @@
 1.4.3 (unreleased)
 -----
 - Fixed bootstrap update management
+- Added broken product data failsafe
 
 1.4.2
 -----
