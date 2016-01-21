@@ -145,28 +145,20 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 Shopware()->Db()->query("UPDATE s_articles_details SET ordernumber = REPLACE(ordernumber, '.0', '.jtlcon.0') WHERE ordernumber LIKE '%.0' AND kind = 0");
                 $this->createPaymentTable();
                 $this->createPaymentMappingTable();
-                break;
             case '1.0.1':
                 Shopware()->Db()->query("UPDATE s_articles_details SET active = 0 WHERE ordernumber LIKE '%.jtlcon.0'");
-                break;
             case '1.0.2':
                 $this->createCategoryTable();
                 $this->fillCategoryTable();
-                break;
             case '1.0.3':
-                break;
             case '1.0.4':
                 Shopware()->Db()->query("UPDATE s_articles_details SET ordernumber = REPLACE(ordernumber, '.jtlcon.0', ''), kind = 0 WHERE ordernumber LIKE '%.jtlcon.0'");
-                break;
             case '1.0.5':
-                break;
             case '1.0.6':
-                break;
             case '1.0.7':
                 $this->createPaymentTrigger();
                 $this->fillPaymentTable();
                 Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_image` ADD INDEX(`host_id`, `image_id`)');
-                break;
             case '1.0.8':
                 Shopware()->Db()->query(
                     'UPDATE jtl_connector_payment p
@@ -174,21 +166,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                      SET p.totalSum = o.invoice_amount'
                 );
                 $this->createPaymentTrigger();
-                break;
             case '1.0.9':
-                break;
             case '1.0.10':
-                break;
             case '1.0.11':
-                break;
             case '1.0.12':
-                break;
             case '1.1.0':
-                break;
             case '1.1.1':
-                break;
             case '1.1.2':
-                break;
             case '1.2.1':
                 Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_product_image` ADD `media_id` INT(10) UNSIGNED NOT NULL AFTER `image_id`');
                 Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_product_image` ADD INDEX `id_media_id` (`id`, `media_id`)');
@@ -199,26 +183,17 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     JOIN s_articles_img p ON p.id = i.parent_id
                     SET l.media_id = if (i.media_id > 0, i.media_id, p.media_id)'
                 );
-                break;
             case '1.2.2':
-                break;
             case '1.2.3':
-                break;
             case '1.2.4':
-                break;
             case '1.2.5':
                 $this->createPaymentTrigger();
-                break;
             case '1.3.0':
-                break;
             case '1.3.1':
-                break;
             case '1.3.2':
                 $this->createCrossSellingGroupTable();
                 $this->fillCrossSellingGroupTable();
-                break;
             case '1.4.0':
-                break;
             case '1.4.1':
                 break;
             default:

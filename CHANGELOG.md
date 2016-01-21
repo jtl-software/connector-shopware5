@@ -1,3 +1,7 @@
+1.4.3 (unreleased)
+-----
+- Fixed bootstrap update management
+
 1.4.2
 -----
 - Fixed crossselling reference to elements of a temporary array expression
