@@ -48,7 +48,11 @@ class Product extends DataController
             foreach ($products as $productSW) {
                 try {
                     $isDetail = (isset($productSW['article']['configuratorSetId']) && (int) $productSW['article']['configuratorSetId'] > 0 && $productSW['kind'] != 0);
-                    $result[] = $this->buildProduct($productSW, $isDetail);
+                    $product = $this->buildProduct($productSW, $isDetail);
+
+                    if ($product !== null) {
+                        $result[] = $product;
+                    }
 
                 } catch (\Exception $exc) {
                     Logger::write(ExceptionFormatter::format($exc), Logger::WARNING, 'controller');
@@ -70,6 +74,15 @@ class Product extends DataController
 
     protected function buildProduct(array &$data, $isDetail = false)
     {
+        if (!isset($data['article']) || $data['article'] === null) {
+            Logger::write(sprintf('Missing article data on product with sku (%s) and detail id (%s)',
+                $data['number'],
+                $data['id']
+                ), Logger::WARNING, 'controller');
+
+            return null;
+        }
+
         foreach (array_keys($data['article']) as $key) {
             if (!isset($data[$key])) {
                 $data[$key] = $data['article'][$key];

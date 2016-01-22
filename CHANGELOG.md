@@ -1,3 +1,8 @@
+1.4.3
+-----
+- Fixed bootstrap update management
+- Added broken product data failsafe
+
 1.4.2
 -----
 - Fixed crossselling reference to elements of a temporary array expression
