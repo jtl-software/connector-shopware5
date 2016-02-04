@@ -1,3 +1,8 @@
+1.4.4 (unreleased)
+-----
+- Added php 7 error handling support
+- Added product shipping free attribute
+
 1.4.3
 -----
 - Fixed bootstrap update management

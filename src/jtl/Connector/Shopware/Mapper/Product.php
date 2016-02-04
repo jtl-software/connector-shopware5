@@ -30,6 +30,7 @@ use \jtl\Connector\Shopware\Model\Helper\ProductNameHelper;
 use \jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Linker\ChecksumLinker;
 use \jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
+use \jtl\Connector\Shopware\Model\ProductAttr;
 
 class Product extends DataMapper
 {
@@ -730,7 +731,7 @@ class Product extends DataMapper
                         }
 
                         // active
-                        if ($attributeI18n->getName() === \jtl\Connector\Shopware\Model\ProductAttr::IS_ACTIVE) {
+                        if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IS_ACTIVE)) {
                             $isActive = (strtolower($attributeI18n->getValue()) === 'false'
                                 || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
                             if ($isChild) {
@@ -738,6 +739,14 @@ class Product extends DataMapper
                             } else {
                                 $productSW->setActive((int) $isActive);
                             }
+                        }
+
+                        // Shipping free
+                        if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::SHIPPING_FREE)) {
+                            $shippingFree = (strtolower($attributeI18n->getValue()) === 'false'
+                                || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
+
+                            $detailSW->setShippingFree($shippingFree);
                         }
 
                         $setter = "setAttr{$i}";
