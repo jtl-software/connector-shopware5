@@ -2,6 +2,7 @@
 -----
 - Added php 7 error handling support
 - Added product shipping free attribute
+- Fixed product specific id mapping
 
 1.4.3
 -----

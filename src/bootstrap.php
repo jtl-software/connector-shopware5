@@ -1,7 +1,6 @@
 <?php
 /**
  * @copyright 2010-2013 JTL-Software GmbH
- * @copyright 2010-2013 JTL-Software GmbH
  */
 
 require_once(__DIR__ . '/../vendor/autoload.php');
