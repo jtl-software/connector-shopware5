@@ -32,7 +32,8 @@ class CustomerOrder extends CustomerOrderModel
         'shippingInfo' => '',
         'shippingMethodName' => array('dispatch', 'name'),
         'status' => '',
-        'totalSum' => 'invoiceAmountNet'
+        'totalSum' => 'invoiceAmountNet',
+        'totalSumGross' => 'invoiceAmount'
     );
     
     /**
