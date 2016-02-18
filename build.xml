@@ -48,7 +48,6 @@
                 <include name="vendor/" />
 				<include name="logs/" />
 				<include name="db/" />
-				<include name="plugins/" />
             </fileset>
         </copy>
     </target>

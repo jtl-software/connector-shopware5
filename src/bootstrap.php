@@ -3,7 +3,9 @@
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
-require_once(__DIR__ . '/../vendor/autoload.php');
+$loader = require_once(__DIR__ . '/../vendor/autoload.php');
+
+$loader->add('', CONNECTOR_DIR . '/plugins');
 
 use \jtl\Connector\Application\Application;
 use \jtl\Connector\Shopware\Connector;
