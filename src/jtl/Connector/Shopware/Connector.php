@@ -24,7 +24,6 @@ use \jtl\Connector\Shopware\Utilities\Mmc;
  * Shopware Connector
  *
  * @access public
- * @author Daniel Böhmer <daniel.boehmer@jtl-software.com
  */
 class Connector extends BaseConnector
 {

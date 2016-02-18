@@ -101,6 +101,7 @@ class CustomerOrder extends DataController
                             $detailSW['taxRate'] = 0.0;
                         }
 
+                        $detailSW['priceGross'] = $detailSW['price'];
                         if ($orderSW['net'] == 1) {
                             $detailSW['price'] = Money::AsGross($detailSW['price'], $detailSW['taxRate']);
                         }
@@ -158,12 +159,14 @@ class CustomerOrder extends DataController
 
                     // Adding shipping item
                     $shippingPrice = (isset($orderSW['invoiceShippingNet'])) ? (float) $orderSW['invoiceShippingNet'] : 0.0;
+                    $shippingPriceGross = (isset($orderSW['invoiceShipping'])) ? (float) $orderSW['invoiceShipping'] : 0.0;
                     $item = Mmc::getModel('CustomerOrderItem');
                     $item->setType(\jtl\Connector\Model\CustomerOrderItem::TYPE_SHIPPING)
                         ->setId(new Identity(sprintf('%s_ship', $orderSW['id'])))
                         ->setCustomerOrderId($order->getId())
                         ->setName('Shipping')
                         ->setPrice($shippingPrice)
+                        ->setPriceGross($shippingPriceGross)
                         ->setQuantity(1)
                         ->setVat(self::calcShippingVat($order));
 

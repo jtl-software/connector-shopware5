@@ -25,6 +25,7 @@ class CustomerOrderItem extends CustomerOrderItemModel
         'name' => 'articleName',
         'sku' => 'articleNumber',
         'price' => 'price',
+        'priceGross' => 'priceGross',
         'vat' => 'taxRate',
         'quantity' => 'quantity',
         'type' => '',

@@ -1,3 +1,10 @@
+1.4.4
+-----
+- Added php 7 error handling support
+- Added product shipping free attribute
+- Added customer order and customer order item gross prices
+- Fixed product specific id mapping
+
 1.4.3
 -----
 - Fixed bootstrap update management
