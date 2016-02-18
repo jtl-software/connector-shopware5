@@ -1,3 +1,7 @@
+1.4.5
+-----
+- Fixed plugins autoload when using phar
+
 1.4.4
 -----
 - Added php 7 error handling support
