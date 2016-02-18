@@ -1,4 +1,4 @@
-1.4.4 (unreleased)
+1.4.4
 -----
 - Added php 7 error handling support
 - Added product shipping free attribute
