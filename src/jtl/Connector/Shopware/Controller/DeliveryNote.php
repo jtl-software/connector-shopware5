@@ -37,6 +37,7 @@ class DeliveryNote extends DataController
             $result = array();
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
+            $productMapper = Mmc::getMapper('Product');
             $mapper = Mmc::getMapper('DeliveryNote');
             $deliveryNotes = $mapper->findAll($limit);
 
@@ -48,12 +49,17 @@ class DeliveryNote extends DataController
                 $deliveryNote->map(true, DataConverter::toObject($deliveryNoteSW, true));
 
                 if ($orderSW !== null) {
-                    foreach ($orderSW->getDetails() as $detail) {
+                    foreach ($orderSW->getDetails() as $orderDetail) {
                         $deliveryNoteItem = Mmc::getModel('DeliveryNoteItem');
-                        $deliveryNoteItem->setId(new Identity(IdConcatenator::link(array($detail->getId(), $deliveryNoteSW['id']))))
+                        $deliveryNoteItem->setId(new Identity(IdConcatenator::link(array($orderDetail->getId(), $deliveryNoteSW['id']))))
                             ->setDeliveryNoteId(new Identity($deliveryNoteSW['id']))
-                            ->setCustomerOrderItemId(new Identity($detail->getId()))
-                            ->setQuantity($detail->getQuantity());
+                            ->setCustomerOrderItemId(new Identity($orderDetail->getId()))
+                            ->setQuantity($orderDetail->getQuantity());
+
+                        $detail = $productMapper->findDetailBy(array('number' => $orderDetail->getArticleNumber()));
+                        if ($detail !== null) {
+                            $deliveryNoteItem->setProductId(new Identity(IdConcatenator::link([$detail->getId(), $detail->getArticleId()])));
+                        }
 
                         $deliveryNote->addItem($deliveryNoteItem);
                     }

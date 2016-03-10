@@ -21,7 +21,8 @@ use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Core\Rpc\Error;
 use jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
 
 /**
  * CustomerOrder Controller
@@ -112,7 +113,7 @@ class CustomerOrder extends DataController
                         $detail = $productMapper->findDetailBy(array('number' => $detailSW['articleNumber']));
                         if ($detail !== null) {
                             //throw new \Exception(sprintf('Cannot find detail with number (%s)', $detailSW['articleNumber']));
-                            $orderItem->setProductId(new Identity(sprintf('%s_%s', $detail->getId(), $detailSW['articleId'])));
+                            $orderItem->setProductId(new Identity(IdConcatenator::link([$detail->getId(), $detailSW['articleId']])));
                         }
 
                         /*

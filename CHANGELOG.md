@@ -1,3 +1,8 @@
+1.4.6 (unreleased)
+-----
+- Added product id at delivery note item
+- Added product attr for activating notifications
+
 1.4.5
 -----
 - Fixed plugins autoload when using phar
