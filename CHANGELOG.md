@@ -3,6 +3,7 @@
 - Added product id at delivery note item
 - Added product attr for activating notifications
 - Add product specifics only to parent and normal products
+- Added new customer order item types (surcharge and coupon)
 
 1.4.5
 -----

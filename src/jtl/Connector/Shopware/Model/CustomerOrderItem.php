@@ -28,7 +28,7 @@ class CustomerOrderItem extends CustomerOrderItemModel
         'priceGross' => 'priceGross',
         'vat' => 'taxRate',
         'quantity' => 'quantity',
-        'type' => '',
+        'type' => 'type',
         'unique' => '',
         'configItemId' => ''
     );

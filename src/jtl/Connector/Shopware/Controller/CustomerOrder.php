@@ -11,6 +11,7 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Result\Action;
+use jtl\Connector\Shopware\Model\CustomerOrderItem;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Payment as PaymentUtil;
@@ -106,6 +107,12 @@ class CustomerOrder extends DataController
                         if ($orderSW['net'] == 1) {
                             $detailSW['price'] = Money::AsGross($detailSW['price'], $detailSW['taxRate']);
                         }
+                        
+                        // Type
+                        $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
+                        if ($detailSW['articleId'] == 0 && ($detailSW['articleNumber'] === 'sw-payment' || $detailSW['articleNumber'] === 'sw-payment-absolute')) {
+                            $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
+                        }
 
                         $orderItem = Mmc::getModel('CustomerOrderItem');
                         $orderItem->map(true, DataConverter::toObject($detailSW, true));
@@ -162,7 +169,7 @@ class CustomerOrder extends DataController
                     $shippingPrice = (isset($orderSW['invoiceShippingNet'])) ? (float) $orderSW['invoiceShippingNet'] : 0.0;
                     $shippingPriceGross = (isset($orderSW['invoiceShipping'])) ? (float) $orderSW['invoiceShipping'] : 0.0;
                     $item = Mmc::getModel('CustomerOrderItem');
-                    $item->setType(\jtl\Connector\Model\CustomerOrderItem::TYPE_SHIPPING)
+                    $item->setType(CustomerOrderItem::TYPE_SHIPPING)
                         ->setId(new Identity(sprintf('%s_ship', $orderSW['id'])))
                         ->setCustomerOrderId($order->getId())
                         ->setName('Shipping')

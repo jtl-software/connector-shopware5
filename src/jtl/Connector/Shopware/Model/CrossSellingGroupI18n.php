@@ -28,7 +28,11 @@ class CrossSellingGroupI18n extends CrossSellingGroupI18nModel
      */
     public function map($toWawi = false, \stdClass $obj = null)
     {
+        var_dump($obj->languageISO);
+
         $obj->languageISO = LanguageUtil::map(null, null, $obj->languageISO);
+
+        var_dump($obj->languageISO);
 
         return DataModel::map($toWawi, $obj, $this);
     }
