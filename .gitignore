@@ -12,7 +12,4 @@ config/**
 !config/.htaccess
 db/**
 !db/.htaccess
-phing.phar
-jtlasc.phar
-stub.php
 validation/**
