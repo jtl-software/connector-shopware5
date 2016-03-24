@@ -1,4 +1,4 @@
-1.4.6 (unreleased)
+1.4.6
 -----
 - Added product id at delivery note item
 - Added product attr for activating notifications
