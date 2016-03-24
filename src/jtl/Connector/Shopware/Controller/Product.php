@@ -411,20 +411,20 @@ class Product extends DataController
             }
         }
 
-        // ProductSpecific
-        if (isset($data['propertyValues'])) {
-            foreach ($data['propertyValues'] as $value) {
-                $productSpecific = Mmc::getModel('ProductSpecific');
-                $productSpecific->setId(new Identity($value['optionId']))
-                    ->setProductId(new Identity($value['id']))
-                    ->setSpecificValueId(new Identity($value['id']));
-
-                $product->addSpecific($productSpecific);
-            }
-        }
-
-        // Downloads
         if (!$isDetail) {
+            // ProductSpecific
+            if (isset($data['propertyValues'])) {
+                foreach ($data['propertyValues'] as $value) {
+                    $productSpecific = Mmc::getModel('ProductSpecific');
+                    $productSpecific->setId(new Identity($value['optionId']))
+                        ->setProductId(new Identity($value['id']))
+                        ->setSpecificValueId(new Identity($value['id']));
+
+                    $product->addSpecific($productSpecific);
+                }
+            }
+
+            // Downloads
             foreach ($data['downloads'] as $i=> $downloadSW) {
                 $productMediaFile = Mmc::getModel('ProductMediaFile');
                 $productMediaFile->map(true, DataConverter::toObject($downloadSW));
@@ -440,10 +440,8 @@ class Product extends DataController
 
                 $product->addMediaFile($productMediaFile);
             }
-        }
 
-        // Links
-        if (!$isDetail) {
+            // Links
             foreach ($data['links'] as $i=> $linkSW) {
                 $productMediaFile = Mmc::getModel('ProductMediaFile');
                 $productMediaFile->map(true, DataConverter::toObject($linkSW));

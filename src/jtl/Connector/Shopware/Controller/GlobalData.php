@@ -58,13 +58,17 @@ class GlobalData extends DataController
                 // Currencies
                 if (isset($shop['currencies']) && is_array($shop['currencies'])) {
                     foreach ($shop['currencies'] as $currencySW) {
-                        $currencySW['default'] = (bool)$currencySW['default'];
-                        $currencySW['hasCurrencySignBeforeValue'] = ($currencySW['position'] == 32) ? true : false;
+                        try {
+                            $currencySW['default'] = (bool)$currencySW['default'];
+                            $currencySW['hasCurrencySignBeforeValue'] = ($currencySW['position'] == 32) ? true : false;
 
-                        $currency = Mmc::getModel('Currency');
-                        $currency->map(true, DataConverter::toObject($currencySW, true));
+                            $currency = Mmc::getModel('Currency');
+                            $currency->map(true, DataConverter::toObject($currencySW, true));
 
-                        $globalData->addCurrency($currency);
+                            $globalData->addCurrency($currency);
+                        } catch (\Exception $e) {
+                            Logger::write(ExceptionFormatter::format($e, 'Currency'), Logger::ERROR, 'controller');
+                        }
                     }
                 }
             }
@@ -80,14 +84,18 @@ class GlobalData extends DataController
 
             DataInjector::inject(DataInjector::TYPE_ARRAY, $customerGroupSWs, 'localeName', Shopware()->Shop()->getLocale()->getLocale(), true);
             foreach ($customerGroupSWs as $customerGroupSW) {
-                $customerGroup = Mmc::getModel('CustomerGroup');
-                $customerGroup->map(true, DataConverter::toObject($customerGroupSW, true));
+                try {
+                    $customerGroup = Mmc::getModel('CustomerGroup');
+                    $customerGroup->map(true, DataConverter::toObject($customerGroupSW, true));
 
-                $customerGroupI18n = Mmc::getModel('CustomerGroupI18n');
-                $customerGroupI18n->map(true, DataConverter::toObject($customerGroupSW, true));
+                    $customerGroupI18n = Mmc::getModel('CustomerGroupI18n');
+                    $customerGroupI18n->map(true, DataConverter::toObject($customerGroupSW, true));
 
-                $customerGroup->addI18n($customerGroupI18n);
-                $globalData->addCustomerGroup($customerGroup);
+                    $customerGroup->addI18n($customerGroupI18n);
+                    $globalData->addCustomerGroup($customerGroup);
+                } catch (\Exception $e) {
+                    Logger::write(ExceptionFormatter::format($e, 'CustomerGroup'), Logger::ERROR, 'controller');
+                }
             }
 
             // CustomerGroupAttrs
@@ -102,12 +110,20 @@ class GlobalData extends DataController
                 $crossSellingGroup->getId()->setHost((int) $crossSellingGroupSW['host_id']);
 
                 foreach ($crossSellingGroupSW['i18ns'] as $crossSellingGroupI18nSW) {
-                    $crossSellingGroupI18n = Mmc::getModel('CrossSellingGroupI18n');
-                    $crossSellingGroupI18n->map(true, DataConverter::toObject($crossSellingGroupI18nSW, true));
+                    try {
+                        $crossSellingGroupI18n = Mmc::getModel('CrossSellingGroupI18n');
+                        $crossSellingGroupI18n->map(true, DataConverter::toObject($crossSellingGroupI18nSW, true));
 
-                    $crossSellingGroupI18n->getCrossSellingGroupId()->setHost($crossSellingGroup->getId()->getHost());
+                        $crossSellingGroupI18n->getCrossSellingGroupId()->setHost($crossSellingGroup->getId()->getHost());
 
-                    $crossSellingGroup->addI18n($crossSellingGroupI18n);
+                        $crossSellingGroup->addI18n($crossSellingGroupI18n);
+                    } catch (\Exception $e) {
+                        Logger::write(ExceptionFormatter::format($e, 'CrossSellingGroup'), Logger::ERROR, 'controller');
+                    }
+                }
+
+                if (count($crossSellingGroup->getI18ns()) == 0) {
+                    throw new \Exception('Could not find any crossSelling language');
                 }
 
                 $globalData->addCrossSellingGroup($crossSellingGroup);
@@ -119,14 +135,18 @@ class GlobalData extends DataController
 
             DataInjector::inject(DataInjector::TYPE_ARRAY, $unitSWs, 'localeName', Shopware()->Shop()->getLocale()->getLocale(), true);
             foreach ($unitSWs as $unitSW) {
-                $unit = Mmc::getModel('Unit');
-                $unit->map(true, DataConverter::toObject($unitSW, true));
+                try {
+                    $unit = Mmc::getModel('Unit');
+                    $unit->map(true, DataConverter::toObject($unitSW, true));
 
-                $unitI18n = Mmc::getModel('UnitI18n');
-                $unitI18n->map(true, DataConverter::toObject($unitSW, true));
+                    $unitI18n = Mmc::getModel('UnitI18n');
+                    $unitI18n->map(true, DataConverter::toObject($unitSW, true));
 
-                $unit->addI18n($unitI18n);
-                $globalData->addUnit($unit);
+                    $unit->addI18n($unitI18n);
+                    $globalData->addUnit($unit);
+                } catch (\Exception $e) {
+                    Logger::write(ExceptionFormatter::format($e, 'Unit'), Logger::ERROR, 'controller');
+                }
             }
 
             // Measurement Units

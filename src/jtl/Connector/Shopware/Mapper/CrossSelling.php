@@ -82,16 +82,19 @@ class CrossSelling extends DataMapper
     {
         $result = new CrossSellingModel;
 
+        list($detailId, $productId) = IdConcatenator::unlink($crossSelling->getProductId()->getEndpoint());
+
         Shopware()->Db()->delete('s_articles_relationships', array(
-            'articleID = ?' => $crossSelling->getProductId()->getEndpoint()
+            'articleID = ?' => $productId
         ));
 
         Shopware()->Db()->delete('s_articles_similar', array(
-            'articleID = ?' => $crossSelling->getProductId()->getEndpoint()
+            'articleID = ?' => $productId
         ));
 
         // Result
-        $result->setProductId(new Identity('', $crossSelling->getProductId()->getHost()));
+        $result->setProductId(new Identity('', $crossSelling->getProductId()->getHost()))
+            ->setId($crossSelling->getId());
 
         return $result;
     }

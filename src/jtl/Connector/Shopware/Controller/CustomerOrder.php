@@ -11,6 +11,7 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Result\Action;
+use jtl\Connector\Shopware\Model\CustomerOrderItem;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Payment as PaymentUtil;
@@ -21,7 +22,8 @@ use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Core\Rpc\Error;
 use jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
 
 /**
  * CustomerOrder Controller
@@ -101,9 +103,20 @@ class CustomerOrder extends DataController
                             $detailSW['taxRate'] = 0.0;
                         }
 
-                        $detailSW['priceGross'] = $detailSW['price'];
-                        if ($orderSW['net'] == 1) {
-                            $detailSW['price'] = Money::AsGross($detailSW['price'], $detailSW['taxRate']);
+                        switch ((int) $orderSW['net']) {
+                            case 0: // price is gross
+                                $detailSW['priceGross'] = $detailSW['price'];
+                                $detailSW['price'] = Money::AsNet($detailSW['price'], $detailSW['taxRate']);
+                                break;
+                            case 1: // price is net
+                                $detailSW['priceGross'] = round(Money::AsGross($detailSW['price'], $detailSW['taxRate']), 2);
+                                break;
+                        }
+                        
+                        // Type
+                        $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
+                        if ($detailSW['articleId'] == 0 && ($detailSW['articleNumber'] === 'sw-payment' || $detailSW['articleNumber'] === 'sw-payment-absolute')) {
+                            $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
                         }
 
                         $orderItem = Mmc::getModel('CustomerOrderItem');
@@ -112,7 +125,7 @@ class CustomerOrder extends DataController
                         $detail = $productMapper->findDetailBy(array('number' => $detailSW['articleNumber']));
                         if ($detail !== null) {
                             //throw new \Exception(sprintf('Cannot find detail with number (%s)', $detailSW['articleNumber']));
-                            $orderItem->setProductId(new Identity(sprintf('%s_%s', $detail->getId(), $detailSW['articleId'])));
+                            $orderItem->setProductId(new Identity(IdConcatenator::link([$detail->getId(), $detailSW['articleId']])));
                         }
 
                         /*
@@ -161,7 +174,7 @@ class CustomerOrder extends DataController
                     $shippingPrice = (isset($orderSW['invoiceShippingNet'])) ? (float) $orderSW['invoiceShippingNet'] : 0.0;
                     $shippingPriceGross = (isset($orderSW['invoiceShipping'])) ? (float) $orderSW['invoiceShipping'] : 0.0;
                     $item = Mmc::getModel('CustomerOrderItem');
-                    $item->setType(\jtl\Connector\Model\CustomerOrderItem::TYPE_SHIPPING)
+                    $item->setType(CustomerOrderItem::TYPE_SHIPPING)
                         ->setId(new Identity(sprintf('%s_ship', $orderSW['id'])))
                         ->setCustomerOrderId($order->getId())
                         ->setName('Shipping')

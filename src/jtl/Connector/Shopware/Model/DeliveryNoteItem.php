@@ -22,7 +22,8 @@ class DeliveryNoteItem extends DeliveryNoteItemModel
         'serialNumber' => '',
         'batchNumber' => '',
         'bestBeforeDate' => '',
-        'deliveryNoteId' => ''
+        'deliveryNoteId' => '',
+        'productId' => ''
     );
     
     /**

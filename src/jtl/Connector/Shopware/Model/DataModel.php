@@ -105,9 +105,9 @@ abstract class DataModel
                 if (is_array($platformField)) {
                     $value = $getValue($platformField, $obj);
                     $original->{$setter}($typeCast($original, $connectorField, $value));
-                } elseif ($connectorField == 'languageISO' && strlen($platformField) == 0) {
+                } elseif ($connectorField === 'languageISO' && strlen($platformField) == 0) {
                     $original->{$setter}(LanguageUtil::map(Shopware()->Locale()->toString()));
-                } elseif ($connectorField == 'languageISO' && strlen($platformField) > 0) {
+                } elseif ($connectorField === 'languageISO' && strlen($platformField) > 0) {
                     $original->{$setter}(LanguageUtil::map($obj->{$platformField}));
                 } elseif (isset($obj->{$platformField})) {
                     $original->{$setter}($typeCast($original, $connectorField, $obj->{$platformField}));
@@ -118,7 +118,7 @@ abstract class DataModel
                     $setValue($platformField, $original->{$getter}(), $obj);
                 } elseif ($original->{$getter}() instanceof Identity) {
                     $obj->{$platformField} = $original->{$getter}()->getEndpoint();
-                } elseif ($connectorField == 'languageISO' && strlen($platformField) == 0) {
+                } elseif ($connectorField === 'languageISO' && strlen($platformField) == 0) {
                     $obj->{$platformField} = LanguageUtil::map(null, null, $original->{$getter}());
                 } elseif (strlen($platformField) > 0) {
                     // TODO: Date Check

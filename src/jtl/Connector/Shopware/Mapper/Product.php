@@ -739,6 +739,18 @@ class Product extends DataMapper
                             } else {
                                 $productSW->setActive((int) $isActive);
                             }
+
+                            continue;
+                        }
+
+                        // Notification
+                        if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::SEND_NOTIFICATION)) {
+                            $notification = (strtolower($attributeI18n->getValue()) === 'false'
+                                || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
+
+                            $productSW->setNotification($notification);
+
+                            continue;
                         }
 
                         // Shipping free
@@ -747,6 +759,8 @@ class Product extends DataMapper
                                 || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
 
                             $detailSW->setShippingFree($shippingFree);
+
+                            continue;
                         }
 
                         $setter = "setAttr{$i}";
