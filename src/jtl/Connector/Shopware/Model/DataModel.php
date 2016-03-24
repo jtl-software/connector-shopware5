@@ -119,10 +119,6 @@ abstract class DataModel
                 } elseif ($original->{$getter}() instanceof Identity) {
                     $obj->{$platformField} = $original->{$getter}()->getEndpoint();
                 } elseif ($connectorField === 'languageISO' && strlen($platformField) == 0) {
-                    die("test");
-                    var_dump($getter);
-                    var_dump($original->{$getter}());
-                    var_dump($platformField);
                     $obj->{$platformField} = LanguageUtil::map(null, null, $original->{$getter}());
                 } elseif (strlen($platformField) > 0) {
                     // TODO: Date Check

@@ -4,6 +4,7 @@
 - Added product attr for activating notifications
 - Add product specifics only to parent and normal products
 - Added new customer order item types (surcharge and coupon)
+- Fixed customer order item gross and net prices
 
 1.4.5
 -----

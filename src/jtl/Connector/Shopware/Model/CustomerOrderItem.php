@@ -39,7 +39,7 @@ class CustomerOrderItem extends CustomerOrderItemModel
      */
     public function map($toWawi = false, \stdClass $obj = null)
     {
-        $obj->price = Money::AsNet($obj->price, $obj->taxRate);
+        //$obj->price = Money::AsNet($obj->price, $obj->taxRate);
 
         return DataModel::map($toWawi, $obj, $this);
     }
