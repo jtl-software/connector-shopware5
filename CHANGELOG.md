@@ -1,5 +1,5 @@
-1.4.7 (unreleased)
-------------------
+1.4.7
+-----
 - Added new connector core 2.2.16
 
 1.4.6
