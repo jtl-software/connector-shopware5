@@ -1,3 +1,7 @@
+1.4.7
+-----
+- Added new connector core 2.2.16
+
 1.4.6
 -----
 - Added product id at delivery note item
