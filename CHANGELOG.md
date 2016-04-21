@@ -1,3 +1,7 @@
+1.4.8 (unreleased)
+------------------
+- Added fixed (eg. attr6) category attributes
+
 1.4.7
 -----
 - Added new connector core 2.2.16

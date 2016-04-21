@@ -374,6 +374,10 @@ class Product extends DataMapper
         if ($productId !== null) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
             $detailSW = $this->findDetail((int) $detailId);
+
+            if ($detailSW === null && strlen($product->getSku()) > 0) {
+                $detailSW = Shopware()->Models()->getRepository('Shopware\Models\Article\Detail')->findOneBy(array('number' => $product->getSku()));
+            }
         }
     }
 
