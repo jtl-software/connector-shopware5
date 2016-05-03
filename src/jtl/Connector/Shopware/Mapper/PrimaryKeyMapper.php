@@ -160,6 +160,19 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                         $statement = Shopware()->Db()->query($sql, array($endpointId, $mediaId, $hostId));
                     }
                     break;
+                case IdentityLinker::TYPE_CROSSSELLING:
+                    list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
+
+                    $sql = '
+                        INSERT IGNORE INTO ' . $dbInfo['table'] . '
+                        (
+                            ' . $dbInfo['pk'] . ', host_id
+                        )
+                        VALUES (?,?)
+                    ';
+
+                    $statement = Shopware()->Db()->query($sql, array($productId, $hostId));
+                    break;
                 case IdentityLinker::TYPE_CROSSSELLING_GROUP:
                     $sql = 'UPDATE jtl_connector_crosssellinggroup SET host_id = ? WHERE id = ?';
                     $statement = Shopware()->Db()->query($sql, array($hostId, $endpointId));

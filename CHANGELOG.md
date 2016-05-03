@@ -1,6 +1,7 @@
 1.4.8 (unreleased)
 ------------------
 - Added fixed (eg. attr6) category attributes
+- Fixed Cross Selling identity mapping
 
 1.4.7
 -----
