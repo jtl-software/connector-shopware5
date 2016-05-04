@@ -1,3 +1,8 @@
+1.4.8
+-----
+- Added fixed (eg. attr6) category attributes
+- Fixed Cross Selling identity mapping
+
 1.4.7
 -----
 - Added new connector core 2.2.16

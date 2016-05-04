@@ -368,6 +368,7 @@ class Category extends DataMapper
         }
 
         $i = 0;
+        $attrMappings = [];
         foreach ($category->getAttributes() as $attribute) {
             if (!$attribute->getIsCustomProperty()) {
                 $i++;
@@ -382,6 +383,30 @@ class Category extends DataMapper
 
                     if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                         $setter = "setAttribute{$i}";
+
+                        if (preg_match('/attr(20|1[0-9]{1}|[1-9]{1})/', $attributeI18n->getName(), $matches)) {
+                            if (strlen($matches[0]) == strlen($attributeI18n->getName())) {
+                                $number = str_replace('attr', '', $attributeI18n->getName());
+                                $s_setter = "setAttribute{$number}";
+                                $s_getter = "getAttribute{$number}";
+                                if (method_exists($attributeSW, $s_setter)) {
+                                    $oldValue = $attributeSW->{$s_getter}();
+                                    $attributeSW->{$s_setter}($attributeI18n->getValue());
+
+                                    if ($oldValue !== null && $number != $i && method_exists($attributeSW, $setter)) {
+                                        $attributeSW->{$setter}($oldValue);
+                                        $hostId = $attrMappings[$number];
+                                        $attrMappings[$i] = $hostId;
+                                    } elseif ($number < $i && $i > 1) {
+                                        $i--;
+                                    }
+
+                                    $attrMappings[$number] = $attribute->getId()->getHost();
+
+                                    continue;
+                                }
+                            }
+                        }
 
                         if (method_exists($attributeSW, $setter)) {
                             $attributeSW->{$setter}($attributeI18n->getValue());
