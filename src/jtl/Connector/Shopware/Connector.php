@@ -55,16 +55,23 @@ class Connector extends BaseConnector
         $config = Shopware()->Models()->getConfiguration();
         $driverChain = $config->getMetadataDriverImpl();
 
-        $annotationDriver = new AnnotationDriver(
-            $config->getAnnotationsReader(),
-            array(
-                $config->getAttributeDir()
-            )
-        );
+        if ($driverChain instanceof \Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain) {
+            $annotationDriver = new AnnotationDriver(
+                $config->getAnnotationsReader(),
+                array(
+                    $config->getAttributeDir()
+                )
+            );
 
-        $driverChain->addDriver($annotationDriver, 'jtl\\Connector\\Shopware\\Model\\');
-        $driverChain->addDriver($annotationDriver, 'jtl\\Connector\\Shopware\\Model\\Linker\\');
-        $config->setMetadataDriverImpl($driverChain);
+            $driverChain->addDriver($annotationDriver, 'jtl\\Connector\\Shopware\\Model\\');
+            $driverChain->addDriver($annotationDriver, 'jtl\\Connector\\Shopware\\Model\\Linker\\');
+            $config->setMetadataDriverImpl($driverChain);
+        } else if ($driverChain instanceof AnnotationDriver) {
+            $driverChain->addPaths([
+                'jtl\\Connector\\Shopware\\Model\\',
+                'jtl\\Connector\\Shopware\\Model\\Linker\\'
+            ]);
+        }
     }
 
     /**
