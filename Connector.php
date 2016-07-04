@@ -1,8 +1,4 @@
 <?php
-if (!interface_exists('\Shopware\Components\CSRFWhitelistAware')) {
-    include __DIR__ . '/src/CSRFWhitelistAware.php';
-}
-
 use Shopware\Components\CSRFWhitelistAware;
 
 class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Action implements CSRFWhitelistAware

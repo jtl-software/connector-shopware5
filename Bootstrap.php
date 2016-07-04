@@ -1,10 +1,10 @@
 <?php
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\System\Check as CheckUtil;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Core\Config\Config;
-use \jtl\Connector\Core\Config\Loader\Json as ConfigJson;
-use \jtl\Connector\Core\IO\Path;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\System\Check as CheckUtil;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Core\Config\Config;
+use jtl\Connector\Core\Config\Loader\Json as ConfigJson;
+use jtl\Connector\Core\IO\Path;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
@@ -27,7 +27,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '1.4.8';
+        return '2.0.0';
     }
 
     public function getInfo()
@@ -61,10 +61,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $json = new ConfigJson($configFile);
         $this->config = new Config(array($json));
 
-        if (!$this->assertVersionGreaterThen('5.0.0')) {
+        if (!$this->assertVersionGreaterThen('5.2.0')) {
             return array(
                 'success' => false,
-                'message' => 'Das Plugin benötigt mindestens die Shopware Version 5.0.0'
+                'message' => 'Das Plugin benötigt mindestens die Shopware Version 5.2.0'
             );
         }
 
@@ -211,6 +211,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.4.5':
             case '1.4.6':
             case '1.4.7':
+                break;
+            case '1.4.8':
                 break;
             default:
                 return false;

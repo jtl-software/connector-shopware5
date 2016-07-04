@@ -207,7 +207,7 @@ class ProductPrice extends DataMapper
                         ->setCustomerGroup($customerGroupSW)
                         ->setFrom($quantity)
                         ->setPrice($priceItem->getNetPrice())
-                        ->setBasePrice($purchasePrice)
+                        //->setBasePrice($purchasePrice)
                         ->setPseudoPrice($recommendedRetailPrice)
                         ->setDetail($detailSW);
 
