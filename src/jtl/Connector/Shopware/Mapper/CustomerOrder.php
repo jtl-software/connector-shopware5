@@ -42,7 +42,6 @@ class CustomerOrder extends DataMapper
             'customer',
             'customer_shipping',
             'customer_shipping_attribute',
-            'debit',
             'paymentData',
             'attribute',
             'details',
@@ -62,7 +61,7 @@ class CustomerOrder extends DataMapper
             ->leftJoin('orders.customer', 'customer')
             ->leftJoin('customer.shipping', 'customer_shipping')
             ->leftJoin('customer_shipping.attribute', 'customer_shipping_attribute')
-            ->leftJoin('customer.debit', 'debit')
+            //->leftJoin('customer.debit', 'debit')
             ->leftJoin('customer.paymentData', 'paymentData')
             ->leftJoin('orders.attribute', 'attribute')
             ->join('orders.details', 'details')
@@ -123,7 +122,6 @@ class CustomerOrder extends DataMapper
         $this->prepareShippingAssociatedData($customerOrder, $orderSW);
         $this->prepareBillingAssociatedData($customerOrder, $orderSW);
         $this->prepareItemsAssociatedData($customerOrder, $orderSW);
-        $this->preparePaymentInfoAssociatedData($customerOrder, $orderSW);
 
         // Save Order
         $this->Manager()->persist($orderSW);
@@ -493,29 +491,6 @@ class CustomerOrder extends DataMapper
         $this->Manager()->persist($detailSW);
 
         $detailsSW->add($detailSW);
-    }
-
-    protected function preparePaymentInfoAssociatedData(CustomerOrderModel $customerOrder)
-    {
-        if ($customerOrder->getPaymentModuleCode() === PaymentTypes::TYPE_DIRECT_DEBIT && $customerOrder->getPaymentInfo() !== null) {
-            $customerMapper = Mmc::getMapper('Customer');
-            $customer = $customerMapper->find($customerOrder->getCustomerId()->getEndpoint());
-
-            if ($customer !== null) {
-                $debitSW = $customer->getDebit();
-                if ($debitSW === null) {
-                    $debitSW = new \Shopware\Models\Customer\Debit();
-                }
-
-                $debitSW->setAccount($customerOrder->getPaymentInfo()->getAccountNumber())
-                    ->setBankCode($customerOrder->getPaymentInfo()->getBankCode())
-                    ->setBankName($customerOrder->getPaymentInfo()->getBankName())
-                    ->setAccountHolder($customerOrder->getPaymentInfo()->getAccountHolder())
-                    ->setCustomer($customer);
-
-                $this->Manager()->persist($debitSW);
-            }
-        }
     }
 
     public function isChild(CustomerOrderItem &$customerOrderItem)

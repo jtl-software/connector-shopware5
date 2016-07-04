@@ -1,3 +1,11 @@
+2.0.0
+-----
+- Removed debit support
+- Added csrf support
+- Removed fax support
+- Added multiple customer addresses support
+- Added Shopware 5.2 support
+
 1.4.8
 -----
 - Added fixed (eg. attr6) category attributes

@@ -1,6 +1,15 @@
 <?php
-class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Action
+use Shopware\Components\CSRFWhitelistAware;
+
+class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Action implements CSRFWhitelistAware
 {
+    public function getWhitelistedCSRFActions()
+    {
+        return [
+            'index'
+        ];
+    }
+
     public function preDispatch()
     {
         if (in_array($this->Request()->getActionName(), array('index'))) {

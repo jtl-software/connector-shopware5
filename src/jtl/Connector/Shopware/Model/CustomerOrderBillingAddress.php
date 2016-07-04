@@ -32,7 +32,7 @@ class CustomerOrderBillingAddress extends CustomerOrderBillingAddressModel
         'countryIso' => ['country', 'iso'],
         'phone' => 'phone',
         'mobile' => '',
-        'fax' => 'fax',
+        'fax' => '',
         'eMail' => '',
         'vatNumber' => 'vatId'
     );

@@ -330,7 +330,6 @@ class Category extends DataMapper
 
         $categorySW->setActive($category->getIsActive());
         $categorySW->setPosition($category->getSort());
-        $categorySW->setNoViewSelect(false);
     }
 
     protected function prepareI18nAssociatedData(CategoryModel $category, CategorySW &$categorySW)
@@ -497,7 +496,6 @@ class Category extends DataMapper
 
                     $categoryMappingSW->setParent($parentCategorySW);
                     $categoryMappingSW->setPosition($category->getSort());
-                    $categoryMappingSW->setNoViewSelect(false);
                 }
 
                 $categoryMappingSW->setName($i18n->getName());
