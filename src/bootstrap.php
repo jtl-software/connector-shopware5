@@ -3,7 +3,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  */
 
-$loader = require_once(CONNECTOR_DIR . '/vendor/autoload.php');
+$loader = require_once(__DIR__ . '/../vendor/autoload.php');
 
 $loader->add('', CONNECTOR_DIR . '/plugins');
 

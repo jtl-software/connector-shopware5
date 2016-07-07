@@ -6,6 +6,8 @@ use jtl\Connector\Core\Config\Config;
 use jtl\Connector\Core\Config\Loader\Json as ConfigJson;
 use jtl\Connector\Core\IO\Path;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
@@ -27,7 +29,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '2.0.0';
+        return '2.0.1';
     }
 
     public function getInfo()
@@ -44,6 +46,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function install()
     {
+        define('CONNECTOR_DIR', __DIR__);
+
         try {
             $this->runAutoload();
         } catch (\Exception $e) {
@@ -53,6 +57,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             );
         }
 
+        Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
+
         $configFile = Path::combine(__DIR__, 'config', 'config.json');
         if (!file_exists($configFile)) {
             file_put_contents($configFile, json_encode(array('developer_logging' => false), JSON_PRETTY_PRINT));
@@ -61,7 +67,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $json = new ConfigJson($configFile);
         $this->config = new Config(array($json));
 
+        Logger::write('Checking shopware version...', Logger::INFO, 'install');
+
         if (!$this->assertVersionGreaterThen('5.2.0')) {
+            Logger::write('Shopware version missmatch', Logger::ERROR, 'install');
+
             return array(
                 'success' => false,
                 'message' => 'Das Plugin benötigt mindestens die Shopware Version 5.2.0'
@@ -72,6 +82,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         try {
             CheckUtil::run();
         } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'install');
+
             return array(
                 'success' => false,
                 'message' => $e->getMessage()
@@ -214,6 +226,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 break;
             case '1.4.8':
                 break;
+            case '2.0.0':
+                break;
             default:
                 return false;
         }
@@ -334,6 +348,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createParentDummies()
     {
+        Logger::write('create parent dummies...', Logger::INFO, 'install');
+
         Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 0");
 
         // Dirty inject parent and insert in db work around
@@ -385,7 +401,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     ->setDetail($parentDetailSW)
                     ->setPrice($price['price'])
                     ->setPseudoPrice($price['pseudoprice'])
-                    ->setBasePrice($price['baseprice'])
+                    //->setBasePrice($price['baseprice'])
                     ->setPercent($price['percent']);
 
                 $priceCollection[] = $parentPriceSW;
@@ -426,6 +442,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function fillCategoryLevelTable(array $parentIds = null, $level = 0)
     {
+        $ids = !is_null($parentIds) ? implode(', ', $parentIds) : '';
+        Logger::write(sprintf('fill cross selling group table for level (%s) and ids (%s)', $level, $ids), Logger::INFO, 'install');
+
         $where = 'WHERE parent IS NULL';
         if ($parentIds === null) {
             $parentIds = array();
@@ -458,6 +477,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function fillCategoryTable()
     {
+        Logger::write('fill category table...', Logger::INFO, 'install');
+
         // Check Mapping activation
         $categoryMapper = Mmc::getMapper('Category');
         $shopMapper = Mmc::getMapper('Shop');
@@ -514,6 +535,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function fillPaymentTable()
     {
+        Logger::write('fill payment table...', Logger::INFO, 'install');
+
         Shopware()->Db()->query(
             "INSERT INTO jtl_connector_payment
             (
@@ -526,6 +549,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function fillCrossSellingGroupTable()
     {
+        Logger::write('fill cross selling group table...', Logger::INFO, 'install');
+
         Shopware()->Db()->insert('jtl_connector_crosssellinggroup', [
             'host_id' => 0
         ]);
@@ -551,6 +576,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createUnitTable()
     {
+        Logger::write('Create unit table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_unit` ( 
                 `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, 
@@ -580,6 +607,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createCategoryTable()
     {
+        Logger::write('Create category table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_category` (
               `parent_id` int(11) unsigned NOT NULL,
@@ -599,6 +628,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createCrossSellingGroupTable()
     {
+        Logger::write('Create cross selling group table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_crosssellinggroup` (
                 `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -629,6 +660,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createProductChecksumTable()
     {
+        Logger::write('Create product checksum table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_product_checksum` (
               `product_id` int(11) unsigned NOT NULL,
@@ -648,6 +681,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createCategoryLevelTable()
     {
+        Logger::write('Create category level table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_category_level` (
               `category_id` int(11) unsigned NOT NULL,
@@ -666,6 +701,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     //////////////////////
     private function createCategoryMappingTable()
     {
+        Logger::write('Create category mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_category` (
               `category_id` int(11) unsigned NOT NULL,
@@ -682,6 +719,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createDetailMappingTable()
     {
+        Logger::write('Create detail mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_detail` (
               `product_id` int(11) unsigned NOT NULL,
@@ -701,6 +740,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createCustomerMappingTable()
     {
+        Logger::write('Create customer mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_customer` (
               `customer_id` int(11) NOT NULL,
@@ -717,6 +758,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createCustomerOrderMappingTable()
     {
+        Logger::write('Create customer order mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_order` (
               `order_id` int(11) NOT NULL,
@@ -733,6 +776,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createDeliveryNoteMappingTable()
     {
+        Logger::write('Create delivery note mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_note` (
               `note_id` int(11) NOT NULL,
@@ -749,6 +794,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createImageMappingTable()
     {
+        Logger::write('Create image mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_image` (
               `media_id` int(11) NOT NULL,
@@ -767,6 +814,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createProductImageMappingTable()
     {
+        Logger::write('Create product image mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_product_image` (
               `id` int(11) NOT NULL,
@@ -786,6 +835,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createManufacturerMappingTable()
     {
+        Logger::write('Create manufacturer mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_manufacturer` (
               `manufacturer_id` int(11) NOT NULL,
@@ -802,6 +853,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createSpecificMappingTable()
     {
+        Logger::write('Create specific mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_specific` (
               `specific_id` int(11) NOT NULL,
@@ -818,6 +871,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createSpecificValueMappingTable()
     {
+        Logger::write('Create specific value mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_specific_value` (
               `specific_value_id` int(11) NOT NULL,
@@ -834,6 +889,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createPaymentMappingTable()
     {
+        Logger::write('Create payment mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_payment` (
               `payment_id` int(11) unsigned NOT NULL,
@@ -850,6 +907,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createPaymentTable()
     {
+        Logger::write('Create payment table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_payment` (
               `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -871,6 +930,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createCrossSellingMappingTable()
     {
+        Logger::write('Create cross selling mapping table...', Logger::INFO, 'install');
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_crossselling` (
               `product_id` int(11) unsigned NOT NULL,
@@ -887,6 +948,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function createPaymentTrigger()
     {
+        Logger::write('Create payment trigger...', Logger::INFO, 'install');
+
         $sql = "
             DROP TRIGGER IF EXISTS `jtl_connector_payment`;
             CREATE TRIGGER `jtl_connector_payment` AFTER UPDATE ON `s_order`
