@@ -1,3 +1,7 @@
+2.0.1
+-----
+- Fixed installer issue
+
 2.0.0
 -----
 - Removed debit support
