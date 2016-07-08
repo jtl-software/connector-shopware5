@@ -1,3 +1,7 @@
+1.4.9 (unreleased)
+------------------
+- Added price work around for empty customer group wawi bug
+
 1.4.8
 -----
 - Added fixed (eg. attr6) category attributes

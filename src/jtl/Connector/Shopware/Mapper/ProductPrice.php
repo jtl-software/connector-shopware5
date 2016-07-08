@@ -76,18 +76,21 @@ class ProductPrice extends DataMapper
         // build prices per customer group
         foreach ($productPrices as $productPrice) {
             $groupId = intval($productPrice->getCustomerGroupId()->getEndpoint());
+			
+			Logger::write(sprintf('prices (group id: %s): %s', $groupId, $productPrice->toJson()), Logger::DEBUG, 'prices');
 
             if (!array_key_exists($groupId, $pricesPerGroup)) {
-                $pricesPerGroup[$groupId] = array();
+                $pricesPerGroup[$groupId] = null;
             }
 
-            $pricesPerGroup[$groupId][] = $productPrice;
+            $pricesPerGroup[$groupId] = $productPrice;
         }
 
         // Search default Vk price
         $detaultPrice = null;
         if (array_key_exists(0, $pricesPerGroup)) {
-            $price = $pricesPerGroup[0][0];
+            //$price = $pricesPerGroup[0][0];
+            $price = $pricesPerGroup[0];
             if (count($price->getItems())  == 1) {
                 // Set default quantity
                 $items = $price->getItems();
@@ -108,6 +111,13 @@ class ProductPrice extends DataMapper
 
             return $collection;
         }
+		
+		$tmpItems = $detaultPrice->getItems();
+        Logger::write(sprintf(
+            'default Vk price ... net price: %s - json: %s',
+            $tmpItems[0]->getNetPrice(),
+            $detaultPrice->toJson()
+        ), Logger::DEBUG, 'prices');
 
         // Only default?
         if (count($pricesPerGroup) == 1 && isset($pricesPerGroup[0])) {
@@ -160,12 +170,13 @@ class ProductPrice extends DataMapper
         $sql = "DELETE FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ?";
         Shopware()->Db()->query($sql, array($productSW->getId(), $detailSW->getId()));
 
-        foreach ($pricesPerGroup as $groupId => $prices) {
+        foreach ($pricesPerGroup as $groupId => $price) {
+        //foreach ($pricesPerGroup as $groupId => $prices) {
             if ($groupId == 0) {
                 continue;
             }
 
-            foreach ($prices as $price) {
+            //foreach ($prices as $price) {
                 $customerGroupSW = CustomerGroupUtil::get(intval($groupId));
                 if ($customerGroupSW === null) {
                     Logger::write(sprintf('Could not find any customer group with id (%s)', $groupId), Logger::WARNING, 'database');
@@ -224,11 +235,20 @@ class ProductPrice extends DataMapper
                     if ($itemCount > 0 && ($i + 1) < $itemCount && $priceItems[($i + 1)]->getQuantity() > 0) {
                         $priceSW->setTo($priceItems[($i + 1)]->getQuantity() - 1);
                     }
+					
+					Logger::write(sprintf(
+                        'group: %s - quantity: %s, net price: %s, (a %s/d %s)',
+                        $customerGroupSW->getKey(),
+                        $quantity,
+                        $priceItem->getNetPrice(),
+                        $productSW->getId(),
+                        $detailSW->getId()
+                    ), Logger::DEBUG, 'prices');
 
                     Shopware()->Models()->persist($priceSW);
                     $collection[] = $priceSW;
                 }
-            }
+            //}
         }
 
         return $collection;
