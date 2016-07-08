@@ -1,3 +1,7 @@
+2.0.2
+-----
+- Added price work around for empty customer group wawi bug
+
 2.0.1
 -----
 - Fixed installer issue

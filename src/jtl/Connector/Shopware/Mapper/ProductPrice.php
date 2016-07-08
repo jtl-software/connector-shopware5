@@ -18,13 +18,13 @@ class ProductPrice extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Price', $id);
+        return ((int) $id == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Price', $id);
     }
 
     public function save(array $prices)
     {
         $productId = 0;
-        $productPrices = array();
+        $productPrices = [];
         $priceCount = count($prices);
         $productSW = null;
         $detailSW = null;
@@ -36,17 +36,17 @@ class ProductPrice extends DataMapper
 
                 if ($i != 0) {
                     $collection = self::buildCollection($productPrices, $productSW, $detailSW);
-                    if (count($collection) > 0 && $productSW !== null && $detailSW !== null) {
+                    if (count($collection) > 0 && !is_null($productSW) && !is_null($detailSW)) {
                         $this->Manager()->flush();
                     }
 
-                    $productPrices = array();
+                    $productPrices = [];
                 }
             }
 
             if (($i + 1) == $priceCount) {
                 $collection = self::buildCollection($productPrices, $productSW, $detailSW);
-                if (count($collection) > 0 && $productSW !== null && $detailSW !== null) {
+                if (count($collection) > 0 && !is_null($productSW) && !is_null($detailSW)) {
                     $this->Manager()->flush();
                 }
             }
@@ -70,25 +70,28 @@ class ProductPrice extends DataMapper
         $purchasePrice = null
     ) {
         // Price
-        $collection = array();
-        $pricesPerGroup = array();
+        $collection = [];
+        $pricesPerGroup = [];
 
         // build prices per customer group
         foreach ($productPrices as $productPrice) {
-            $groupId = intval($productPrice->getCustomerGroupId()->getEndpoint());
+            $groupId = (int) $productPrice->getCustomerGroupId()->getEndpoint();
+
+            Logger::write(sprintf('prices (group id: %s): %s', $groupId, $productPrice->toJson()), Logger::DEBUG, 'prices');
 
             if (!array_key_exists($groupId, $pricesPerGroup)) {
-                $pricesPerGroup[$groupId] = array();
+                $pricesPerGroup[$groupId] = null;
             }
 
-            $pricesPerGroup[$groupId][] = $productPrice;
+            $pricesPerGroup[$groupId] = $productPrice;
         }
 
         // Search default Vk price
         $detaultPrice = null;
         if (array_key_exists(0, $pricesPerGroup)) {
-            $price = $pricesPerGroup[0][0];
-            if (count($price->getItems())  == 1) {
+            //$price = $pricesPerGroup[0][0];
+            $price = $pricesPerGroup[0];
+            if (count($price->getItems()) == 1) {
                 // Set default quantity
                 $items = $price->getItems();
                 $items[0]->setQuantity(1);
@@ -109,6 +112,13 @@ class ProductPrice extends DataMapper
             return $collection;
         }
 
+        $tmpItems = $detaultPrice->getItems();
+        Logger::write(sprintf(
+            'default Vk price ... net price: %s - json: %s',
+            $tmpItems[0]->getNetPrice(),
+            $detaultPrice->toJson()
+        ), Logger::DEBUG, 'prices');
+
         // Only default?
         if (count($pricesPerGroup) == 1 && isset($pricesPerGroup[0])) {
             $defaultCGId = Shopware()->Shop()->getCustomerGroup()->getId();
@@ -116,20 +126,20 @@ class ProductPrice extends DataMapper
         }
 
         // find sw product and detail
-        if ($productSW === null || $detailSW === null) {
+        if (is_null($productSW) || is_null($detailSW)) {
             if (strlen($detaultPrice->getProductId()->getEndpoint()) > 0) {
                 list ($detailId, $productId) = IdConcatenator::unlink($detaultPrice->getProductId()->getEndpoint());
 
                 $productMapper = Mmc::getMapper('Product');
                 $productSW = $productMapper->find($productId);
-                if ($productSW === null) {
+                if (is_null($productSW)) {
                     Logger::write(sprintf('Could not find any product for endpoint (%s)', $detaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
 
                     return $collection;
                 }
 
                 $detailSW = $productMapper->findDetail($detailId);
-                if ($detailSW === null) {
+                if (is_null($detailSW)) {
                     Logger::write(sprintf('Could not find any detail for endpoint (%s)', $detaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
 
                     return $collection;
@@ -142,7 +152,7 @@ class ProductPrice extends DataMapper
         }
 
         // Find pseudoprice
-        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && $recommendedRetailPrice === null) {
+        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && is_null($recommendedRetailPrice)) {
             $recommendedRetailPrice = Shopware()->Db()->fetchOne(
                 'SELECT if(pseudoprice, pseudoprice, 0.0) FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
                 array($productSW->getId(), $detailSW->getId())
@@ -150,7 +160,7 @@ class ProductPrice extends DataMapper
         }
 
         // Find baseprice
-        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && $purchasePrice === null) {
+        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && is_null($purchasePrice)) {
             $purchasePrice = Shopware()->Db()->fetchOne(
                 'SELECT if(baseprice, baseprice, 0.0) FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
                 array($productSW->getId(), $detailSW->getId())
@@ -160,14 +170,16 @@ class ProductPrice extends DataMapper
         $sql = "DELETE FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ?";
         Shopware()->Db()->query($sql, array($productSW->getId(), $detailSW->getId()));
 
-        foreach ($pricesPerGroup as $groupId => $prices) {
+        foreach ($pricesPerGroup as $groupId => $price) {
+        //foreach ($pricesPerGroup as $groupId => $prices) {
             if ($groupId == 0) {
                 continue;
             }
 
-            foreach ($prices as $price) {
-                $customerGroupSW = CustomerGroupUtil::get(intval($groupId));
-                if ($customerGroupSW === null) {
+            //foreach ($prices as $price) {
+                $customerGroupSW = CustomerGroupUtil::get((int) $groupId);
+
+                if (is_null($customerGroupSW)) {
                     Logger::write(sprintf('Could not find any customer group with id (%s)', $groupId), Logger::WARNING, 'database');
 
                     continue;
@@ -199,7 +211,7 @@ class ProductPrice extends DataMapper
                         ));
                     }
 
-                    if ($priceSW === null) {
+                    if (is_null($priceSW)) {
                         $priceSW = new \Shopware\Models\Article\Price;
                     }
 
@@ -217,7 +229,7 @@ class ProductPrice extends DataMapper
                     }
 
                     // percent
-                    if ($i > 0 && $firstPriceItem !== null) {
+                    if ($i > 0 && !is_null($firstPriceItem)) {
                         $priceSW->setPercent(number_format(abs((1 - $priceItem->getNetPrice() / $firstPriceItem->getNetPrice()) * 100), 2));
                     }
 
@@ -225,10 +237,19 @@ class ProductPrice extends DataMapper
                         $priceSW->setTo($priceItems[($i + 1)]->getQuantity() - 1);
                     }
 
+                    Logger::write(sprintf(
+                        'group: %s - quantity: %s, net price: %s, (a %s/d %s)',
+                        $customerGroupSW->getKey(),
+                        $quantity,
+                        $priceItem->getNetPrice(),
+                        $productSW->getId(),
+                        $detailSW->getId()
+                    ), Logger::DEBUG, 'prices');
+
                     Shopware()->Models()->persist($priceSW);
                     $collection[] = $priceSW;
                 }
-            }
+            //}
         }
 
         return $collection;

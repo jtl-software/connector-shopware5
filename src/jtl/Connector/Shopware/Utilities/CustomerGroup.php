@@ -19,8 +19,8 @@ final class CustomerGroup
      */
     public static function get($id, $useCache = true)
     {
-        if (self::$_customerGroups === null) {
-            self::$_customerGroups = array();
+        if (is_null(self::$_customerGroups)) {
+            self::$_customerGroups = [];
         }
 
         if (!$useCache || !isset(self::$_customerGroups[$id])) {
@@ -39,8 +39,8 @@ final class CustomerGroup
      */
     public static function getByKey($key, $useCache = true)
     {
-        if (self::$_customerGroups === null) {
-            self::$_customerGroups = array();
+        if (is_null(self::$_customerGroups)) {
+            self::$_customerGroups = [];
         }
 
         if ($useCache) {
