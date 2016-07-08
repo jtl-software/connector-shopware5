@@ -1,4 +1,4 @@
-1.4.9 (unreleased)
+1.4.9
 ------------------
 - Added price work around for empty customer group wawi bug
 
