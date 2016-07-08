@@ -1,5 +1,5 @@
-2.0.2 (unreleased)
-------------------
+2.0.2
+-----
 - Added price work around for empty customer group wawi bug
 
 2.0.1
