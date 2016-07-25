@@ -138,7 +138,12 @@ class Customer extends DataMapper
         $customerSW->setEmail($customer->getEMail())
             ->setActive($customer->getIsActive())
             ->setNewsletter(intval($customer->getHasNewsletterSubscription()))
-            ->setFirstLogin($customer->getCreationDate());
+            ->setFirstLogin($customer->getCreationDate())
+            ->setTitle($customer->getTitle())
+            ->setFirstname($customer->getFirstName())
+            ->setLastname($customer->getLastName())
+            ->setSalutation($customer->getSalutation())
+            ->setBirthday($customer->getBirthday());
     }
 
     protected function prepareCustomerGroupAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW)

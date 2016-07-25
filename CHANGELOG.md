@@ -1,3 +1,8 @@
+2.0.3
+-----
+- Fixed currency problem
+- Added additional customer informations
+
 2.0.2
 -----
 - Added price work around for empty customer group wawi bug

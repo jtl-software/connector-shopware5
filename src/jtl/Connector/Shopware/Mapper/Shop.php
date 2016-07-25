@@ -28,7 +28,7 @@ class Shop extends DataMapper
             ->getQuery()->getResult();
     }
     
-    public function findAll($limit = 100, $count = false)
+    public function findAll($limit = 100, $count = false, $array_hydration = true)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
                 'shop',
@@ -42,7 +42,11 @@ class Shop extends DataMapper
             ->leftJoin('shop.currencies', 'currencies')
             ->setFirstResult(0)
             ->setMaxResults($limit)
-            ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+            ->getQuery();
+        
+        if ($array_hydration) {
+            $query->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+        }
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
