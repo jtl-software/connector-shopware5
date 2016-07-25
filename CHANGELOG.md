@@ -1,6 +1,6 @@
 2.0.3 (unreleased)
--------------------
-- Fixed multiple currencies problem
+------------------
+- Fixed currency problem
 - Added additional customer informations
 
 2.0.2
