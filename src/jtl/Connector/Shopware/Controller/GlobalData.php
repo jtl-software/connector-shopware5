@@ -42,9 +42,36 @@ class GlobalData extends DataController
 
             $shopMapper = Mmc::getMapper('Shop');
             $shops = $shopMapper->findAll(null);
-
-            $builder = Shopware()->Models()->createQueryBuilder();
-
+    
+            // Currency helpers
+            $uniqueCurrencyIds = [];
+            $buildCurrency = function (&$globalData, $id, &$uniqueCurrencyIds) {
+                $id = (int) $id;
+                
+                if (in_array($id, $uniqueCurrencyIds)) {
+                    return;
+                }
+    
+                $uniqueCurrencyIds[] = $id;
+                
+                try {
+                    $currencyMapper = Mmc::getMapper('Currency');
+                    $currencySW = $currencyMapper->find($id, true);
+            
+                    if (!is_null($currencySW)) {
+                        $currencySW['default'] = (bool) $currencySW['default'];
+                        $currencySW['hasCurrencySignBeforeValue'] = ($currencySW['position'] == 32) ? true : false;
+                
+                        $currency = Mmc::getModel('Currency');
+                        $currency->map(true, DataConverter::toObject($currencySW, true));
+                
+                        $globalData->addCurrency($currency);
+                    }
+                } catch (\Exception $e) {
+                    Logger::write(ExceptionFormatter::format($e, 'Currency'), Logger::ERROR, 'controller');
+                }
+            };
+            
             foreach ($shops as $shop) {
                 $shop['locale']['default'] = (intval($shop['default']) == 1);
                 $shop['customerGroup']['localeName'] = $shop['locale']['locale'];
@@ -54,21 +81,16 @@ class GlobalData extends DataController
                 $language->map(true, DataConverter::toObject($shop['locale'], true));
 
                 $globalData->addLanguage($language);
-
+                
                 // Currencies
-                if (isset($shop['currencies']) && is_array($shop['currencies'])) {
+                if (isset($shop['currencies']) && is_array($shop['currencies']) && count($shop['currencies']) > 0) {
                     foreach ($shop['currencies'] as $currencySW) {
-                        try {
-                            $currencySW['default'] = (bool)$currencySW['default'];
-                            $currencySW['hasCurrencySignBeforeValue'] = ($currencySW['position'] == 32) ? true : false;
-
-                            $currency = Mmc::getModel('Currency');
-                            $currency->map(true, DataConverter::toObject($currencySW, true));
-
-                            $globalData->addCurrency($currency);
-                        } catch (\Exception $e) {
-                            Logger::write(ExceptionFormatter::format($e, 'Currency'), Logger::ERROR, 'controller');
-                        }
+                        $buildCurrency($globalData, $currencySW['id'], $uniqueCurrencyIds);
+                    }
+                } else {
+                    $shopSW = $shopMapper->find($shop['id']);
+                    if (!is_null($shopSW) && !is_null($shopSW->getCurrency())) {
+                        $buildCurrency($globalData, $shopSW->getCurrency()->getId(), $uniqueCurrencyIds);
                     }
                 }
             }

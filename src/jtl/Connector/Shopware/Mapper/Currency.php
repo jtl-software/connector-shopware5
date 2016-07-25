@@ -13,9 +13,23 @@ use Shopware\Models\Shop\Currency as CurrencySW;
 
 class Currency extends DataMapper
 {
-    public function find($id)
+    public function find($id, $array_hydration = false)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Shop\Currency', $id);
+        if ((int) $id == 0) {
+            return null;
+        }
+        
+        if ($array_hydration) {
+            return $this->Manager()->createQueryBuilder()->select(
+                    'currency'
+                )
+                ->from('Shopware\Models\Shop\Currency', 'currency')
+                ->where('currency.id = :id')
+                ->setParameter('id', $id)
+                ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY)->getSingleResult();
+        } else {
+            return $this->Manager()->find('Shopware\Models\Shop\Currency', $id);
+        }
     }
 
     public function findOneBy(array $kv)
