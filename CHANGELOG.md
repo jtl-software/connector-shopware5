@@ -1,5 +1,5 @@
-2.0.3 (unreleased)
-------------------
+2.0.3
+-----
 - Fixed currency problem
 - Added additional customer informations
 
