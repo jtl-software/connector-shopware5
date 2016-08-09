@@ -1,3 +1,7 @@
+2.0.4 (unreleased)
+------------------
+- Changing customer order item gross price to 4 decimal places
+
 2.0.3
 -----
 - Fixed currency problem

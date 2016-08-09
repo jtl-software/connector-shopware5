@@ -499,7 +499,7 @@ class Image extends DataMapper
         if (!file_exists($image->getFilename())) {
             throw new \Exception(sprintf('File (%s) does not exists', $image->getFilename()));
         }
-
+        
         $file = new File($image->getFilename());
 
         if ($image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {

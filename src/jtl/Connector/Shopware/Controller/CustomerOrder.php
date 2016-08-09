@@ -109,7 +109,7 @@ class CustomerOrder extends DataController
                                 $detailSW['price'] = Money::AsNet($detailSW['price'], $detailSW['taxRate']);
                                 break;
                             case 1: // price is net
-                                $detailSW['priceGross'] = round(Money::AsGross($detailSW['price'], $detailSW['taxRate']), 2);
+                                $detailSW['priceGross'] = round(Money::AsGross($detailSW['price'], $detailSW['taxRate']), 4);
                                 break;
                         }
                         
