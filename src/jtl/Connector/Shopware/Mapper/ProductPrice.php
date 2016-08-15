@@ -200,6 +200,7 @@ class ProductPrice extends DataMapper
                 $firstPrice = null;
                 foreach ($priceItems as $i => $priceItem) {
                     $priceSW = null;
+                    $firstPriceItem = null;
                     $quantity = ($priceItem->getQuantity() > 0) ? $priceItem->getQuantity() : 1;
                     if (strlen($price->getProductId()->getEndpoint()) > 0) {
                         list ($detailId, $productId) = IdConcatenator::unlink($price->getProductId()->getEndpoint());
