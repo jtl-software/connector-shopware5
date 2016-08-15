@@ -1,3 +1,8 @@
+2.0.4
+-----
+- Changing customer order item gross price to 4 decimal places
+- Preparing for SW 5.2.4
+
 2.0.3
 -----
 - Fixed currency problem
