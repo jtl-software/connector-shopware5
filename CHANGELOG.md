@@ -1,3 +1,7 @@
+2.0.5 (unreleased)
+------------------
+- Added customer hasCustomerAccount property
+
 2.0.4
 -----
 - Changing customer order item gross price to 4 decimal places
