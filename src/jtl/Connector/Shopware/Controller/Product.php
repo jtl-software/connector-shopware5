@@ -42,7 +42,7 @@ class Product extends DataController
             $result = array();
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
             $mapper = Mmc::getMapper('Product');
-
+            
             $products = $mapper->findAll($limit);
             
             foreach ($products as $productSW) {
@@ -287,8 +287,16 @@ class Product extends DataController
         }
 
         // Attributes
-        for ($i = 1; $i <= 20; $i++) {
-            if (isset($data['attribute']["attr{$i}"]) && strlen($data['attribute']["attr{$i}"]) > 0) {
+        $exclusives = ['id', 'articleId', 'articleDetailId'];
+        //for ($i = 1; $i <= 20; $i++) {
+        $i = 1;
+        foreach ($data['attribute'] as $key => $value) {
+            if (in_array($key, $exclusives)) {
+                continue;
+            }
+            
+            //if (isset($data['attribute']["attr{$i}"]) && strlen($data['attribute']["attr{$i}"]) > 0) {
+            if (!is_null($value) && !empty($value)) {
                 $attrId = IdConcatenator::link(array($data['attribute']['id'], $i));
 
                 $productAttr = Mmc::getModel('ProductAttr');
@@ -299,12 +307,16 @@ class Product extends DataController
                 $productAttrI18n = Mmc::getModel('ProductAttrI18n');
                 $productAttrI18n->map(true, DataConverter::toObject($data['attribute'], true));
                 $productAttrI18n->setProductAttrId($productAttr->getId());
-                $productAttrI18n->setName("attr{$i}")
-                    ->setValue($data['attribute']["attr{$i}"]);
+                //$productAttrI18n->setName("attr{$i}")
+                $productAttrI18n->setName($key)
+                    //->setValue($data['attribute']["attr{$i}"]);
+                    ->setValue($value);
 
                 $productAttr->addI18n($productAttrI18n);
                 $product->addAttribute($productAttr);
             }
+    
+            $i++;
         }
 
         // ProductInvisibility

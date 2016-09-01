@@ -714,8 +714,94 @@ class Product extends DataMapper
 
             $this->Manager()->persist($attributeSW);
         }
-
+    
+        $attributes = [];
+        foreach ($product->getAttributes() as $attribute) {
+            if ($attribute->getIsCustomProperty()) {
+                continue;
+            }
+            
+            foreach ($attribute->getI18ns() as $attributeI18n) {
+                if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+    
+                    // active
+                    if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IS_ACTIVE)) {
+                        $isActive = (strtolower($attributeI18n->getValue()) === 'false'
+                            || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
+                        if ($isChild) {
+                            $detailSW->setActive((int) $isActive);
+                        } else {
+                            $productSW->setActive((int) $isActive);
+                        }
+        
+                        continue;
+                    }
+    
+                    // Notification
+                    if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::SEND_NOTIFICATION)) {
+                        $notification = (strtolower($attributeI18n->getValue()) === 'false'
+                            || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
+        
+                        $productSW->setNotification($notification);
+        
+                        continue;
+                    }
+    
+                    // Shipping free
+                    if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::SHIPPING_FREE)) {
+                        $shippingFree = (strtolower($attributeI18n->getValue()) === 'false'
+                            || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
+        
+                        $detailSW->setShippingFree($shippingFree);
+        
+                        continue;
+                    }
+    
+                    $attributes[$attributeI18n->getName()] = $attributeI18n->getValue();
+                }
+            }
+        }
+        
         // Reset
+        $used = [];
+        $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
+        foreach ($sw_attributes as $sw_attribute) {
+            if (!$sw_attribute->isIdentifier()) {
+                $setter = sprintf('set%s', ucfirst($sw_attribute->getColumnName()));
+                if (isset($attributes[$sw_attribute->getColumnName()]) && method_exists($attributeSW, $setter)) {
+                    $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
+                    $used[] = $sw_attribute->getColumnName();
+                    unset($attributes[$sw_attribute->getColumnName()]);
+                } else {
+                    $attributeSW->{$setter}(null);
+                }
+            }
+        }
+    
+        for ($i = 4; $i <= 20; $i++) {
+            $attr = "attr{$i}";
+            if (in_array($attr, $used)) {
+                continue;
+            }
+            
+            $setter = "setAttr{$i}";
+            if (!method_exists($attributeSW, $setter)) {
+                continue;
+            }
+            
+            $index = null;
+            foreach ($attributes as $key => $value) {
+                $attributeSW->{$setter}($value);
+                unset($attributes[$key]);
+                break;
+            }
+            
+            if (count($attributes) == 0) {
+                break;
+            }
+        }
+        
+        /*
         for ($i = 1; $i <= 20; $i++) {
             $setter = "setAttr{$i}";
             $attributeSW->{$setter}(null);
@@ -801,6 +887,7 @@ class Product extends DataMapper
                 }
             }
         }
+        */
 
         $this->Manager()->persist($attributeSW);
 
