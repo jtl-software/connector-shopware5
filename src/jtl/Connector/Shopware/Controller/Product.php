@@ -151,6 +151,12 @@ class Product extends DataController
         $productPrice = Mmc::getModel('ProductPrice');
         $productPrice->setProductId($product->getId())
             ->setId($productPriceId);
+        
+        // BasePrice
+        if ($product->getBasePriceQuantity() > 0 && $product->getMeasurementQuantity() > 0) {
+            $product->setConsiderBasePrice(true);
+            $product->setBasePriceDivisor($product->getMeasurementQuantity() * $product->getBasePriceQuantity());
+        }
 
         $defaultPrice = null;
         for ($i = 0; $i < count($data['prices']); $i++) {

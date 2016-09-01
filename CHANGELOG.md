@@ -1,6 +1,7 @@
 2.0.5 (unreleased)
 ------------------
 - Added customer hasCustomerAccount property
+- Fixed product base price
 
 2.0.4
 -----
