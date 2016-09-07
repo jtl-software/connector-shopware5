@@ -716,6 +716,8 @@ class Product extends DataMapper
         }
     
         $attributes = [];
+        $mappings = [];
+        $attrMappings = [];
         foreach ($product->getAttributes() as $attribute) {
             if ($attribute->getIsCustomProperty()) {
                 continue;
@@ -757,6 +759,7 @@ class Product extends DataMapper
                         continue;
                     }
     
+                    $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
                     $attributes[$attributeI18n->getName()] = $attributeI18n->getValue();
                 }
             }
@@ -771,16 +774,17 @@ class Product extends DataMapper
                 if (isset($attributes[$sw_attribute->getColumnName()]) && method_exists($attributeSW, $setter)) {
                     $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
                     $used[] = $sw_attribute->getColumnName();
+                    $attrMappings[$sw_attribute->getColumnName()] = $mappings[$sw_attribute->getColumnName()];
                     unset($attributes[$sw_attribute->getColumnName()]);
                 } else {
                     $attributeSW->{$setter}(null);
                 }
             }
         }
-    
+        
         for ($i = 4; $i <= 20; $i++) {
             $attr = "attr{$i}";
-            if (in_array($attr, $used)) {
+            if (in_array($attr, $used) || $i == 17) {
                 continue;
             }
             
@@ -792,6 +796,7 @@ class Product extends DataMapper
             $index = null;
             foreach ($attributes as $key => $value) {
                 $attributeSW->{$setter}($value);
+                $attrMappings[$attr] = $mappings[$key];
                 unset($attributes[$key]);
                 break;
             }
@@ -1096,11 +1101,10 @@ class Product extends DataMapper
                 if ($attrI18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                     if (!isset($attrI18ns[$attrI18n->getLanguageISO()])) {
                         $attrI18ns[$attrI18n->getLanguageISO()] = [];
-
                     }
 
                     if (($index = array_search($attr->getId()->getHost(), $attrMappings)) !== false) {
-                        $i = "attr{$index}";
+                        $i = "__attribute_{$index}";
                         $attrI18ns[$attrI18n->getLanguageISO()][$i] = $attrI18n->getValue();
                     }
                 }
