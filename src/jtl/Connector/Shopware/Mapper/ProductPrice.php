@@ -120,8 +120,16 @@ class ProductPrice extends DataMapper
         ), Logger::DEBUG, 'prices');
 
         // Only default?
+        $defaultCGId = Shopware()->Shop()->getCustomerGroup()->getId();
         if (count($pricesPerGroup) == 1 && isset($pricesPerGroup[0])) {
-            $defaultCGId = Shopware()->Shop()->getCustomerGroup()->getId();
+            $pricesPerGroup[$defaultCGId] = $pricesPerGroup[0];
+        }
+    
+        // Work Around thx @Frank
+        // Customer Group 1 (default) is missing
+        // Customer Group 2 is present
+        // Customer Group 0 is present
+        if (!isset($pricesPerGroup[$defaultCGId]) && isset($pricesPerGroup[0])) {
             $pricesPerGroup[$defaultCGId] = $pricesPerGroup[0];
         }
 

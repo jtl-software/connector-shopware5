@@ -1,9 +1,10 @@
 2.0.5 (unreleased)
 ------------------
 - Added customer hasCustomerAccount property
-- Fixed product base price
 - Added new shopware 5.2 attribute management
 - Added translated product attributes (pull)
+- Added Wawi missing product default price work around
+- Fixed product base price
 
 2.0.4
 -----
