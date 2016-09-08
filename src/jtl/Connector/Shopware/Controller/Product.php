@@ -311,8 +311,28 @@ class Product extends DataController
                 $productAttrI18n->setName($key)
                     //->setValue($data['attribute']["attr{$i}"]);
                     ->setValue($value);
-
+    
                 $productAttr->addI18n($productAttrI18n);
+                
+                // Attribute Translation
+                if (isset($data['translations'])) {
+                    foreach ($data['translations'] as $localeName => $translation) {
+                        $index = sprintf('__attribute_%s', $key);
+                        if (!isset($translation[$index])) {
+                            continue;
+                        }
+    
+                        $productAttrI18n = Mmc::getModel('ProductAttrI18n');
+                        $productAttrI18n->setProductAttrId($productAttr->getId())
+                            ->setLanguageISO(LanguageUtil::map($localeName))
+                            ->setName($key)
+                            ->setValue($translation[$index]);
+    
+                        $productAttr->addI18n($productAttrI18n);
+                        $productAttr->setIsTranslated(true);
+                    }
+                }
+                
                 $product->addAttribute($productAttr);
             }
     

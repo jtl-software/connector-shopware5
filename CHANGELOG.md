@@ -3,6 +3,7 @@
 - Added customer hasCustomerAccount property
 - Fixed product base price
 - Added new shopware 5.2 attribute management
+- Added translated product attributes (pull)
 
 2.0.4
 -----
