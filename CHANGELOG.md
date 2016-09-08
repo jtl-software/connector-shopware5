@@ -1,5 +1,5 @@
-2.0.5 (unreleased)
-------------------
+2.0.5
+-----
 - Added customer hasCustomerAccount property
 - Added new shopware 5.2 attribute management
 - Added translated product attributes (pull)
