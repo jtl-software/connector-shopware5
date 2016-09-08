@@ -134,6 +134,12 @@ class Customer extends DataMapper
         if (is_array($shops) && count($shops) > 0) {
             $customerSW->setLanguageSubShop($shops[0]);
         }
+    
+        /**
+         * 0 => normal account ("don't create customer account" wasn't checked)<br>
+         * 1 => hidden account ("don't create customer account" was checked)
+         */
+        $accountmode = $customer->getHasCustomerAccount() ? 0 : 1;
 
         $customerSW->setEmail($customer->getEMail())
             ->setActive($customer->getIsActive())
@@ -143,7 +149,8 @@ class Customer extends DataMapper
             ->setFirstname($customer->getFirstName())
             ->setLastname($customer->getLastName())
             ->setSalutation($customer->getSalutation())
-            ->setBirthday($customer->getBirthday());
+            ->setBirthday($customer->getBirthday())
+            ->setAccountMode($accountmode);
     }
 
     protected function prepareCustomerGroupAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW)
