@@ -776,7 +776,7 @@ class Product extends DataMapper
                     $used[] = $sw_attribute->getColumnName();
                     $attrMappings[$sw_attribute->getColumnName()] = $mappings[$sw_attribute->getColumnName()];
                     unset($attributes[$sw_attribute->getColumnName()]);
-                } else {
+                } else if (method_exists($attributeSW, $setter)) {
                     $attributeSW->{$setter}(null);
                 }
             }
