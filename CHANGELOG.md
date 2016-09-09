@@ -1,5 +1,5 @@
-2.0.6 (unreleased)
-------------------
+2.0.6
+-----
 - Added product attribute method_exists check
 
 2.0.5
