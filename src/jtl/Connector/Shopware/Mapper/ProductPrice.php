@@ -87,7 +87,7 @@ class ProductPrice extends DataMapper
         }
 
         // Search default Vk price
-        $detaultPrice = null;
+        $defaultPrice = null;
         if (array_key_exists(0, $pricesPerGroup)) {
             //$price = $pricesPerGroup[0][0];
             $price = $pricesPerGroup[0];
@@ -97,7 +97,7 @@ class ProductPrice extends DataMapper
                 $items[0]->setQuantity(1);
                 $price->setItems($items);
 
-                $detaultPrice = $price;
+                $defaultPrice = $price;
             } else {
                 Logger::write(sprintf('Default Price for product (%s, %s) != 1 item',
                     $price->getProductId()->getEndpoint(),
@@ -112,11 +112,11 @@ class ProductPrice extends DataMapper
             return $collection;
         }
 
-        $tmpItems = $detaultPrice->getItems();
+        $tmpItems = $defaultPrice->getItems();
         Logger::write(sprintf(
             'default Vk price ... net price: %s - json: %s',
             $tmpItems[0]->getNetPrice(),
-            $detaultPrice->toJson()
+            $defaultPrice->toJson()
         ), Logger::DEBUG, 'prices');
 
         // Only default?
@@ -135,20 +135,20 @@ class ProductPrice extends DataMapper
 
         // find sw product and detail
         if (is_null($productSW) || is_null($detailSW)) {
-            if (strlen($detaultPrice->getProductId()->getEndpoint()) > 0) {
-                list ($detailId, $productId) = IdConcatenator::unlink($detaultPrice->getProductId()->getEndpoint());
+            if (strlen($defaultPrice->getProductId()->getEndpoint()) > 0) {
+                list ($detailId, $productId) = IdConcatenator::unlink($defaultPrice->getProductId()->getEndpoint());
 
                 $productMapper = Mmc::getMapper('Product');
                 $productSW = $productMapper->find($productId);
                 if (is_null($productSW)) {
-                    Logger::write(sprintf('Could not find any product for endpoint (%s)', $detaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
+                    Logger::write(sprintf('Could not find any product for endpoint (%s)', $defaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
 
                     return $collection;
                 }
 
                 $detailSW = $productMapper->findDetail($detailId);
                 if (is_null($detailSW)) {
-                    Logger::write(sprintf('Could not find any detail for endpoint (%s)', $detaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
+                    Logger::write(sprintf('Could not find any detail for endpoint (%s)', $defaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
 
                     return $collection;
                 }
@@ -200,7 +200,7 @@ class ProductPrice extends DataMapper
 
                 // If not, insert default Vk
                 if (!$isPresent) {
-                    $defaultPriceItems = $detaultPrice->getItems();
+                    $defaultPriceItems = $defaultPrice->getItems();
                     array_unshift($priceItems, $defaultPriceItems[0]);
                 }
 

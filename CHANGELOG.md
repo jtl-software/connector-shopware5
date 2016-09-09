@@ -1,3 +1,7 @@
+2.0.6
+-----
+- Added product attribute method_exists check
+
 2.0.5
 -----
 - Added customer hasCustomerAccount property
