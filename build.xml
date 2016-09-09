@@ -62,7 +62,7 @@
                 <include name="**/**" />
             </fileset>
             <metadata>
-                <element name="version" value="2.0.5" />
+                <element name="version" value="2.0.6" />
                 <element name="authors">
                     <element name="Daniel Böhmer">
                         <element name="email" value="daniel.boehmer@jtl-software.com" />
@@ -79,7 +79,7 @@
         <exec command="php jtlasc.phar validation:create:file ${project.basedir}/dist/Frontend/jtlconnector/ ${project.basedir}/dist/Frontend/jtlconnector/validation/files.json -e 'config' -p '*.ph*'" />
         <exec command="php jtlasc.phar validation:create:mysql localhost s1_sw52 YHb82mFnhh2eimck s1_sw52 ${project.basedir}/dist/Frontend/jtlconnector/validation/mysql.json -p '/jtl_connector_[\w]+/i'" />
 
-        <zip destfile="./dist/jtl-connector-shopware5-2.0.5.zip">
+        <zip destfile="./dist/jtl-connector-shopware5-2.0.6.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>
