@@ -52,7 +52,7 @@ class ProductPrice extends DataMapper
             }
         }
 
-        return true;
+        return $prices;
     }
 
     /**

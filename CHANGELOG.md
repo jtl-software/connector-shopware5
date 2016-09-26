@@ -1,3 +1,7 @@
+2.0.7 (unreleased)
+------------------
+- Fixed product price save return value (Event ProductPriceAfterPushEvent will be triggered again)
+
 2.0.6
 -----
 - Added product attribute method_exists check
