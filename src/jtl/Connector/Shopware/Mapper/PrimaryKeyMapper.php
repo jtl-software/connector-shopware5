@@ -7,6 +7,7 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Drawing\ImageRelationType;
+use jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Mapper\IPrimaryKeyMapper;
 use \jtl\Connector\Linker\IdentityLinker;
 use \jtl\Connector\Core\Logger\Logger;
@@ -133,35 +134,63 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                         VALUES (?,?,?)
                     ';
 
-                    $statement = Shopware()->Db()->query($sql, array($productId, $detailId, $hostId));
+                    try {
+                        $statement = Shopware()->Db()->query($sql, array($productId, $detailId, $hostId));
+                    } catch (\Exception $e) {
+                        Logger::write(sprintf(
+                            'SQL: %s - Params: productId (%s), detailId (%s), hostId (%s)',
+                            $sql,
+                            $productId,
+                            $detailId,
+                            $hostId
+                        ), Logger::DEBUG, 'linker');
+                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'linker');
+                    }
                     break;
                 case IdentityLinker::TYPE_IMAGE:
                     list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
 
-                    if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
-                        $sql = '
-                            INSERT IGNORE INTO jtl_connector_link_product_image
-                            (
-                                id, host_id, image_id, media_id
-                            )
-                            VALUES (?,?,?,?)
-                        ';
-
-                        $statement = Shopware()->Db()->query($sql, array($foreignId, $hostId, $endpointId, $mediaId));
-                    } else {
-                        $sql = '
-                            INSERT IGNORE INTO ' . $dbInfo['table'] . '
-                            (
-                                image_id, media_id, host_id
-                            )
-                            VALUES (?,?,?)
-                        ';
-
-                        $statement = Shopware()->Db()->query($sql, array($endpointId, $mediaId, $hostId));
+                    $sql = '';
+                    try {
+                        if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
+                            $sql = '
+                                INSERT IGNORE INTO jtl_connector_link_product_image
+                                (
+                                    id, host_id, image_id, media_id
+                                )
+                                VALUES (?,?,?,?)
+                            ';
+        
+                            $statement = Shopware()->Db()->query($sql, array($foreignId, $hostId, $endpointId, $mediaId));
+                        } else {
+                            $sql = '
+                                INSERT IGNORE INTO ' . $dbInfo['table'] . '
+                                (
+                                    image_id, media_id, host_id
+                                )
+                                VALUES (?,?,?)
+                            ';
+        
+                            $statement = Shopware()->Db()->query($sql, array($endpointId, $mediaId, $hostId));
+                        }
+                    } catch (\Exception $e) {
+                        Logger::write(sprintf(
+                            'SQL: %s - Params: foreignId (%s), hostId (%s), endpointId (%s), mediaId (%s)',
+                            $sql,
+                            $foreignId,
+                            $hostId,
+                            $endpointId,
+                            $mediaId
+                        ), Logger::DEBUG, 'linker');
+                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'linker');
                     }
                     break;
                 case IdentityLinker::TYPE_CROSSSELLING:
                     list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
+    
+                    if (is_null($productId)) {
+                        $productId = $endpointId;
+                    }
 
                     $sql = '
                         INSERT IGNORE INTO ' . $dbInfo['table'] . '
@@ -171,7 +200,17 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                         VALUES (?,?)
                     ';
 
-                    $statement = Shopware()->Db()->query($sql, array($productId, $hostId));
+                    try {
+                        $statement = Shopware()->Db()->query($sql, array($productId, $hostId));
+                    } catch (\Exception $e) {
+                        Logger::write(sprintf(
+                            'SQL: %s - Params: productId (%s), hostId (%s)',
+                            $sql,
+                            $productId,
+                            $hostId
+                        ), Logger::DEBUG, 'linker');
+                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'linker');
+                    }
                     break;
                 case IdentityLinker::TYPE_CROSSSELLING_GROUP:
                     $sql = 'UPDATE jtl_connector_crosssellinggroup SET host_id = ? WHERE id = ?';
@@ -186,7 +225,17 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                         VALUES (?,?)
                     ';
 
-                    $statement = Shopware()->Db()->query($sql, array($endpointId, $hostId));
+                    try {
+                        $statement = Shopware()->Db()->query($sql, array($endpointId, $hostId));
+                    } catch (\Exception $e) {
+                        Logger::write(sprintf(
+                            'SQL: %s - Params: endpointId (%s), hostId (%s)',
+                            $sql,
+                            $endpointId,
+                            $hostId
+                        ), Logger::DEBUG, 'linker');
+                        Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'linker');
+                    }
                     break;
             }
         }
@@ -224,7 +273,17 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                         break;
                     case IdentityLinker::TYPE_CROSSSELLING_GROUP:
                         $sql = 'UPDATE jtl_connector_crosssellinggroup SET host_id = 0 WHERE id = ?';
-                        $statement = Shopware()->Db()->query($sql, array($endpointId));
+                        
+                        try {
+                            $statement = Shopware()->Db()->query($sql, array($endpointId));
+                        } catch (\Exception $e) {
+                            Logger::write(sprintf(
+                                'SQL: %s - Params: endpointId (%s)',
+                                $sql,
+                                $endpointId
+                            ), Logger::DEBUG, 'linker');
+                            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'linker');
+                        }
 
                         return $statement ? true : false;
                     default:
