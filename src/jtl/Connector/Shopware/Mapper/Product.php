@@ -7,30 +7,31 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\Utilities\Money;
+use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Model\ProductVariation;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Model\Product as ProductModel;
-use \jtl\Connector\Model\ProductChecksum;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Model\Product as ProductModel;
+use jtl\Connector\Model\ProductChecksum;
 use jtl\Connector\Shopware\Utilities\VariationType;
-use \Shopware\Components\Api\Exception as ApiException;
-use \jtl\Connector\Core\Exception\DatabaseException;
-use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
-use \Doctrine\Common\Collections\ArrayCollection;
-use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
-use \Shopware\Models\Article\Detail as DetailSW;
-use \Shopware\Models\Article\Article as ArticleSW;
-use \Shopware\Models\Article\Download as DownloadSW;
-use \Shopware\Models\Article\Link as LinkSW;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Shopware\Utilities\IdConcatenator;
-use \jtl\Connector\Shopware\Model\Helper\ProductNameHelper;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Linker\ChecksumLinker;
-use \jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
-use \jtl\Connector\Shopware\Model\ProductAttr;
+use Shopware\Components\Api\Exception as ApiException;
+use jtl\Connector\Core\Exception\DatabaseException;
+use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
+use Doctrine\Common\Collections\ArrayCollection;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use Shopware\Models\Article\Detail as DetailSW;
+use Shopware\Models\Article\Article as ArticleSW;
+use Shopware\Models\Article\Download as DownloadSW;
+use Shopware\Models\Article\Link as LinkSW;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Model\Helper\ProductNameHelper;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Linker\ChecksumLinker;
+use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
+use jtl\Connector\Shopware\Model\ProductAttr;
 
 class Product extends DataMapper
 {
@@ -414,6 +415,11 @@ class Product extends DataMapper
             ->setAvailableFrom($product->getAvailableFrom())
             ->setHighlight(intval($product->getIsTopProduct()))
             ->setActive($product->getIsActive());
+        
+        // new in stock
+        if ($product->getisNewProduct() && !is_null($product->getNewReleaseDate())) {
+            $productSW->setAdded($product->getNewReleaseDate());
+        }
 
         $inStock = 0;
         if ($product->getConsiderStock()) {
@@ -770,7 +776,8 @@ class Product extends DataMapper
         $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
         foreach ($sw_attributes as $sw_attribute) {
             if (!$sw_attribute->isIdentifier()) {
-                $setter = sprintf('set%s', ucfirst($sw_attribute->getColumnName()));
+                //$setter = sprintf('set%s', ucfirst($sw_attribute->getColumnName()));
+                $setter = sprintf('set%s', ucfirst(Str::camel($sw_attribute->getColumnName())));
                 if (isset($attributes[$sw_attribute->getColumnName()]) && method_exists($attributeSW, $setter)) {
                     $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
                     $used[] = $sw_attribute->getColumnName();
