@@ -1,8 +1,9 @@
-2.0.7 (unreleased)
-------------------
+2.0.7
+-----
 - Fixed product price save return value (Event ProductPriceAfterPushEvent will be triggered again)
 - Fixed attributes to support camel case and containing an _ in the name
 - Fixed crossselling primary key mapping and added extended developer logging
+- Fixed shopware customer entity setter usage
 - Added String Helper class
 
 2.0.6

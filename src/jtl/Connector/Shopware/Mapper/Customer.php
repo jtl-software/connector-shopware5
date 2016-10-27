@@ -145,12 +145,13 @@ class Customer extends DataMapper
             ->setActive($customer->getIsActive())
             ->setNewsletter(intval($customer->getHasNewsletterSubscription()))
             ->setFirstLogin($customer->getCreationDate())
-            ->setTitle($customer->getTitle())
-            ->setFirstname($customer->getFirstName())
-            ->setLastname($customer->getLastName())
-            ->setSalutation($customer->getSalutation())
-            ->setBirthday($customer->getBirthday())
-            ->setAccountMode($accountmode);
+            ->setAccountMode($accountmode)
+            ->setTitle($customer->getTitle());
+            
+        $customerSW->setFirstname($customer->getFirstName());
+        $customerSW->setLastname($customer->getLastName());
+        $customerSW->setSalutation($customer->getSalutation());
+        $customerSW->setBirthday($customer->getBirthday());
     }
 
     protected function prepareCustomerGroupAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW)
@@ -173,16 +174,16 @@ class Customer extends DataMapper
         $billingSW->setCompany($customer->getCompany())
             ->setDepartment($customer->getDeliveryInstruction())
             ->setSalutation(Salutation::toEndpoint($customer->getSalutation()))
-            ->setNumber($customer->getCustomerNumber())
+            //->setNumber($customer->getCustomerNumber())
             ->setFirstName($customer->getFirstName())
             ->setLastName($customer->getLastName())
             ->setStreet($customer->getStreet())
             ->setZipCode($customer->getZipCode())
             ->setCity($customer->getCity())
             ->setPhone($customer->getPhone())
-            ->setFax($customer->getFax())
+            //->setFax($customer->getFax())
             ->setVatId($customer->getVatNumber())
-            ->setBirthday($customer->getBirthday())
+            //->setBirthday($customer->getBirthday())
             ->setCustomer($customerSW);
 
         $ref = new \ReflectionClass($billingSW);
