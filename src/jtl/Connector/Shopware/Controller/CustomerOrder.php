@@ -11,6 +11,7 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Result\Action;
+use jtl\Connector\Shopware\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Shopware\Model\CustomerOrderItem;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
@@ -50,6 +51,9 @@ class CustomerOrder extends DataController
             $mapper = Mmc::getMapper('CustomerOrder');
             $productMapper = Mmc::getMapper('Product');
             $orders = $mapper->findAll($limit);
+            
+            // Check if PayPal Plus is installed
+            $usePPP = PaymentUtil::usePPP();
 
             foreach ($orders as $orderSW) {
                 try {
@@ -63,16 +67,11 @@ class CustomerOrder extends DataController
                     $order->setPaymentModuleCode($paymentModuleCode);
 
                     // Billsafe
-                    if ($paymentModuleCode === PaymentTypes::TYPE_BILLSAFE
-                        && isset($orderSW['attribute']['swagBillsafeIban'])
-                        && isset($orderSW['attribute']['swagBillsafeBic'])) {
-                        $order->setPui(sprintf(
-                            'Bitte bezahlen Sie %s %s an folgendes Konto: %s Verwendungszweck: BTN %s',
-                            $orderSW['invoiceAmount'],
-                            $order->getCurrencyIso(),
-                            sprintf('IBAN: %s, BIC: %s', $orderSW['attribute']['swagBillsafeIban'], $orderSW['attribute']['swagBillsafeBic']),
-                            $orderSW['transactionId']
-                        ));
+                    $this->addBillsafe($paymentModuleCode, $orderSW, $order);
+                    
+                    // Paypal Plus
+                    if ($usePPP) {
+                        $this->addPayPalPlus($paymentModuleCode, $orderSW, $order);
                     }
 
                     // CustomerOrderStatus
@@ -267,6 +266,51 @@ class CustomerOrder extends DataController
                 }
             } else {
                 $dhlInfos[] = sprintf('%s: %s', $name, $orderSW['customer']['shipping']['attribute'][$property]);
+            }
+        }
+    }
+    
+    /**
+     * @param $paymentModuleCode
+     * @param array $orderSW
+     * @param CustomerOrderModel $order
+     */
+    protected function addBillsafe($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
+    {
+        if ($paymentModuleCode === PaymentTypes::TYPE_BILLSAFE
+            && isset($orderSW['attribute']['swagBillsafeIban'])
+            && isset($orderSW['attribute']['swagBillsafeBic'])) {
+            $order->setPui(sprintf(
+                'Bitte bezahlen Sie %s %s an folgendes Konto: %s Verwendungszweck: BTN %s',
+                $orderSW['invoiceAmount'],
+                $order->getCurrencyIso(),
+                sprintf('IBAN: %s, BIC: %s', $orderSW['attribute']['swagBillsafeIban'], $orderSW['attribute']['swagBillsafeBic']),
+                $orderSW['transactionId']
+            ));
+        }
+    }
+    
+    /**
+     * @param $paymentModuleCode
+     * @param array $orderSW
+     * @param CustomerOrderModel $order
+     */
+    protected function addPayPalPlus($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
+    {
+        if ($paymentModuleCode === PaymentTypes::TYPE_PAYPAL_EXPRESS) {
+            $result = Shopware()->Db()->fetchAll('SELECT * FROM s_payment_paypal_plus_payment_instruction WHERE ordernumber = ?', [
+                $orderSW['number']
+            ]);
+            
+            if (is_array($result) && count($result) > 0) {
+                $order->setPui(sprintf(
+                    'Bitte bezahlen Sie %s %s an folgendes Konto: %s Verwendungszweck: BTN %s',
+                    $orderSW['invoiceAmount'],
+                    $order->getCurrencyIso(),
+                    sprintf('IBAN: %s, BIC: %s', $result['international_bank_account_number'], $result['bank_identifier_code']),
+                    $orderSW['transactionId']
+                ))
+                ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
             }
         }
     }

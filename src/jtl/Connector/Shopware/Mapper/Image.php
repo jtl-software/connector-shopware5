@@ -714,7 +714,8 @@ class Image extends DataMapper
         $imageId = (strlen($image->getId()->getEndpoint()) > 0) ? $image->getId()->getEndpoint() : null;
 
         list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
-
+    
+        $imageSW = null;
         if ($imageId !== null) {
             list($type, $id, $mediaId) = IdConcatenator::unlink($imageId);
             $imageSW = $this->Manager()->getRepository('Shopware\Models\Article\Image')->find((int) $id);

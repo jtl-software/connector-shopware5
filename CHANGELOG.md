@@ -1,3 +1,7 @@
+2.0.8
+-----
+- Added PayPal Plus support
+
 2.0.7
 -----
 - Fixed product price save return value (Event ProductPriceAfterPushEvent will be triggered again)
