@@ -32,4 +32,15 @@ final class Payment
 
         return null;
     }
+    
+    /**
+     * Check if PayPal Plus is installed
+     * @return bool
+     */
+    public static function usePPP()
+    {
+        $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_payment_paypal_plus_payment_instruction\'');
+        
+        return is_array($mysql_result) && count($mysql_result) > 0;
+    }
 }

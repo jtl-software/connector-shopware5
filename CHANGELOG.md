@@ -1,3 +1,9 @@
+2.0.8
+-----
+- Added PayPal Plus support
+- Added product image description support (wawi name property)
+- Fixed product attributes - will not override existing values
+
 2.0.7
 -----
 - Fixed product price save return value (Event ProductPriceAfterPushEvent will be triggered again)

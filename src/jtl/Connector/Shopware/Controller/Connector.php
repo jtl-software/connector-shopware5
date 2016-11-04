@@ -93,9 +93,9 @@ class Connector extends DataController
         $action = new Action();
         $action->setHandled(true);
 
-        $results = array();
+        $results = [];
 
-        $mainControllers = array(
+        $mainControllers = [
             'Category',
             'Customer',
             'CustomerOrder',
@@ -105,7 +105,7 @@ class Connector extends DataController
             'Product',
             'Manufacturer',
             'Payment'
-        );
+        ];
 
         foreach ($mainControllers as $mainController) {
             try {
@@ -118,7 +118,7 @@ class Connector extends DataController
                 Logger::write(ExceptionFormatter::format($exc), Logger::WARNING, 'controller');
             }
         }
-
+        
         $action->setResult($results);
 
         return $action;

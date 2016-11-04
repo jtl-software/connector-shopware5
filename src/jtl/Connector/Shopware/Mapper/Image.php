@@ -26,6 +26,7 @@ use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use \Shopware\Models\Article\Detail as DetailSW;
 use \Shopware\Models\Article\Article as ArticleSW;
 use \Symfony\Component\HttpFoundation\File\File;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 class Image extends DataMapper
 {
@@ -714,7 +715,8 @@ class Image extends DataMapper
         $imageId = (strlen($image->getId()->getEndpoint()) > 0) ? $image->getId()->getEndpoint() : null;
 
         list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
-
+    
+        $imageSW = null;
         if ($imageId !== null) {
             list($type, $id, $mediaId) = IdConcatenator::unlink($imageId);
             $imageSW = $this->Manager()->getRepository('Shopware\Models\Article\Image')->find((int) $id);
@@ -782,12 +784,12 @@ class Image extends DataMapper
     protected function getParentImage(ImageModel $image, MediaSW $mediaSW, ArticleSW $productSW, DetailSW $detailSW)
     {
         $imageSW = $this->loadParentImage($image);
-
+        
         // New Image
         if ($imageSW === null) {
             $imageSW = new ArticleImageSW;
             $imageSW->setHeight(0);
-            $imageSW->setDescription('');
+            $imageSW->setDescription($image->getName());
             $imageSW->setWidth(0);
             $imageSW->setExtension($mediaSW->getExtension());
             $imageSW->setArticle($productSW);
@@ -802,6 +804,7 @@ class Image extends DataMapper
         }
 
         $imageSW->setPosition($sort);
+        $imageSW->setDescription($image->getName());
         $main = ($sort == 1) ? 1 : 2;
         $imageSW->setMain($main);
 
