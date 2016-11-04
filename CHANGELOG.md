@@ -1,6 +1,7 @@
-2.0.8
------
+2.0.8 (unreleased)
+------------------
 - Added PayPal Plus support
+- Fixed product attributes - will not override existing values
 
 2.0.7
 -----
