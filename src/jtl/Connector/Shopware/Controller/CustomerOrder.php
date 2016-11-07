@@ -304,9 +304,10 @@ class CustomerOrder extends DataController
             
             if (is_array($result) && count($result) > 0) {
                 $order->setPui(sprintf(
-                    'Bitte bezahlen Sie %s %s an folgendes Konto: %s Verwendungszweck: %s',
+                    'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
                     $orderSW['invoiceAmount'],
                     $order->getCurrencyIso(),
+                    (new \DateTime($result[0]['payment_due_date']))->format('d.m.Y'),
                     sprintf(
                         'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
                         $result[0]['account_holder_name'],
