@@ -1,6 +1,7 @@
 2.0.9 (unreleased)
 ------------------
 - Fixed PayPal Plus pui property
+- Reverted product attribute change from version 2.0.8
 
 2.0.8
 -----
