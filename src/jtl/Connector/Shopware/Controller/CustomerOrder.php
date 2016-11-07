@@ -304,11 +304,18 @@ class CustomerOrder extends DataController
             
             if (is_array($result) && count($result) > 0) {
                 $order->setPui(sprintf(
-                    'Bitte bezahlen Sie %s %s an folgendes Konto: %s Verwendungszweck: BTN %s',
+                    'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
                     $orderSW['invoiceAmount'],
                     $order->getCurrencyIso(),
-                    sprintf('IBAN: %s, BIC: %s', $result['international_bank_account_number'], $result['bank_identifier_code']),
-                    $orderSW['transactionId']
+                    (new \DateTime($result[0]['payment_due_date']))->format('d.m.Y'),
+                    sprintf(
+                        'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
+                        $result[0]['account_holder_name'],
+                        $result[0]['bank_name'],
+                        $result[0]['international_bank_account_number'],
+                        $result[0]['bank_identifier_code']
+                    ),
+                    $result[0]['reference_number']
                 ))
                 ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
             }
