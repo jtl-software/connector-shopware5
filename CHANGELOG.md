@@ -1,3 +1,7 @@
+2.0.9 (unreleased)
+------------------
+- Fixed PayPal Plus pui property
+
 2.0.8
 -----
 - Added PayPal Plus support

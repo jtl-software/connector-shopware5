@@ -307,7 +307,7 @@ class CustomerOrder extends DataController
                     'Bitte bezahlen Sie %s %s an folgendes Konto: %s Verwendungszweck: BTN %s',
                     $orderSW['invoiceAmount'],
                     $order->getCurrencyIso(),
-                    sprintf('IBAN: %s, BIC: %s', $result['international_bank_account_number'], $result['bank_identifier_code']),
+                    sprintf('IBAN: %s, BIC: %s', $result[0]['international_bank_account_number'], $result[0]['bank_identifier_code']),
                     $orderSW['transactionId']
                 ))
                 ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
