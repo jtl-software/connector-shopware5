@@ -190,7 +190,7 @@ class CustomerOrder extends DataController
                             $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
                             $customerOrderAttr->map(true, DataConverter::toObject($orderSW['attribute']));
                             $customerOrderAttr->setKey("attribute{$i}")
-                                ->setValue($orderSW['attribute']["attribute{$i}"]);
+                                ->setValue((string) $orderSW['attribute']["attribute{$i}"]);
 
                             $order->addAttribute($customerOrderAttr);
                         }

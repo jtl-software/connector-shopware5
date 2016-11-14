@@ -95,7 +95,7 @@ class Category extends DataController
                                 $categoryAttrI18n->map(true, DataConverter::toObject($categorySW['attribute'], true));
                                 $categoryAttrI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
                                     ->setName("attribute{$i}")
-                                    ->setValue($categorySW['attribute']["attribute{$i}"])
+                                    ->setValue((string) $categorySW['attribute']["attribute{$i}"])
                                     ->setCategoryAttrId(new Identity($attrId));
 
                                 $categoryAttr->addI18n($categoryAttrI18n);

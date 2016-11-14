@@ -1,3 +1,7 @@
+2.0.10
+------
+- Added attribute value hard cast to string 
+
 2.0.9
 -----
 - Fixed PayPal Plus pui property
