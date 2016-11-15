@@ -310,7 +310,7 @@ class Product extends DataController
                 //$productAttrI18n->setName("attr{$i}")
                 $productAttrI18n->setName($key)
                     //->setValue($data['attribute']["attr{$i}"]);
-                    ->setValue($value);
+                    ->setValue((string) $value);
     
                 $productAttr->addI18n($productAttrI18n);
                 
@@ -326,7 +326,7 @@ class Product extends DataController
                         $productAttrI18n->setProductAttrId($productAttr->getId())
                             ->setLanguageISO(LanguageUtil::map($localeName))
                             ->setName($key)
-                            ->setValue($translation[$index]);
+                            ->setValue((string) $translation[$index]);
     
                         $productAttr->addI18n($productAttrI18n);
                         $productAttr->setIsTranslated(true);

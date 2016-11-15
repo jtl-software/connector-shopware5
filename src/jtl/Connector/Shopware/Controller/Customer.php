@@ -78,7 +78,7 @@ class Customer extends DataController
                                 $customerAttr->map(true, DataConverter::toObject($customerSW['billing']['attribute']));
                                 $customerAttr->setCustomerId($customer->getId())
                                     ->setKey("text{$i}")
-                                    ->setValue($customerSW['billing']['attribute']["text{$i}"]);
+                                    ->setValue((string) $customerSW['billing']['attribute']["text{$i}"]);
 
                                 $customer->addAttribute($customerAttr);
                             }
