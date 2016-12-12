@@ -1,6 +1,7 @@
 2.0.11 (unreleased)
 -------------------
 - Added customer mapping via email
+- Added number format for billpay and paypal invoice
 
 2.0.10
 ------
