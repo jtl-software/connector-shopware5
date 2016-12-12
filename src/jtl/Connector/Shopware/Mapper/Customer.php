@@ -119,13 +119,21 @@ class Customer extends DataMapper
     protected function prepareCustomerAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW = null, BillingSW &$billingSW = null)
     {
         $customerId = (strlen($customer->getId()->getEndpoint()) > 0) ? (int)$customer->getId()->getEndpoint() : null;
-
-        if ($customerId !== null && $customerId > 0) {
+    
+        if (!is_null($customerId) && $customerId > 0) {
             $customerSW = $this->find($customerId);
+        }
+    
+        // Try to find customer with email
+        if (is_null($customerSW)) {
+            $customerSW = $this->Manager()->getRepository('Shopware\Models\Customer\Customer')->findOneBy(array('email' => $customer->getEMail()));
+        }
+        
+        if (!is_null($customerSW)) {
             $billingSW = $this->Manager()->getRepository('Shopware\Models\Customer\Billing')->findOneBy(array('customerId' => $customerId));
         }
-
-        if ($customerSW === null) {
+    
+        if (is_null($customerSW)) {
             $customerSW = new CustomerSW;
         }
 
@@ -185,6 +193,10 @@ class Customer extends DataMapper
             ->setVatId($customer->getVatNumber())
             //->setBirthday($customer->getBirthday())
             ->setCustomer($customerSW);
+        
+        // No fluent interfaces on some properties, thx @Shopware
+        $billingSW->setAdditionalAddressLine1($customer->getExtraAddressLine());
+        $billingSW->setTitle($customer->getTitle());
 
         $ref = new \ReflectionClass($billingSW);
         $prop = $ref->getProperty('customerId');

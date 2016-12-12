@@ -1,3 +1,7 @@
+2.0.11 (unreleased)
+-------------------
+- Added customer mapping via email
+
 2.0.10
 ------
 - Added attribute value hard cast to string
