@@ -503,7 +503,7 @@ class Category extends DataMapper
                 $categoryMappingSW->setMetaDescription($i18n->getMetaDescription());
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
                 //$categoryMappingSW->setCmsHeadline($i18n->getMetaKeywords());
-                //$categoryMappingSW->setCmsText($i18n->getDescription());
+                $categoryMappingSW->setCmsText($i18n->getDescription());
 
                 $this->prepareAttributeAssociatedData($category, $categoryMappingSW);
                 $categoryMappingSW->setCustomerGroups($categorySW->getCustomerGroups());

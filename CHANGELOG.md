@@ -2,6 +2,7 @@
 -------------------
 - Added customer mapping via email
 - Added number format for billpay and paypal invoice
+- Fixed missing cms text in mapped categories
 
 2.0.10
 ------
