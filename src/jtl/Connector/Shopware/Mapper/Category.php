@@ -207,7 +207,7 @@ class Category extends DataMapper
     {
         $result = new CategoryModel;
 
-        if (Application()->getConfig()->read('category_mapping')) {
+        if (Application()->getConfig()->get('category_mapping')) {
             $this->deleteCategoryMappingData($category);
         }
 
@@ -239,7 +239,7 @@ class Category extends DataMapper
 
         $this->updateCategoryLevelTable();
 
-        if (Application()->getConfig()->read('category_mapping')) {
+        if (Application()->getConfig()->get('category_mapping')) {
             $this->prepareCategoryMapping($category, $categorySW);
         }
 

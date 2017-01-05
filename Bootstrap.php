@@ -3,7 +3,6 @@ use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Core\System\Check as CheckUtil;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Core\Config\Config;
-use jtl\Connector\Core\Config\Loader\Json as ConfigJson;
 use jtl\Connector\Core\IO\Path;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Core\Logger\Logger;
@@ -11,6 +10,9 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
+    /**
+     * @var Config
+     */
     protected $config;
 
     public function getCapabilities()
@@ -46,6 +48,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function install()
     {
+        ini_set('display_errors', 1);
+        error_reporting(E_ALL);
+        
         define('CONNECTOR_DIR', __DIR__);
 
         try {
@@ -59,14 +64,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
 
-        $configFile = Path::combine(__DIR__, 'config', 'config.json');
-        if (!file_exists($configFile)) {
-            file_put_contents($configFile, json_encode(array('developer_logging' => false), JSON_PRETTY_PRINT));
+        // Config
+        $config_file = Path::combine(__DIR__, 'config', 'config.json');
+        if (!file_exists($config_file)) {
+            file_put_contents($config_file, json_encode(array('developer_logging' => false), JSON_PRETTY_PRINT));
         }
-
-        $json = new ConfigJson($configFile);
-        $this->config = new Config(array($json));
-
+        
+        $this->config = new Config($config_file);
+        
         Logger::write('Checking shopware version...', Logger::INFO, 'install');
 
         if (!$this->assertVersionGreaterThen('5.2.0')) {
@@ -491,17 +496,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $categoryMapper = Mmc::getMapper('Category');
         $shopMapper = Mmc::getMapper('Shop');
         $categoryCount = $categoryMapper->fetchCountForLevel(2);
-        $o = new \StdClass();
-        $o->key = 'category_mapping';
-        $o->value = true;
-
+        
         if ($categoryCount > 0 || $shopMapper->duplicateLocalizationsExist()) {
-            $o->value = false;
-            $this->config->write($o);
+            $this->config->save('category_mapping', false);
 
             return;
         } else {
-            $this->config->write($o);
+            $this->config->save('category_mapping', true);
         }
 
         $mainShopId = (int) Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops WHERE `default` = 1');

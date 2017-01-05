@@ -13,16 +13,9 @@
             "role": "Founder"
         }
     ],
-    "repositories": [
-        {
-            "type": "git",
-            "url": "git@gitlab.jtl-software.de:jtl-software-gmbh/jtlconnector.git",
-            "reference": "origin/master"
-        }
-    ],
     "require": {
         "php": ">=5.4.0",
-        "jtl/connector": "dev-master",
+        "jtl/connector": "^2.3.0",
 	    "monolog/monolog": "1.19.0 as 1.17.2"
     },
     "autoload": {

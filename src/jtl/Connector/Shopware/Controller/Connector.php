@@ -37,6 +37,7 @@ class Connector extends DataController
         $returnMegaBytes = function($value) {
             $value = trim($value);
             $unit = strtolower($value[strlen($value) - 1]);
+            $value = (int) str_replace($unit, '', strtolower($value));
             switch ($unit) {
                 case 'g':
                     $value *= 1024;

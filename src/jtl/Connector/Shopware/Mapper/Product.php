@@ -451,7 +451,7 @@ class Product extends DataMapper
     {
         $collection = new ArrayCollection();
         $categoryMapper = Mmc::getMapper('Category');
-        $useMapping = Application()->getConfig()->read('category_mapping');
+        $useMapping = Application()->getConfig()->get('category_mapping');
         foreach ($product->getCategories() as $category) {
             if (strlen($category->getCategoryId()->getEndpoint()) > 0) {
                 $categorySW = $categoryMapper->find(intval($category->getCategoryId()->getEndpoint()));
