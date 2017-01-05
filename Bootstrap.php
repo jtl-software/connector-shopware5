@@ -48,9 +48,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function install()
     {
-        ini_set('display_errors', 1);
-        error_reporting(E_ALL);
-        
         define('CONNECTOR_DIR', __DIR__);
 
         try {
