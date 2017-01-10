@@ -1,3 +1,9 @@
+2.0.11
+------
+- Added customer mapping via email
+- Added number format for billpay and paypal invoice
+- Fixed missing cms text in mapped categories
+
 2.0.10
 ------
 - Added attribute value hard cast to string

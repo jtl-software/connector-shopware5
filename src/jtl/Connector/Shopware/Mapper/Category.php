@@ -207,7 +207,7 @@ class Category extends DataMapper
     {
         $result = new CategoryModel;
 
-        if (Application()->getConfig()->read('category_mapping')) {
+        if (Application()->getConfig()->get('category_mapping')) {
             $this->deleteCategoryMappingData($category);
         }
 
@@ -239,7 +239,7 @@ class Category extends DataMapper
 
         $this->updateCategoryLevelTable();
 
-        if (Application()->getConfig()->read('category_mapping')) {
+        if (Application()->getConfig()->get('category_mapping')) {
             $this->prepareCategoryMapping($category, $categorySW);
         }
 
@@ -503,7 +503,7 @@ class Category extends DataMapper
                 $categoryMappingSW->setMetaDescription($i18n->getMetaDescription());
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
                 //$categoryMappingSW->setCmsHeadline($i18n->getMetaKeywords());
-                //$categoryMappingSW->setCmsText($i18n->getDescription());
+                $categoryMappingSW->setCmsText($i18n->getDescription());
 
                 $this->prepareAttributeAssociatedData($category, $categoryMappingSW);
                 $categoryMappingSW->setCustomerGroups($categorySW->getCustomerGroups());

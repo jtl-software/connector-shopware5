@@ -282,7 +282,7 @@ class CustomerOrder extends DataController
             && isset($orderSW['attribute']['swagBillsafeBic'])) {
             $order->setPui(sprintf(
                 'Bitte bezahlen Sie %s %s an folgendes Konto: %s Verwendungszweck: BTN %s',
-                $orderSW['invoiceAmount'],
+                number_format((float) $orderSW['invoiceAmount'], 2),
                 $order->getCurrencyIso(),
                 sprintf('IBAN: %s, BIC: %s', $orderSW['attribute']['swagBillsafeIban'], $orderSW['attribute']['swagBillsafeBic']),
                 $orderSW['transactionId']
@@ -305,7 +305,7 @@ class CustomerOrder extends DataController
             if (is_array($result) && count($result) > 0) {
                 $order->setPui(sprintf(
                     'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
-                    $orderSW['invoiceAmount'],
+                    number_format((float) $orderSW['invoiceAmount'], 2),
                     $order->getCurrencyIso(),
                     (new \DateTime($result[0]['payment_due_date']))->format('d.m.Y'),
                     sprintf(

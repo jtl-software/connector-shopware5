@@ -6,17 +6,17 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \Shopware\Models\Category\Category as CategoryShopware;
-use \jtl\Connector\Core\Model\QueryFilter;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use Shopware\Models\Category\Category as CategoryShopware;
+use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
 
 /**
  * Category Controller
@@ -142,7 +142,7 @@ class Category extends DataController
                     $this->addPos($category, 'addI18n', 'CategoryI18n', $categorySW);
 
                     // Other languages
-                    if (Application()->getConfig()->read('category_mapping')) {
+                    if (Application()->getConfig()->get('category_mapping')) {
                         $mappings = $mapper->findAllCategoryMappingByParent($category->getId()->getEndpoint());
                         foreach ($mappings as $mapping) {
                             $mapping['category']['id'] = $category->getId()->getEndpoint();
