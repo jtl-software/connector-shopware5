@@ -1,5 +1,5 @@
-2.0.11 (unreleased)
--------------------
+2.0.11
+------
 - Added customer mapping via email
 - Added number format for billpay and paypal invoice
 - Fixed missing cms text in mapped categories
