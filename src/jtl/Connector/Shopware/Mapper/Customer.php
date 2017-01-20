@@ -11,7 +11,7 @@ use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Shopware\Utilities\Salutation;
+use \jtl\Connector\Shopware\Utilities\Salutation as SalutationUtil;
 use \Shopware\Models\Customer\Customer as CustomerSW;
 use \Shopware\Models\Customer\Billing as BillingSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
@@ -158,7 +158,7 @@ class Customer extends DataMapper
             
         $customerSW->setFirstname($customer->getFirstName());
         $customerSW->setLastname($customer->getLastName());
-        $customerSW->setSalutation($customer->getSalutation());
+        $customerSW->setSalutation(SalutationUtil::toEndpoint($customer->getSalutation()));
         $customerSW->setBirthday($customer->getBirthday());
     }
 
@@ -181,7 +181,7 @@ class Customer extends DataMapper
 
         $billingSW->setCompany($customer->getCompany())
             ->setDepartment($customer->getDeliveryInstruction())
-            ->setSalutation(Salutation::toEndpoint($customer->getSalutation()))
+            ->setSalutation(SalutationUtil::toEndpoint($customer->getSalutation()))
             //->setNumber($customer->getCustomerNumber())
             ->setFirstName($customer->getFirstName())
             ->setLastName($customer->getLastName())

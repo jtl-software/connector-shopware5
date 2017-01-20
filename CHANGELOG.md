@@ -1,3 +1,7 @@
+2.0.12 (unreleased)
+-------------------
+- Fixed customer push salutation bug
+
 2.0.11
 ------
 - Added customer mapping via email
