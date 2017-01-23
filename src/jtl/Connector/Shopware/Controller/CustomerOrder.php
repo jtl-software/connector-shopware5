@@ -298,6 +298,8 @@ class CustomerOrder extends DataController
     protected function addPayPalPlus($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
         if ($paymentModuleCode === PaymentTypes::TYPE_PAYPAL_EXPRESS) {
+            
+            // Invoice
             $result = Shopware()->Db()->fetchAll('SELECT * FROM s_payment_paypal_plus_payment_instruction WHERE ordernumber = ?', [
                 $orderSW['number']
             ]);
@@ -319,6 +321,31 @@ class CustomerOrder extends DataController
                 ))
                 ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
             }
+            
+            // @TODO: Installment
+            /*
+            $result = Shopware()->Db()->fetchAll('SELECT * FROM s_plugin_paypal_installments_financing WHERE orderNumber = ?', [
+                $orderSW['number']
+            ]);
+    
+            if (is_array($result) && count($result) > 0) {
+                $order->setPui(sprintf(
+                    'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
+                    number_format((float) $orderSW['invoiceAmount'], 2),
+                    $order->getCurrencyIso(),
+                    (new \DateTime($result[0]['payment_due_date']))->format('d.m.Y'),
+                    sprintf(
+                        'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
+                        $result[0]['account_holder_name'],
+                        $result[0]['bank_name'],
+                        $result[0]['international_bank_account_number'],
+                        $result[0]['bank_identifier_code']
+                    ),
+                    $result[0]['reference_number']
+                ))
+                    ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
+            }
+            */
         }
     }
 
