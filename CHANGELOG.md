@@ -1,6 +1,8 @@
 2.0.12 (unreleased)
 -------------------
 - Fixed customer push salutation bug
+- Fixed customer order status push
+- Added new product attribute sw_pseudo_sales
 
 2.0.11
 ------
