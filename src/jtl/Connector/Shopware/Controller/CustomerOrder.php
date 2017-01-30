@@ -298,6 +298,8 @@ class CustomerOrder extends DataController
     protected function addPayPalPlus($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
         if ($paymentModuleCode === PaymentTypes::TYPE_PAYPAL_EXPRESS) {
+            
+            // Invoice
             $result = Shopware()->Db()->fetchAll('SELECT * FROM s_payment_paypal_plus_payment_instruction WHERE ordernumber = ?', [
                 $orderSW['number']
             ]);
@@ -318,6 +320,23 @@ class CustomerOrder extends DataController
                     $result[0]['reference_number']
                 ))
                 ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
+            }
+            
+            // Installment
+            $result = Shopware()->Db()->fetchAll('SELECT * FROM s_plugin_paypal_installments_financing WHERE orderNumber = ?', [
+                $orderSW['number']
+            ]);
+    
+            if (is_array($result) && count($result) > 0) {
+                $order->setPui(sprintf(
+                    'Vielen Dank das Sie sich für die Zahlungsart Ratenzahlung powered by PayPal entschieden haben. Sie Zahlen Ihre Bestellung in %s Monatsraten je %s %s ab. Die zusätzlichen Kosten für diesen Service belaufen sich auf %s %s (Umsatzsteuerfrei).',
+                    $result[0]['term'],
+                    number_format((float) $result[0]['monthlyPayment'], 2),
+                    $order->getCurrencyIso(),
+                    number_format((float) $result[0]['feeAmount'], 2),
+                    $order->getCurrencyIso()
+                ))
+                    ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
             }
         }
     }

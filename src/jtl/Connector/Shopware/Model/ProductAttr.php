@@ -17,6 +17,7 @@ class ProductAttr extends ProductAttrModel
     const IS_ACTIVE = 'isActive';
     const SHIPPING_FREE = 'ShippingFree';
     const SEND_NOTIFICATION = 'sw_send_notification';
+    const PSEUDO_SALES = 'sw_pseudo_sales';
 
     protected $fields = array(
         'id' => 'id',

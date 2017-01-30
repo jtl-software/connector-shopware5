@@ -764,6 +764,13 @@ class Product extends DataMapper
         
                         continue;
                     }
+                    
+                    // Pseudo sales
+                    if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::PSEUDO_SALES)) {
+                        $productSW->setPseudoSales((int) $attributeI18n->getValue());
+        
+                        continue;
+                    }
     
                     $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
                     $attributes[$attributeI18n->getName()] = $attributeI18n->getValue();

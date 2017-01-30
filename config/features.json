@@ -107,9 +107,9 @@
             "delete": true
         },
         "CustomerOrderAttr": {
-            "pull": false,
-            "push": false,
-            "delete": false
+            "pull": true,
+            "push": true,
+            "delete": true
         },
         "CustomerOrderBillingAddress": {
             "pull": true,
