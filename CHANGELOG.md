@@ -3,6 +3,7 @@
 - Fixed customer push salutation bug
 - Fixed customer order status push
 - Added new product attribute sw_pseudo_sales
+- Added paypal plus installment
 
 2.0.11
 ------

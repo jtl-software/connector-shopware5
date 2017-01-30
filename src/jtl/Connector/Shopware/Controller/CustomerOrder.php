@@ -322,30 +322,22 @@ class CustomerOrder extends DataController
                 ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
             }
             
-            // @TODO: Installment
-            /*
+            // Installment
             $result = Shopware()->Db()->fetchAll('SELECT * FROM s_plugin_paypal_installments_financing WHERE orderNumber = ?', [
                 $orderSW['number']
             ]);
     
             if (is_array($result) && count($result) > 0) {
                 $order->setPui(sprintf(
-                    'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
-                    number_format((float) $orderSW['invoiceAmount'], 2),
+                    'Vielen Dank das Sie sich für die Zahlungsart Ratenzahlung powered by PayPal entschieden haben. Sie Zahlen Ihre Bestellung in %s Monatsraten je %s %s ab. Die zusätzlichen Kosten für diesen Service belaufen sich auf %s %s (Umsatzsteuerfrei).',
+                    $result[0]['term'],
+                    number_format((float) $orderSW['monthlyPayment'], 2),
                     $order->getCurrencyIso(),
-                    (new \DateTime($result[0]['payment_due_date']))->format('d.m.Y'),
-                    sprintf(
-                        'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
-                        $result[0]['account_holder_name'],
-                        $result[0]['bank_name'],
-                        $result[0]['international_bank_account_number'],
-                        $result[0]['bank_identifier_code']
-                    ),
-                    $result[0]['reference_number']
+                    number_format((float) $orderSW['feeAmount'], 2),
+                    $order->getCurrencyIso()
                 ))
                     ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
             }
-            */
         }
     }
 
