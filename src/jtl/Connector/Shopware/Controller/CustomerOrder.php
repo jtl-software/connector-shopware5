@@ -331,9 +331,9 @@ class CustomerOrder extends DataController
                 $order->setPui(sprintf(
                     'Vielen Dank das Sie sich für die Zahlungsart Ratenzahlung powered by PayPal entschieden haben. Sie Zahlen Ihre Bestellung in %s Monatsraten je %s %s ab. Die zusätzlichen Kosten für diesen Service belaufen sich auf %s %s (Umsatzsteuerfrei).',
                     $result[0]['term'],
-                    number_format((float) $orderSW['monthlyPayment'], 2),
+                    number_format((float) $result[0]['monthlyPayment'], 2),
                     $order->getCurrencyIso(),
-                    number_format((float) $orderSW['feeAmount'], 2),
+                    number_format((float) $result[0]['feeAmount'], 2),
                     $order->getCurrencyIso()
                 ))
                     ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
