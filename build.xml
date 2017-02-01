@@ -8,6 +8,7 @@
         <mkdir dir="./dist/Frontend/jtlconnector/config" />
 		<mkdir dir="./dist/Frontend/jtlconnector/logs" />
         <mkdir dir="./dist/Frontend/jtlconnector/db" />
+        <mkdir dir="./dist/Frontend/jtlconnector/tmp" />
         <mkdir dir="./dist/Frontend/jtlconnector/validation" />
         <copy todir="./dist/Frontend/jtlconnector/validation">
             <fileset dir="./config">
@@ -29,6 +30,11 @@
 		<copy todir="./dist/Frontend/jtlconnector/db">
             <fileset dir="./db">
 				<include name=".htaccess" />
+            </fileset>
+        </copy>
+        <copy todir="./dist/Frontend/jtlconnector/tmp">
+            <fileset dir="./tmp">
+                <include name=".htaccess" />
             </fileset>
         </copy>
 		<copy todir="./dist/Frontend/jtlconnector/">
