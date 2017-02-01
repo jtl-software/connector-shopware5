@@ -34,12 +34,23 @@ final class Payment
     }
     
     /**
-     * Check if PayPal Plus is installed
+     * Check if PayPal Plus invoice is installed
      * @return bool
      */
-    public static function usePPP()
+    public static function usePPPInvoice()
     {
         $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_payment_paypal_plus_payment_instruction\'');
+        
+        return is_array($mysql_result) && count($mysql_result) > 0;
+    }
+    
+    /**
+     * Check if PayPal Plus installment is installed
+     * @return bool
+     */
+    public static function usePPPInstallment()
+    {
+        $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_paypal_installments_financing\'');
         
         return is_array($mysql_result) && count($mysql_result) > 0;
     }

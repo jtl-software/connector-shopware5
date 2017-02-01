@@ -1,5 +1,6 @@
 2.0.13 (unreleased)
 -------------------
+- Fixed PayPal Plus installment check
 - Added temp directory fallback
 
 2.0.12

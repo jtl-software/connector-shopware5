@@ -51,10 +51,13 @@ class CustomerOrder extends DataController
             $mapper = Mmc::getMapper('CustomerOrder');
             $productMapper = Mmc::getMapper('Product');
             $orders = $mapper->findAll($limit);
-            
-            // Check if PayPal Plus is installed
-            $usePPP = PaymentUtil::usePPP();
-
+    
+            // Check if PayPal Plus invoice is installed
+            $usePPPInvoice = PaymentUtil::usePPPInvoice();
+    
+            // Check if PayPal Plus installment is installed
+            $usePPPInstallment = PaymentUtil::usePPPInstallment();
+    
             foreach ($orders as $orderSW) {
                 try {
                     // CustomerOrders
@@ -69,9 +72,14 @@ class CustomerOrder extends DataController
                     // Billsafe
                     $this->addBillsafe($paymentModuleCode, $orderSW, $order);
                     
-                    // Paypal Plus
-                    if ($usePPP) {
-                        $this->addPayPalPlus($paymentModuleCode, $orderSW, $order);
+                    // Paypal Plus invoice
+                    if ($usePPPInvoice) {
+                        $this->addPayPalPlusInvoice($paymentModuleCode, $orderSW, $order);
+                    }
+    
+                    // Paypal Plus installment
+                    if ($usePPPInstallment) {
+                        $this->addPayPalPlusInstallment($paymentModuleCode, $orderSW, $order);
                     }
 
                     // CustomerOrderStatus
@@ -295,7 +303,7 @@ class CustomerOrder extends DataController
      * @param array $orderSW
      * @param CustomerOrderModel $order
      */
-    protected function addPayPalPlus($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
+    protected function addPayPalPlusInvoice($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
         if ($paymentModuleCode === PaymentTypes::TYPE_PAYPAL_EXPRESS) {
             
@@ -319,14 +327,25 @@ class CustomerOrder extends DataController
                     ),
                     $result[0]['reference_number']
                 ))
-                ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
+                    ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
             }
+        }
+    }
+    
+    /**
+     * @param $paymentModuleCode
+     * @param array $orderSW
+     * @param CustomerOrderModel $order
+     */
+    protected function addPayPalPlusInstallment($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
+    {
+        if ($paymentModuleCode === PaymentTypes::TYPE_PAYPAL_EXPRESS) {
             
             // Installment
             $result = Shopware()->Db()->fetchAll('SELECT * FROM s_plugin_paypal_installments_financing WHERE orderNumber = ?', [
                 $orderSW['number']
             ]);
-    
+            
             if (is_array($result) && count($result) > 0) {
                 $order->setPui(sprintf(
                     'Vielen Dank das Sie sich für die Zahlungsart Ratenzahlung powered by PayPal entschieden haben. Sie Zahlen Ihre Bestellung in %s Monatsraten je %s %s ab. Die zusätzlichen Kosten für diesen Service belaufen sich auf %s %s (Umsatzsteuerfrei).',
