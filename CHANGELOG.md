@@ -1,3 +1,7 @@
+2.0.13 (unreleased)
+-------------------
+- Added temp directory fallback
+
 2.0.12
 ------
 - Fixed customer push salutation bug
