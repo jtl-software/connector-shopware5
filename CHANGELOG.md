@@ -1,3 +1,8 @@
+2.0.13
+------
+- Fixed PayPal Plus installment check
+- Added temp directory fallback
+
 2.0.12
 ------
 - Fixed customer push salutation bug
