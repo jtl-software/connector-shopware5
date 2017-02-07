@@ -1,3 +1,7 @@
+2.0.14 (unreleased)
+-------------------
+- Added missing product specific group fail safe
+
 2.0.13
 ------
 - Fixed PayPal Plus installment check

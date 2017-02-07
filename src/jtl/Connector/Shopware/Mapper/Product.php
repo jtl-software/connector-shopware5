@@ -1053,6 +1053,18 @@ class Product extends DataMapper
             $recommendedRetailPrice = Money::AsNet($recommendedRetailPrice, $product->getVat());
         }
         */
+        
+        /*
+        // @TODO: MUSS WEG
+        foreach ($product->getPrices() as $price) {
+            var_dump($price->getCustomerGroupId()->getEndpoint());
+            foreach ($price->getItems() as $item) {
+                var_dump($item->getNetPrice());
+            }
+        }
+        
+        die();
+        */
 
         $collection = ProductPriceMapper::buildCollection(
             $product->getPrices(),
@@ -1069,39 +1081,46 @@ class Product extends DataMapper
 
     protected function prepareSpecificAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW $detailSW)
     {
-        $group = $productSW->getPropertyGroup();
-        $collection = new ArrayCollection();
-
-        if (count($product->getSpecifics()) > 0) {
-            if ($group === null) {
-                $group = new \Shopware\Models\Property\Group();
-                $group->setName($product->getSku())
-                    ->setPosition(0)
-                    ->setComparable(1)
-                    ->setSortMode(0);
-
-                $this->Manager()->persist($group);
-            }
-
-            $mapper = Mmc::getMapper('Specific');
-            $group->setOptions(array());
-            $options = array();
-            foreach ($product->getSpecifics() as $productSpecific) {
-                $valueSW = $mapper->findValue((int) $productSpecific->getSpecificValueId()->getEndpoint());
-                if ($valueSW !== null) {
-                    $collection->add($valueSW);
-                    if (!in_array($valueSW->getOption()->getId(), $options)) {
-                        $group->addOption($valueSW->getOption());
-                        $options[] = $valueSW->getOption()->getId();
+        try {
+            $group = $productSW->getPropertyGroup();
+            $collection = new ArrayCollection();
+    
+            if (count($product->getSpecifics()) > 0) {
+                if ($group === null) {
+                    $group = new \Shopware\Models\Property\Group();
+                    $group->setName($product->getSku())
+                        ->setPosition(0)
+                        ->setComparable(1)
+                        ->setSortMode(0);
+            
+                    $this->Manager()->persist($group);
+                }
+        
+                $mapper = Mmc::getMapper('Specific');
+                $group->setOptions(array());
+                $options = array();
+                foreach ($product->getSpecifics() as $productSpecific) {
+                    $valueSW = $mapper->findValue((int)$productSpecific->getSpecificValueId()->getEndpoint());
+                    if ($valueSW !== null) {
+                        $collection->add($valueSW);
+                        if (!in_array($valueSW->getOption()->getId(), $options)) {
+                            $group->addOption($valueSW->getOption());
+                            $options[] = $valueSW->getOption()->getId();
+                        }
                     }
                 }
+        
+                $this->Manager()->persist($group);
             }
-
-            $this->Manager()->persist($group);
+    
+            $productSW->setPropertyValues($collection);
+            $productSW->setPropertyGroup($group);
+        } catch (\Exception $e) {
+            Logger::write(sprintf(
+                'Property group (s_articles <--> s_filter) not found! %s',
+                ExceptionFormatter::format($e)
+            ), Logger::ERROR, 'database');
         }
-
-        $productSW->setPropertyValues($collection);
-        $productSW->setPropertyGroup($group);
     }
 
     protected function saveTranslationData(ProductModel $product, ArticleSW $productSW, array $attrMappings)
