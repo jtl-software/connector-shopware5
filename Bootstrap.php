@@ -64,7 +64,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         // Config
         $config_file = Path::combine(__DIR__, 'config', 'config.json');
         if (!file_exists($config_file)) {
-            file_put_contents($config_file, json_encode(array('developer_logging' => false), JSON_PRETTY_PRINT));
+            file_put_contents($config_file, json_encode(array(
+                'developer_logging' => false,
+                'customer_order_pull_start_date' => null
+            ), JSON_PRETTY_PRINT));
         }
         
         $this->config = new Config($config_file);

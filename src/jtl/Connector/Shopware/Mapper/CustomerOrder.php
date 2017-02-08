@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Payment\PaymentTypes;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
@@ -37,7 +38,7 @@ class CustomerOrder extends DataMapper
 
     public function findAll($limit = 100, $count = false, $from = null, $until = null)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(array(
+        $builder = $this->Manager()->createQueryBuilder()->select(array(
             'orders',
             'customer',
             'customer_shipping',
@@ -77,9 +78,20 @@ class CustomerOrder extends DataMapper
             ->andWhere('orders.status != -1')
             ->orderBy('history.changeDate', 'ASC')
             ->setFirstResult(0)
-            ->setMaxResults($limit)
-            //->getQuery();
-            ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+            ->setMaxResults($limit);
+    
+        // Customer Order pull start date
+        $start_date = Application()->getConfig()->get('customer_order_pull_start_date', null);
+        if (!is_null($start_date)) {
+            try {
+                $date_time = new \DateTime($start_date);
+                $builder->andWhere(sprintf('orders.orderTime >= \'%s\'', $date_time->format('Y-m-d H:i:s')));
+            } catch (\Exception $e) {
+                Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
+            }
+        }
+    
+        $query = $builder->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 

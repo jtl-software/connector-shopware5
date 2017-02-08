@@ -1,6 +1,7 @@
 2.0.14 (unreleased)
 -------------------
 - Added missing product specific group fail safe
+- Added customer order pull start date
 
 2.0.13
 ------
