@@ -165,6 +165,8 @@ class Specific extends DataMapper
 
                 foreach ($optionSW->getGroups() as $groupSW) {
                     if (count($groupSW->getOptions()) == 1) {
+                        // @TODO: Set product->filtergroupId = null
+                        
                         $this->Manager()->remove($groupSW);
                     }
                 }

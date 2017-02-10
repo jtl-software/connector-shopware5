@@ -502,6 +502,7 @@ class Category extends DataMapper
                 $categoryMappingSW->setPosition($category->getSort());
                 $categoryMappingSW->setMetaDescription($i18n->getMetaDescription());
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
+                $categoryMappingSW->setMetaTitle($i18n->getTitleTag());
                 //$categoryMappingSW->setCmsHeadline($i18n->getMetaKeywords());
                 $categoryMappingSW->setCmsText($i18n->getDescription());
 
