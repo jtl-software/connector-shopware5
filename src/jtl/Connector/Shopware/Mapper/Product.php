@@ -616,6 +616,7 @@ class Product extends DataMapper
         // http://community.shopware.com/Artikel-Varianten_detail_920.html#dynamischer_Variantentext
         //$helper = ProductNameHelper::build($product);
         //$detailSW->setAdditionalText($helper->getAdditionalName());
+        $detailSW->setAdditionalText('');
 
         $kind = ($isChild && $detailSW->getId() > 0 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
         $active = $product->getIsActive();
