@@ -31,7 +31,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '2.0.13';
+        return '2.0.14';
     }
 
     public function getInfo()
@@ -243,6 +243,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.0.10':
             case '2.0.11':
             case '2.0.12':
+            case '2.0.13':
                 break;
             default:
                 return false;
@@ -323,8 +324,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function runAutoload()
     {
+        // Tmp directory fallback
+        $dir = sys_get_temp_dir();
+        if (!is_writeable($dir)) {
+            $dir = CONNECTOR_DIR . DIRECTORY_SEPARATOR . 'tmp';
+        }
+        
         if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
-            if (is_writable(sys_get_temp_dir())) {
+            if (is_writable($dir)) {
                 if (!extension_loaded('phar')) {
                     throw new \Exception('PHP Extension \'phar\' is not loaded');
                 }
@@ -337,7 +344,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
                 require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
             } else {
-                throw new \Exception(sprintf('Das Verzeichnis %s ist nicht beschreibbar. Bitte kontaktieren Sie Ihren Administrator oder Hoster.', sys_get_temp_dir()));
+                throw new \Exception(sprintf('Das Verzeichnis %s ist nicht beschreibbar. Bitte kontaktieren Sie Ihren Administrator oder Hoster.', $dir));
             }
         } else {
             require_once (dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
