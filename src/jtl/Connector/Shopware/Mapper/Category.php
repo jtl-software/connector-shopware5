@@ -426,7 +426,7 @@ class Category extends DataMapper
                 continue;
             }
             
-            $setter = "setAttr{$i}";
+            $setter = "setAttribute{$i}";
             if (!method_exists($attributeSW, $setter)) {
                 continue;
             }
