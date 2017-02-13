@@ -612,8 +612,10 @@ class Product extends DataMapper
             //$this->Manager()->persist($detailSW);
         }
 
-        $helper = ProductNameHelper::build($product);
-        $detailSW->setAdditionalText($helper->getAdditionalName());
+        // Removed
+        // http://community.shopware.com/Artikel-Varianten_detail_920.html#dynamischer_Variantentext
+        //$helper = ProductNameHelper::build($product);
+        //$detailSW->setAdditionalText($helper->getAdditionalName());
 
         $kind = ($isChild && $detailSW->getId() > 0 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
         $active = $product->getIsActive();
@@ -783,7 +785,6 @@ class Product extends DataMapper
         $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
         foreach ($sw_attributes as $sw_attribute) {
             if (!$sw_attribute->isIdentifier()) {
-                //$setter = sprintf('set%s', ucfirst($sw_attribute->getColumnName()));
                 $setter = sprintf('set%s', ucfirst(Str::camel($sw_attribute->getColumnName())));
                 if (isset($attributes[$sw_attribute->getColumnName()]) && method_exists($attributeSW, $setter)) {
                     $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
@@ -819,94 +820,6 @@ class Product extends DataMapper
                 break;
             }
         }
-        
-        /*
-        for ($i = 1; $i <= 20; $i++) {
-            $setter = "setAttr{$i}";
-            $attributeSW->{$setter}(null);
-        }
-
-        $i = 3;
-        $attrMappings = [];
-        foreach ($product->getAttributes() as $attribute) {
-            if (!$attribute->getIsCustomProperty()) {
-                $i++;
-                foreach ($attribute->getI18ns() as $attributeI18n) {
-                    if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                        
-                        // Work Around, thx @db structure
-                        if ($i == 17) {
-                            $i++;
-                        }
-
-                        // active
-                        if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IS_ACTIVE)) {
-                            $isActive = (strtolower($attributeI18n->getValue()) === 'false'
-                                || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
-                            if ($isChild) {
-                                $detailSW->setActive((int) $isActive);
-                            } else {
-                                $productSW->setActive((int) $isActive);
-                            }
-
-                            continue;
-                        }
-
-                        // Notification
-                        if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::SEND_NOTIFICATION)) {
-                            $notification = (strtolower($attributeI18n->getValue()) === 'false'
-                                || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
-
-                            $productSW->setNotification($notification);
-
-                            continue;
-                        }
-
-                        // Shipping free
-                        if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::SHIPPING_FREE)) {
-                            $shippingFree = (strtolower($attributeI18n->getValue()) === 'false'
-                                || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
-
-                            $detailSW->setShippingFree($shippingFree);
-
-                            continue;
-                        }
-
-                        $setter = "setAttr{$i}";
-
-                        if (preg_match('/attr(20|1[0-9]{1}|[1-9]{1})/', $attributeI18n->getName(), $matches)) {
-                            if (strlen($matches[0]) == strlen($attributeI18n->getName())) {
-                                $number = str_replace('attr', '', $attributeI18n->getName());
-                                $s_setter = "setAttr{$number}";
-                                $s_getter = "getAttr{$number}";
-                                if (method_exists($attributeSW, $s_setter)) {
-                                    $oldValue = $attributeSW->{$s_getter}();
-                                    $attributeSW->{$s_setter}($attributeI18n->getValue());
-
-                                    if ($oldValue !== null && $number != $i && method_exists($attributeSW, $setter)) {
-                                        $attributeSW->{$setter}($oldValue);
-                                        $hostId = $attrMappings[$number];
-                                        $attrMappings[$i] = $hostId;
-                                    } elseif ($number < $i && $i > 4) {
-                                        $i--;
-                                    }
-
-                                    $attrMappings[$number] = $attribute->getId()->getHost();
-
-                                    continue;
-                                }
-                            }
-                        }
-
-                        if (method_exists($attributeSW, $setter)) {
-                            $attributeSW->{$setter}($attributeI18n->getValue());
-                            $attrMappings[$i] = $attribute->getId()->getHost();
-                        }
-                    }
-                }
-            }
-        }
-        */
 
         $this->Manager()->persist($attributeSW);
 

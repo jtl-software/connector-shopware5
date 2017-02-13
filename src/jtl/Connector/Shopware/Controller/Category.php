@@ -164,13 +164,6 @@ class Category extends DataController
                 }
             }
 
-            // Sort by level
-            /*
-            usort($result, function($a, $b) {
-                return $a->getLevel() > $b->getLevel();
-            });
-            */
-
             $action->setResult($result);
         } catch (\Exception $exc) {
             Logger::write(ExceptionFormatter::format($exc), Logger::WARNING, 'controller');
