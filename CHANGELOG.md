@@ -1,3 +1,13 @@
+2.0.14
+------
+- Added missing product specific group fail safe
+- Added customer order pull start date (via config parameter customer_order_pull_start_date)
+- Added new category attribute management support
+- Fixed customer number
+- Fixed category meta title in non default languages
+- Fixed product filter group allocation after set removal
+- Removed additional detail text
+
 2.0.13
 ------
 - Fixed PayPal Plus installment check

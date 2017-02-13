@@ -165,6 +165,9 @@ class Specific extends DataMapper
 
                 foreach ($optionSW->getGroups() as $groupSW) {
                     if (count($groupSW->getOptions()) == 1) {
+                        $sql = "UPDATE s_articles SET filtergroupID = null WHERE filtergroupID = ?";
+                        Shopware()->Db()->query($sql, array($groupSW->getId()));
+                        
                         $this->Manager()->remove($groupSW);
                     }
                 }

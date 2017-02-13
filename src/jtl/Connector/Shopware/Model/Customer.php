@@ -18,7 +18,7 @@ class Customer extends CustomerModel
         'id' => 'id',
         'customerGroupId' => ['group', 'id'],
         //'languageISO' => ['languageSubShop', 'locale', 'locale'],
-        'customerNumber' => ['billing', 'number'],
+        'customerNumber' => 'number',
         //'password' => 'hashPassword',
         'salutation' => ['billing', 'salutation'],
         'title' => '',

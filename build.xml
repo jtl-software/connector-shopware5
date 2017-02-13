@@ -8,6 +8,7 @@
         <mkdir dir="./dist/Frontend/jtlconnector/config" />
 		<mkdir dir="./dist/Frontend/jtlconnector/logs" />
         <mkdir dir="./dist/Frontend/jtlconnector/db" />
+        <mkdir dir="./dist/Frontend/jtlconnector/tmp" />
         <mkdir dir="./dist/Frontend/jtlconnector/validation" />
         <copy todir="./dist/Frontend/jtlconnector/validation">
             <fileset dir="./config">
@@ -17,7 +18,6 @@
         <copy todir="./dist/Frontend/jtlconnector/config">
             <fileset dir="./config">
                 <include name="features.json" />
-				<include name="config.json" />
 				<include name=".htaccess" />
             </fileset>
         </copy>
@@ -29,6 +29,11 @@
 		<copy todir="./dist/Frontend/jtlconnector/db">
             <fileset dir="./db">
 				<include name=".htaccess" />
+            </fileset>
+        </copy>
+        <copy todir="./dist/Frontend/jtlconnector/tmp">
+            <fileset dir="./tmp">
+                <include name=".htaccess" />
             </fileset>
         </copy>
 		<copy todir="./dist/Frontend/jtlconnector/">
@@ -62,7 +67,7 @@
                 <include name="**/**" />
             </fileset>
             <metadata>
-                <element name="version" value="2.0.13" />
+                <element name="version" value="2.0.14" />
                 <element name="authors">
                     <element name="Daniel Böhmer">
                         <element name="email" value="daniel.boehmer@jtl-software.com" />
@@ -79,7 +84,7 @@
         <exec command="php jtlasc.phar validation:create:file ${project.basedir}/dist/Frontend/jtlconnector/ ${project.basedir}/dist/Frontend/jtlconnector/validation/files.json -e 'config' -p '*.ph*'" />
         <exec command="php jtlasc.phar validation:create:mysql localhost s1_sw52 YHb82mFnhh2eimck s1_sw52 ${project.basedir}/dist/Frontend/jtlconnector/validation/mysql.json -p '/jtl_connector_[\w]+/i'" />
 
-        <zip destfile="./dist/jtl-connector-shopware5-2.0.13.zip">
+        <zip destfile="./dist/jtl-connector-shopware5-2.0.14.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>

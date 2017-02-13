@@ -11,6 +11,7 @@ use jtl\Connector\Shopware\Model\CategoryAttr;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Model\Category as CategoryModel;
 use \jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\Str;
 use \Shopware\Components\Api\Exception as ApiException;
 use \Shopware\Models\Category\Category as CategorySW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
@@ -355,7 +356,99 @@ class Category extends DataMapper
             throw new \Exception(sprintf('Main Shop locale (%s) does not exists in category languages', Shopware()->Shop()->getLocale()->getLocale()));
         }
     }
+    
+    protected function prepareAttributeAssociatedData(CategoryModel $category, CategorySW &$categorySW, $iso = null)
+    {
+        if (is_null($iso)) {
+            $iso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+        }
+        
+        // Attribute
+        $attributeSW = $categorySW->getAttribute();
+        if ($attributeSW === null) {
+            $attributeSW = new \Shopware\Models\Attribute\Category();
+            $attributeSW->setCategory($categorySW);
+        
+            $this->Manager()->persist($attributeSW);
+        }
+        
+        $attributes = [];
+        $mappings = [];
+        foreach ($category->getAttributes() as $attribute) {
+            if ($attribute->getIsCustomProperty()) {
+                continue;
+            }
+            
+            foreach ($attribute->getI18ns() as $attributeI18n) {
+                if ($attributeI18n->getLanguageISO() === $iso) {
+    
+                    // Active fix
+                    $allowedActiveValues = array('0', '1', 0, 1, false, true);
+                    if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::IS_ACTIVE)
+                        && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
+                        $categorySW->setActive((bool) $attributeI18n->getValue());
+                        
+                        continue;
+                    }
+    
+                    // Cms Headline
+                    if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::CMS_HEADLINE)) {
+                        $categorySW->setCmsHeadline($attributeI18n->getValue());
+    
+                        continue;
+                    }
+                    
+                    $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
+                    $attributes[$attributeI18n->getName()] = $attributeI18n->getValue();
+                }
+            }
+        }
+        
+        // Reset
+        $used = [];
+        $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_categories_attributes');
+        foreach ($sw_attributes as $sw_attribute) {
+            if (!$sw_attribute->isIdentifier()) {
+                $setter = sprintf('set%s', ucfirst(Str::camel($sw_attribute->getColumnName())));
+                if (isset($attributes[$sw_attribute->getColumnName()]) && method_exists($attributeSW, $setter)) {
+                    $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
+                    $used[] = $sw_attribute->getColumnName();
+                    unset($attributes[$sw_attribute->getColumnName()]);
+                } else if (method_exists($attributeSW, $setter)) {
+                    $attributeSW->{$setter}(null);
+                }
+            }
+        }
+        
+        for ($i = 4; $i <= 20; $i++) {
+            $attr = "attr{$i}";
+            if (in_array($attr, $used) || $i == 17) {
+                continue;
+            }
+            
+            $setter = "setAttribute{$i}";
+            if (!method_exists($attributeSW, $setter)) {
+                continue;
+            }
+            
+            $index = null;
+            foreach ($attributes as $key => $value) {
+                $attributeSW->{$setter}($value);
+                unset($attributes[$key]);
+                break;
+            }
+            
+            if (count($attributes) == 0) {
+                break;
+            }
+        }
+        
+        $this->Manager()->persist($attributeSW);
+    
+        $categorySW->setAttribute($attributeSW);
+    }
 
+    /*
     protected function prepareAttributeAssociatedData(CategoryModel $category, CategorySW &$categorySW)
     {
         $attributeSW = $categorySW->getAttribute();
@@ -422,6 +515,7 @@ class Category extends DataMapper
 
         $categorySW->setAttribute($attributeSW);
     }
+    */
 
     protected function prepareInvisibilityAssociatedData(CategoryModel $category, CategorySW &$categorySW)
     {
@@ -502,10 +596,12 @@ class Category extends DataMapper
                 $categoryMappingSW->setPosition($category->getSort());
                 $categoryMappingSW->setMetaDescription($i18n->getMetaDescription());
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
+                $categoryMappingSW->setMetaTitle($i18n->getTitleTag());
                 //$categoryMappingSW->setCmsHeadline($i18n->getMetaKeywords());
                 $categoryMappingSW->setCmsText($i18n->getDescription());
 
-                $this->prepareAttributeAssociatedData($category, $categoryMappingSW);
+                $this->prepareAttributeAssociatedData($category, $categoryMappingSW, $i18n->getLanguageISO());
+                
                 $categoryMappingSW->setCustomerGroups($categorySW->getCustomerGroups());
 
                 $this->Manager()->persist($categoryMappingSW);
