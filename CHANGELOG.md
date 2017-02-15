@@ -1,3 +1,7 @@
+2.0.15 (unreleased)
+-------------------
+- Fixed customer birthday and title
+
 2.0.14
 ------
 - Added missing product specific group fail safe
