@@ -1,6 +1,7 @@
 2.0.15 (unreleased)
 -------------------
 - Fixed customer birthday and title
+- Fixed product purchasePrice push and pull
 
 2.0.14
 ------
