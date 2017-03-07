@@ -7,6 +7,7 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\IO\Path;
+use jtl\Connector\Core\IO\Temp;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Seo;
 use \jtl\Connector\Drawing\ImageRelationType;
@@ -565,7 +566,7 @@ class Image extends DataMapper
             $filename = substr($filename, strlen($filename) - 100, 100);
         }
 
-        $path = Path::combine(sys_get_temp_dir(), $filename);
+        $path = Path::combine(Temp::getDirectory(), $filename);
         if (copy($image->getFilename(), $path)) {
             $file = new File($path);
             $image->setFilename($path);
