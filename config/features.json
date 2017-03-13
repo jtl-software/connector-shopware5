@@ -317,9 +317,9 @@
             "delete": false
         },
         "ProductVarCombination": {
-            "pull": true,
-            "push": true,
-            "delete": true
+            "pull": false,
+            "push": false,
+            "delete": false
         },
         "ProductVariation": {
             "pull": true,

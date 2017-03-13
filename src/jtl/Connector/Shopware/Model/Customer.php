@@ -21,7 +21,7 @@ class Customer extends CustomerModel
         'customerNumber' => 'number',
         //'password' => 'hashPassword',
         'salutation' => ['billing', 'salutation'],
-        'title' => '',
+        'title' => 'title',
         'firstName' => ['billing', 'firstName'],
         'lastName' => ['billing', 'lastName'],
         'company' => ['billing', 'company'],

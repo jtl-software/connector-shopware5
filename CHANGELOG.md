@@ -1,3 +1,9 @@
+2.0.15
+------
+- Fixed customer birthday and title
+- Fixed product purchasePrice push and pull
+- Fixed temp directory and added fallback
+
 2.0.14
 ------
 - Added missing product specific group fail safe

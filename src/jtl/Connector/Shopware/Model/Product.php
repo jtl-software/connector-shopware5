@@ -32,7 +32,7 @@ class Product extends ProductModel
         'shippingWeight' => '',
         'isNewProduct' => '',
         'recommendedRetailPrice' => '',
-        'purchasePrice' => '',
+        'purchasePrice' => 'purchasePrice',
         'considerStock' => '',
         'permitNegativeStock' => '',
         'considerVariationStock' => '',

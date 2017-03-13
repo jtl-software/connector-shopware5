@@ -637,6 +637,7 @@ class Product extends DataMapper
             ->setStockMin($product->getMinimumQuantity())
             ->setMinPurchase($product->getMinimumOrderQuantity())
             ->setReleaseDate($product->getAvailableFrom())
+            ->setPurchasePrice($product->getPurchasePrice())
             ->setEan($product->getEan());
 
         $detailSW->setWidth($product->getWidth());
@@ -984,8 +985,7 @@ class Product extends DataMapper
             $product->getPrices(),
             $productSW,
             $detailSW,
-            $product->getRecommendedRetailPrice(),
-            $product->getPurchasePrice()
+            $product->getRecommendedRetailPrice()
         );
 
         if (count($collection) > 0) {

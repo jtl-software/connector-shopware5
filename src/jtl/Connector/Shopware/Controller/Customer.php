@@ -56,12 +56,14 @@ class Customer extends DataController
                         ->findOneById($customerSW['billing']['countryId']);
 
                     $iso = ($country !== null) ? $country->getIso() : 'DE';
-
+                    
                     // Birthday
                     try {
-                        if (isset($customerSW['billing']['birthday']) && strlen($customerSW['billing']['birthday']) > 0
-                            && $customerSW['billing']['birthday'] !== '0000-00-00') {
-                            $customer->setBirthday(new \DateTime($customerSW['billing']['birthday']));
+                        if (isset($customerSW['birthday']) && strlen($customerSW['birthday']) > 0
+                            && $customerSW['birthday'] !== '0000-00-00') {
+                            $customer->setBirthday(new \DateTime($customerSW['birthday']));
+                        } elseif (isset($customerSW['birthday']) && $customerSW['birthday'] instanceof \DateTime) {
+                            $customer->setBirthday($customerSW['birthday']);
                         }
                     } catch (\Exception $e) { }
 
