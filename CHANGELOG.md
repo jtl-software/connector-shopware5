@@ -1,5 +1,5 @@
-2.0.15 (unreleased)
--------------------
+2.0.15
+------
 - Fixed customer birthday and title
 - Fixed product purchasePrice push and pull
 - Fixed temp directory and added fallback

@@ -31,7 +31,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '2.0.14';
+        return '2.0.15';
     }
 
     public function getInfo()
@@ -244,6 +244,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.0.11':
             case '2.0.12':
             case '2.0.13':
+            case '2.0.14':
                 break;
             default:
                 return false;
