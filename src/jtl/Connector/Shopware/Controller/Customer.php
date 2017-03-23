@@ -59,7 +59,8 @@ class Customer extends DataController
                     
                     // Birthday
                     try {
-                        if (isset($customerSW['birthday']) && strlen($customerSW['birthday']) > 0
+                        if (isset($customerSW['birthday']) && !($customerSW['birthday'] instanceof \DateTime)
+                            && strlen($customerSW['birthday']) > 0
                             && $customerSW['birthday'] !== '0000-00-00') {
                             $customer->setBirthday(new \DateTime($customerSW['birthday']));
                         } elseif (isset($customerSW['birthday']) && $customerSW['birthday'] instanceof \DateTime) {

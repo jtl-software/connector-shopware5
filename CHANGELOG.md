@@ -1,3 +1,7 @@
+2.0.16 (unreleased)
+-------------------
+- Fixed birthday property warning
+
 2.0.15
 ------
 - Fixed customer birthday and title
