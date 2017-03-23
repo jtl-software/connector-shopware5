@@ -1,6 +1,7 @@
 2.0.16 (unreleased)
 -------------------
-- Fixed birthday property warning
+- Fixed customer birthday property warning
+- Added customer birthday property wawi exception workaround
 
 2.0.15
 ------
