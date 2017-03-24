@@ -2,6 +2,7 @@
 -------------------
 - Fixed customer birthday property warning
 - Added customer birthday property wawi exception workaround
+- Added customer order pull start date to payments
 
 2.0.15
 ------
