@@ -106,7 +106,7 @@ abstract class DataModel
                     $value = $getValue($platformField, $obj);
                     $original->{$setter}($typeCast($original, $connectorField, $value));
                 } elseif ($connectorField === 'languageISO' && strlen($platformField) == 0) {
-                    $original->{$setter}(LanguageUtil::map(Shopware()->Locale()->toString()));
+                    $original->{$setter}(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()));
                 } elseif ($connectorField === 'languageISO' && strlen($platformField) > 0) {
                     $original->{$setter}(LanguageUtil::map($obj->{$platformField}));
                 } elseif (isset($obj->{$platformField})) {

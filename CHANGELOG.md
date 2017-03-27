@@ -3,6 +3,7 @@
 - Fixed customer birthday property warning
 - Added customer birthday property wawi exception workaround
 - Added customer order pull start date to payments
+- Removed deprecated method call
 
 2.0.15
 ------
