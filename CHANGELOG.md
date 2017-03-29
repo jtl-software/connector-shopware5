@@ -1,3 +1,7 @@
+2.0.17 (unreleased)
+-------------------
+- Fixed minor product image titles translation bug
+
 2.0.16
 ------
 - Fixed customer birthday property warning
