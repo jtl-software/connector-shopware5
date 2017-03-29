@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use JMS\Serializer\Tests\Fixtures\Log;
 use jtl\Connector\Core\IO\Path;
 use jtl\Connector\Core\IO\Temp;
 use jtl\Connector\Core\Logger\Logger;
@@ -245,10 +246,11 @@ class Image extends DataMapper
     {
         $mediaSW = null;
         $imageSW = null;
+        $parentImageSW = null;
         $result = new ImageModel;
 
         try {
-            $this->prepareImageAssociatedData($image, $mediaSW, $imageSW);
+            $this->prepareImageAssociatedData($image, $mediaSW, $imageSW, $parentImageSW);
 
             $this->Manager()->persist($mediaSW);
 
@@ -273,15 +275,17 @@ class Image extends DataMapper
                         LIMIT 1'
                     );
                 }
-                
-                // Save image title translations
-                $this->saveAltText($image, $imageSW);
 
                 // Save mapping and rule
                 if ($imageSW->getParent() !== null) {
                     $this->saveImageMapping($imageSW->getParent());
                     $this->flush();
                 }
+            }
+    
+            // Save image title translations
+            if (!is_null($parentImageSW)) {
+                $this->saveAltText($image, $parentImageSW);
             }
 
             $manager = Shopware()->Container()->get('thumbnail_manager');
@@ -502,7 +506,10 @@ class Image extends DataMapper
         }
     }
 
-    protected function prepareImageAssociatedData(ImageModel &$image, MediaSW &$mediaSW = null, \Shopware\Components\Model\ModelEntity &$imageSW = null)
+    protected function prepareImageAssociatedData(ImageModel &$image,
+                                                  MediaSW &$mediaSW = null,
+                                                  \Shopware\Components\Model\ModelEntity &$imageSW = null,
+                                                  \Shopware\Components\Model\ModelEntity &$parentImageSW = null)
     {
         if (!file_exists($image->getFilename())) {
             throw new \Exception(sprintf('File (%s) does not exists', $image->getFilename()));
@@ -511,7 +518,7 @@ class Image extends DataMapper
         $file = new File($image->getFilename());
 
         if ($image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
-            $this->prepareProductImageAssociateData($image, $mediaSW, $imageSW, $file);
+            $this->prepareProductImageAssociateData($image, $mediaSW, $imageSW, $parentImageSW, $file);
         } else {
             $mediaSW = $this->getMedia($image, $file);
             $this->copyNewMedia($image, $mediaSW, $file);
@@ -540,7 +547,11 @@ class Image extends DataMapper
         }
     }
 
-    protected function prepareProductImageAssociateData(ImageModel &$image, MediaSW &$mediaSW = null, ArticleImageSW &$imageSW = null, File $file)
+    protected function prepareProductImageAssociateData(ImageModel &$image,
+                                                        MediaSW &$mediaSW = null,
+                                                        ArticleImageSW &$imageSW = null,
+                                                        ArticleImageSW &$parentImageSW = null,
+                                                        File $file)
     {
         $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? $image->getForeignKey()->getEndpoint() : null;
 
@@ -1243,6 +1254,8 @@ class Image extends DataMapper
      */
     private function saveAltText(ImageModel $image, ArticleImageSW &$imageSW)
     {
+        Logger::write('webwe', Logger::DEBUG, 'wewe');
+        
         $translationUtil = new TranslationUtil();
         $translationUtil->delete('articleimage', $imageSW->getId());
         
@@ -1251,12 +1264,20 @@ class Image extends DataMapper
             if (empty($i18n->getAltText())) {
                 continue;
             }
+    
+            Logger::write($i18n->getAltText(), Logger::DEBUG, 'wewe');
             
             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                 $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $i18n->getLanguageISO()));
                 $shops = $shopMapper->findByLocale($locale->getLocale());
+                
+                Logger::write($i18n->getLanguageISO(), Logger::DEBUG, 'wewe');
+                
                 if ($shops !== null && is_array($shops) && count($shops) > 0) {
                     foreach ($shops as $shop) {
+    
+                        Logger::write('jap', Logger::DEBUG, 'wewe');
+                        
                         $translationUtil->write(
                             $shop->getId(),
                             'articleimage',

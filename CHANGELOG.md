@@ -1,3 +1,8 @@
+2.0.17
+------
+- Fixed minor product image titles translation bug
+- Fixed parameter binding in pre php 7
+
 2.0.16
 ------
 - Fixed customer birthday property warning

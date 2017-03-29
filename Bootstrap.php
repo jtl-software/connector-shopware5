@@ -31,7 +31,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '2.0.16';
+        return '2.0.17';
     }
 
     public function getInfo()
@@ -247,6 +247,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.0.14':
             case '2.0.15':
                 $this->createSpecialProductAttributeTable();
+            case '2.0.16':
                 break;
             default:
                 return false;
