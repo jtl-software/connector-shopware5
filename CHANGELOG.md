@@ -1,6 +1,7 @@
 2.0.17 (unreleased)
 -------------------
 - Fixed minor product image titles translation bug
+- Fixed parameter binding in pre php 7
 
 2.0.16
 ------

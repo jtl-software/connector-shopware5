@@ -41,7 +41,7 @@ class ProductAttribute
     /**
      * @return int
      */
-    public function getProductId(): int
+    public function getProductId()
     {
         return $this->product_id;
     }
@@ -50,7 +50,7 @@ class ProductAttribute
      * @param int $product_id
      * @return ProductAttribute
      */
-    public function setProductId(int $product_id): ProductAttribute
+    public function setProductId($product_id)
     {
         $this->product_id = $product_id;
         return $this;
@@ -59,7 +59,7 @@ class ProductAttribute
     /**
      * @return string
      */
-    public function getKey(): string
+    public function getKey()
     {
         return $this->key;
     }
@@ -68,7 +68,7 @@ class ProductAttribute
      * @param string $key
      * @return ProductAttribute
      */
-    public function setKey(string $key): ProductAttribute
+    public function setKey($key)
     {
         $this->key = $key;
         return $this;
@@ -77,7 +77,7 @@ class ProductAttribute
     /**
      * @return string
      */
-    public function getValue(): string
+    public function getValue()
     {
         return $this->value;
     }
@@ -86,7 +86,7 @@ class ProductAttribute
      * @param string $value
      * @return ProductAttribute
      */
-    public function setValue(string $value): ProductAttribute
+    public function setValue($value)
     {
         $this->value = $value;
         return $this;
