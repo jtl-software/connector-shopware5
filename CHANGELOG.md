@@ -4,6 +4,7 @@
 - Added customer birthday property wawi exception workaround
 - Added customer order pull start date to payments
 - Added product attribute sw_image_config_ignores to configure product image assignments
+- Added product image titles via alt text
 - Removed deprecated method call
 
 2.0.15

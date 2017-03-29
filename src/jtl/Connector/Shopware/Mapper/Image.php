@@ -29,6 +29,8 @@ use \Shopware\Models\Article\Detail as DetailSW;
 use \Shopware\Models\Article\Article as ArticleSW;
 use \Symfony\Component\HttpFoundation\File\File;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 
 class Image extends DataMapper
 {
@@ -271,6 +273,9 @@ class Image extends DataMapper
                         LIMIT 1'
                     );
                 }
+                
+                // Save image title translations
+                $this->saveAltText($image, $imageSW);
 
                 // Save mapping and rule
                 if ($imageSW->getParent() !== null) {
@@ -575,20 +580,30 @@ class Image extends DataMapper
 
         $parentExists = false;
         $childImageSW = null;
-        //if ($productMapper->isChildSW($productSW, $detailSW)) {
-            $parentImageSW = $this->findParentImage($articleId, $image->getFilename());
-            if ($parentImageSW && $parentImageSW !== null) {
-                $imageSW = $parentImageSW;
-                $mediaSW = $parentImageSW->getMedia();
-                $parentExists = true;
-            }
-        //}
+        $parentImageSW = $this->findParentImage($articleId, $image->getFilename());
+        if ($parentImageSW && $parentImageSW !== null) {
+            $imageSW = $parentImageSW;
+            $mediaSW = $parentImageSW->getMedia();
+            $parentExists = true;
+        }
 
         if (!$parentExists) {
             $mediaSW = $this->getMedia($image, $file);
 
             // parent image
             $imageSW = $this->getParentImage($image, $mediaSW, $productSW, $detailSW);
+        }
+        
+        // Iamge alt text
+        if ($imageSW->getId() > 0) {
+            $translationUtil = new TranslationUtil();
+            $translationUtil->delete('articleimage', $imageSW->getId());
+        }
+        
+        foreach ($image->getI18ns() as $i18n) {
+            if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                $imageSW->setDescription($i18n->getAltText());
+            }
         }
 
         Logger::write(
@@ -1219,6 +1234,40 @@ class Image extends DataMapper
             );
         } catch (\Exception $e) {
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+        }
+    }
+    
+    /**
+     * @param ImageModel $image
+     * @param ArticleImageSW $imageSW
+     */
+    private function saveAltText(ImageModel $image, ArticleImageSW &$imageSW)
+    {
+        $translationUtil = new TranslationUtil();
+        $translationUtil->delete('articleimage', $imageSW->getId());
+        
+        $shopMapper = Mmc::getMapper('Shop');
+        foreach ($image->getI18ns() as $i18n) {
+            if (empty($i18n->getAltText())) {
+                continue;
+            }
+            
+            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $i18n->getLanguageISO()));
+                $shops = $shopMapper->findByLocale($locale->getLocale());
+                if ($shops !== null && is_array($shops) && count($shops) > 0) {
+                    foreach ($shops as $shop) {
+                        $translationUtil->write(
+                            $shop->getId(),
+                            'articleimage',
+                            $imageSW->getId(),
+                            array(
+                                'description' => $i18n->getAltText()
+                            )
+                        );
+                    }
+                }
+            }
         }
     }
 }
