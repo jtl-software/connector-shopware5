@@ -17,6 +17,7 @@ use \jtl\Connector\Model\Image as ImageModel;
 use \jtl\Connector\Shopware\Model\Image as ImageConModel;
 use \jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Model\Linker\Detail;
+use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\MediaService as MediaServiceUtil;
 use \Shopware\Models\Media\Media as MediaSW;
 use \Shopware\Models\Article\Image as ArticleImageSW;
@@ -1171,11 +1172,27 @@ class Image extends DataMapper
             $detailsSW = $builder->getQuery()->getResult();
 
             foreach ($detailsSW as $detailSW) {
+                
+                // Special image configuration ignores
+                $ignores_groups = [];
+                $group = Shopware()->Db()->fetchOne(
+                    'SELECT `value` FROM jtl_connector_product_attributes WHERE product_id = ? AND `key` = ?',
+                    array($detailSW->getArticleId(), ProductAttr::IMAGE_CONFIGURATION_IGNORES)
+                );
+    
+                if ($group !== false) {
+                    $ignores_groups = explode('|||', $group);
+                }
+                
                 $mappingSW = new MappingSW();
                 $mappingSW->setImage($parentSW);
 
                 $rules = [];
                 foreach ($detailSW->getConfiguratorOptions() as $optionSW) {
+                    if (is_array($ignores_groups) && count($ignores_groups) > 0 && in_array($optionSW->getGroup()->getName(), $ignores_groups)) {
+                        continue;
+                    }
+                    
                     $ruleSW = new RuleSW();
                     $ruleSW->setOption($optionSW);
                     $ruleSW->setMapping($mappingSW);

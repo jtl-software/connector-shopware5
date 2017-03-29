@@ -245,6 +245,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.0.12':
             case '2.0.13':
             case '2.0.14':
+            case '2.0.15':
+                $this->createSpecialProductAttributeTable();
                 break;
             default:
                 return false;
@@ -273,6 +275,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->createUnitTable();
         $this->createCategoryTable();
         $this->createCrossSellingGroupTable();
+        $this->createSpecialProductAttributeTable();
     }
 
     private function dropMappingTable()
@@ -297,6 +300,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_category`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_crosssellinggroup_i18n`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_crosssellinggroup`');
+        Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_product_attributes`');
         Shopware()->Db()->query('DROP TRIGGER IF EXISTS `jtl_connector_payment`');
     }
 
@@ -963,6 +967,24 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ALTER TABLE `jtl_connector_crossselling` ADD INDEX(`host_id`);
         ';
 
+        Shopware()->Db()->query($sql);
+    }
+    
+    private function createSpecialProductAttributeTable()
+    {
+        Logger::write('Create special product attribute table...', Logger::INFO, 'install');
+    
+        $sql = '
+            CREATE TABLE IF NOT EXISTS `jtl_connector_product_attributes` (
+              `product_id` int(11) unsigned NOT NULL,
+              `key` varchar(255) NOT NULL,
+              `value` varchar(255) NOT NULL,
+              PRIMARY KEY (`product_id`, `key`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+            ALTER TABLE `jtl_connector_product_attributes`
+            ADD CONSTRAINT `jtl_connector_product_attributes_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+        ';
+    
         Shopware()->Db()->query($sql);
     }
 
