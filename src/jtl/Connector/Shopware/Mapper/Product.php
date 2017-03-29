@@ -7,6 +7,7 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\Utilities\Money;
+use jtl\Connector\Shopware\Utilities\ProductAttribute;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Model\ProductVariation;
 use jtl\Connector\Shopware\Utilities\Mmc;
@@ -725,6 +726,12 @@ class Product extends DataMapper
             $this->Manager()->persist($attributeSW);
         }
     
+        // Image configuration ignores
+        if ($this->isParent($product)) {
+            $productAttribute = new ProductAttribute($productSW->getId());
+            $productAttribute->delete();
+        }
+    
         $attributes = [];
         $mappings = [];
         $attrMappings = [];
@@ -772,6 +779,20 @@ class Product extends DataMapper
                     // Pseudo sales
                     if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::PSEUDO_SALES)) {
                         $productSW->setPseudoSales((int) $attributeI18n->getValue());
+        
+                        continue;
+                    }
+                    
+                    // Image configuration ignores
+                    if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
+                        && $this->isParent($product)) {
+                        try {
+                            $productAttribute->setKey(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
+                                ->setValue($attributeI18n->getValue())
+                                ->save(false);
+                        } catch (\Exception $e) {
+                            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                        }
         
                         continue;
                     }

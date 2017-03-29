@@ -6,6 +6,9 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
+
 class Payment extends DataMapper
 {
     public function findOneBy(array $kv)
@@ -20,6 +23,18 @@ class Payment extends DataMapper
 
     public function findAllNative($limit = 100)
     {
+        // Customer Order pull start date
+        $where = '';
+        try {
+            $start_date = Application()->getConfig()->get('customer_order_pull_start_date', null);
+            if (!is_null($start_date)) {
+                $date_time = new \DateTime($start_date);
+                $where = sprintf(' AND o.orderTime >= \'%s\'', $date_time->format('Y-m-d H:i:s'));
+            }
+        } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
+        }
+        
         return Shopware()->Db()->fetchAssoc(
             'SELECT p.id, p.customerOrderId,
               p.billingInfo, p.creationDate, p.totalSum, p.transactionId, m.name as paymentModuleCode
@@ -28,6 +43,7 @@ class Payment extends DataMapper
             JOIN s_core_paymentmeans m ON m.id = o.paymentID
             LEFT JOIN jtl_connector_link_payment pl ON pl.payment_id = p.id
             WHERE pl.payment_id IS NULL
+            ' . $where . '
             limit ' . $limit
         );
     }
@@ -54,13 +70,25 @@ class Payment extends DataMapper
 
     public function fetchCount($limit = 100)
     {
+        // Customer Order pull start date
+        $where = '';
+        try {
+            $start_date = Application()->getConfig()->get('customer_order_pull_start_date', null);
+            if (!is_null($start_date)) {
+                $date_time = new \DateTime($start_date);
+                $where = sprintf(' AND o.orderTime >= \'%s\'', $date_time->format('Y-m-d H:i:s'));
+            }
+        } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
+        }
+        
         return (int) Shopware()->Db()->fetchOne(
             'SELECT count(*) as count
             FROM jtl_connector_payment p
             JOIN s_order o ON o.id = p.customerOrderId
             JOIN s_core_paymentmeans m ON m.id = o.paymentID
             LEFT JOIN jtl_connector_link_payment pl ON pl.payment_id = p.id
-            WHERE pl.payment_id IS NULL'
+            WHERE pl.payment_id IS NULL' . $where
         );
 
         //return $this->findAll($limit, true);

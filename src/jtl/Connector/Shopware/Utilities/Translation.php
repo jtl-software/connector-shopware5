@@ -17,15 +17,19 @@ class Translation extends \Shopware_Components_Translation
      * @return Zend_Db_Statement_Pdo
      * @throws Zend_Db_Adapter_Exception To re-throw PDOException.
      */
-    public function delete($type, $key, $language = 'all')
+    public function delete($type, $key = 0, $language = 'all')
     {
         $sql = 'DELETE FROM s_core_translations
-                WHERE objecttype = ?
-                    AND objectkey = ?';
+                WHERE objecttype = ?';
 
-        $arr = array($type, $key);
+        $arr = array($type);
+        
+        if ($key > 0) {
+            $sql .= ' AND objectkey = ?';
+            $arr[] = $key;
+        }
 
-        if ($language != 'all') {
+        if ($language !== 'all') {
             $sql .= ' AND objectlanguage = ?';
             $arr[] = $language;
         }

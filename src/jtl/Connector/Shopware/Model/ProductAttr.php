@@ -18,6 +18,7 @@ class ProductAttr extends ProductAttrModel
     const SHIPPING_FREE = 'ShippingFree';
     const SEND_NOTIFICATION = 'sw_send_notification';
     const PSEUDO_SALES = 'sw_pseudo_sales';
+    const IMAGE_CONFIGURATION_IGNORES = 'sw_image_config_ignores';
 
     protected $fields = array(
         'id' => 'id',
