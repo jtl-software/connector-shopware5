@@ -137,7 +137,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->fillCategoryTable();
         $this->fillPaymentTable();
         $this->fillCrossSellingGroupTable();
-
+        
         return array(
             'success' => true,
             'invalidateCache' => array('backend', 'proxy')

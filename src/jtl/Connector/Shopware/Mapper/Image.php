@@ -1254,8 +1254,6 @@ class Image extends DataMapper
      */
     private function saveAltText(ImageModel $image, ArticleImageSW &$imageSW)
     {
-        Logger::write('webwe', Logger::DEBUG, 'wewe');
-        
         $translationUtil = new TranslationUtil();
         $translationUtil->delete('articleimage', $imageSW->getId());
         
@@ -1264,20 +1262,13 @@ class Image extends DataMapper
             if (empty($i18n->getAltText())) {
                 continue;
             }
-    
-            Logger::write($i18n->getAltText(), Logger::DEBUG, 'wewe');
             
             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                 $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $i18n->getLanguageISO()));
                 $shops = $shopMapper->findByLocale($locale->getLocale());
                 
-                Logger::write($i18n->getLanguageISO(), Logger::DEBUG, 'wewe');
-                
                 if ($shops !== null && is_array($shops) && count($shops) > 0) {
                     foreach ($shops as $shop) {
-    
-                        Logger::write('jap', Logger::DEBUG, 'wewe');
-                        
                         $translationUtil->write(
                             $shop->getId(),
                             'articleimage',

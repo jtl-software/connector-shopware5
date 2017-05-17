@@ -1,3 +1,7 @@
+2.0.18 (unreleased)
+-------------------
+- Removed debug logging in image mapper
+
 2.0.17
 ------
 - Fixed minor product image titles translation bug
