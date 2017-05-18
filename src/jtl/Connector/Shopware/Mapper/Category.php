@@ -298,9 +298,9 @@ class Category extends DataMapper
                 $parentId = $categorySW->getParent()->getId();
             }
         }
-
+        
         // Try via name
-        if ($categorySW === null) {
+        if (is_null($categorySW)) {
             $name = null;
             foreach ($category->getI18ns() as $i18n) {
                 if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) === Shopware()->Shop()->getLocale()->getLocale()) {
@@ -309,17 +309,17 @@ class Category extends DataMapper
                 }
             }
 
-            if ($name !== null) {
+            if (!is_null($name)) {
                 $categorySW = $this->findByNameAndLevel($name, ($category->getLevel() + 1), $parentId);
             }
         }
-
-        if ($categorySW === null) {
+    
+        if (is_null($categorySW)) {
             $categorySW = new CategorySW;
         }
 
         $parentSW = null;
-        if ($parentId !== null) {
+        if (!is_null($parentId)) {
             $parentSW = $this->find((int) $parentId);
         } else {
             $parentSW = $this->findOneBy(array('parent' => null));
@@ -576,16 +576,20 @@ class Category extends DataMapper
             if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) !== Shopware()->Shop()->getLocale()->getLocale()) {
                 $categoryMappingSW = $this->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
 
-                if ($categoryMappingSW === null) {
+                if (is_null($categoryMappingSW)) {
                     $categoryMappingSW = new CategorySW();
-
-                    //$parentCategorySW = $categorySW->getParent();
+    
                     $parentCategorySW = null;
                     $parentCategoryMappingSW = $this->findCategoryMappingByParent($categorySW->getParent()->getId(), $i18n->getLanguageISO());
-                    if ($parentCategoryMappingSW !== null) {
+                    
+                    if (!is_null($parentCategoryMappingSW)) {
                         $parentCategorySW = $parentCategoryMappingSW;
                     } else {
-                        $parentCategorySW = $this->findOneBy(array('parent' => null));
+                        $rootCategorySW = $this->findOneBy(array('parent' => null));
+                        $parentCategorySW = $this->find($categorySW->getParent()->getId());
+                        if (is_null($parentCategorySW) || $rootCategorySW->getId() != $parentCategorySW->getId()) {
+                            continue;
+                        }
                     }
 
                     $categoryMappingSW->setParent($parentCategorySW);

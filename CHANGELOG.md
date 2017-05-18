@@ -1,5 +1,6 @@
 2.0.18 (unreleased)
 -------------------
+- Added category mapping check for missing data
 - Removed debug logging in image mapper
 
 2.0.17
