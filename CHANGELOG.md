@@ -1,6 +1,7 @@
 2.0.18 (unreleased)
 -------------------
 - Added category mapping check for missing data
+- Added feature product attributes must be storable in different languages regardless of other product informations
 - Removed debug logging in image mapper
 
 2.0.17
