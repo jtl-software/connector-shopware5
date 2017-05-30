@@ -3,6 +3,7 @@
 - Added category mapping check for missing data
 - Added feature product attributes must be storable in different languages regardless of other product informations
 - Removed debug logging in image mapper
+- Fixed category mapping missing image for languages
 
 2.0.17
 ------

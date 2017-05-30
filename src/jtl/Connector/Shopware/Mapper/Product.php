@@ -14,7 +14,6 @@ use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductChecksum;
 use jtl\Connector\Shopware\Utilities\VariationType;
-use Shopware\Components\Api\Exception as ApiException;
 use jtl\Connector\Core\Exception\DatabaseException;
 use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Core\Logger\Logger;
@@ -33,6 +32,7 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Linker\ChecksumLinker;
 use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
+use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 
 class Product extends DataMapper
 {
@@ -463,7 +463,7 @@ class Product extends DataMapper
                     if ($useMapping) {
                         foreach ($product->getI18ns() as $i18n) {
                             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()) && strlen($i18n->getName()) > 0) {
-                                $categoryMapping = $categoryMapper->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
+                                $categoryMapping = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
                                 if ($categoryMapping !== null) {
                                     $collection->add($categoryMapping);
                                 }

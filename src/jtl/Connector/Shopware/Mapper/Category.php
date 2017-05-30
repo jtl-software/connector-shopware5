@@ -8,13 +8,13 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Shopware\Model\CategoryAttr;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Model\Category as CategoryModel;
-use \jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Model\Category as CategoryModel;
+use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\Str;
-use \Shopware\Components\Api\Exception as ApiException;
-use \Shopware\Models\Category\Category as CategorySW;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use Shopware\Models\Category\Category as CategorySW;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 
 class Category extends DataMapper
 {
@@ -60,108 +60,6 @@ class Category extends DataMapper
         }
 
         return null;
-    }
-
-    /**
-     * @param integer $parentId
-     * @param string $iso
-     * @return Shopware\Models\Category\Category
-     */
-    public function findCategoryMappingByParent($parentId, $iso)
-    {
-        $categoryId = Shopware()->Db()->fetchOne(
-            'SELECT category_id FROM jtl_connector_category WHERE parent_id = ? AND lang = ?',
-            array($parentId, $iso)
-        );
-
-        return $this->find($categoryId);
-    }
-
-    /**
-     * @param integer $id
-     * @return Shopware\Models\Category\Category
-     */
-    public function findCategoryMapping($id)
-    {
-        $categoryId = Shopware()->Db()->fetchOne(
-            'SELECT category_id FROM jtl_connector_category WHERE category_id = ?',
-            array($id)
-        );
-
-        return $this->find($categoryId);
-    }
-
-    public function findAllCategoriesByMappingParent($parentId)
-    {
-        $result = array();
-
-        $categoryIds = Shopware()->Db()->fetchAll(
-            'SELECT category_id FROM jtl_connector_category WHERE parent_id = ?',
-            array($parentId)
-        );
-
-        foreach ($categoryIds as $categoryId) {
-            $categorySW = $this->find((int) $categoryId['category_id']);
-            if ($categorySW) {
-                $result[] = $categorySW;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param integer $parentId
-     * @return jtl\Connector\Shopware\Model\Linker\CategoryMapping[]
-     */
-    public function findAllCategoryMappingByParent($parentId)
-    {
-        /*
-        return Shopware()->Db()->fetchAssoc(
-            'SELECT * FROM jtl_connector_category WHERE parent_id = ?',
-            array($parentId)
-        );
-        */
-
-        $query = $this->Manager()->createQueryBuilder()->select(
-            'mapping',
-            'category',
-            'parent'
-        )
-            ->from('jtl\Connector\Shopware\Model\Linker\CategoryMapping', 'mapping')
-            ->join('mapping.category', 'category')
-            ->leftJoin('mapping.parent', 'parent')
-            ->where('mapping.parent = :parent')
-            ->setParameter('parent', $parentId)
-            //->getQuery()->getResult();
-            ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
-
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = false);
-
-        return iterator_to_array($paginator);
-    }
-
-    public function deleteCategoryMapping($parentId, $iso)
-    {
-        Shopware()->Db()->delete('jtl_connector_category', array(
-            'parent_id = ?' => $parentId,
-            'lang = ?' => $iso
-        ));
-    }
-
-    public function saveCategoryMapping($parentId, $iso, $id)
-    {
-        $this->deleteCategoryMapping($parentId, $iso);
-
-        $sql = '
-            INSERT IGNORE INTO jtl_connector_category
-            (
-                parent_id, lang, category_id
-            )
-            VALUES (?,?,?)
-        ';
-
-        Shopware()->Db()->query($sql, array($parentId, $iso, $id));
     }
 
     public function findAll($limit = 100, $count = false)
@@ -281,7 +179,7 @@ class Category extends DataMapper
 
     protected function deleteCategoryMappingData(CategoryModel $category)
     {
-        foreach ($this->findAllCategoriesByMappingParent($category->getId()->getEndpoint()) as $categorySW) {
+        foreach (CategoryMappingUtil::findAllCategoriesByMappingParent($category->getId()->getEndpoint()) as $categorySW) {
             $this->Manager()->remove($categorySW);
             $this->Manager()->flush($categorySW);
         }
@@ -574,13 +472,13 @@ class Category extends DataMapper
     {
         foreach ($category->getI18ns() as $i18n) {
             if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) !== Shopware()->Shop()->getLocale()->getLocale()) {
-                $categoryMappingSW = $this->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
+                $categoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
 
                 if (is_null($categoryMappingSW)) {
                     $categoryMappingSW = new CategorySW();
     
                     $parentCategorySW = null;
-                    $parentCategoryMappingSW = $this->findCategoryMappingByParent($categorySW->getParent()->getId(), $i18n->getLanguageISO());
+                    $parentCategoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getParent()->getId(), $i18n->getLanguageISO());
                     
                     if (!is_null($parentCategoryMappingSW)) {
                         $parentCategorySW = $parentCategoryMappingSW;
@@ -611,7 +509,7 @@ class Category extends DataMapper
                 $this->Manager()->persist($categoryMappingSW);
                 $this->Manager()->flush($categoryMappingSW);
 
-                $this->saveCategoryMapping($categorySW->getId(), $i18n->getLanguageISO(), $categoryMappingSW->getId());
+                CategoryMappingUtil::saveCategoryMapping($categorySW->getId(), $i18n->getLanguageISO(), $categoryMappingSW->getId());
             }
         }
     }
