@@ -14,7 +14,6 @@ use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Model\Product as ProductModel;
 use jtl\Connector\Model\ProductChecksum;
 use jtl\Connector\Shopware\Utilities\VariationType;
-use Shopware\Components\Api\Exception as ApiException;
 use jtl\Connector\Core\Exception\DatabaseException;
 use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Core\Logger\Logger;
@@ -33,6 +32,7 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Linker\ChecksumLinker;
 use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
+use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 
 class Product extends DataMapper
 {
@@ -463,7 +463,7 @@ class Product extends DataMapper
                     if ($useMapping) {
                         foreach ($product->getI18ns() as $i18n) {
                             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()) && strlen($i18n->getName()) > 0) {
-                                $categoryMapping = $categoryMapper->findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
+                                $categoryMapping = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
                                 if ($categoryMapping !== null) {
                                     $collection->add($categoryMapping);
                                 }
@@ -1063,18 +1063,20 @@ class Product extends DataMapper
         $shopMapper = Mmc::getMapper('Shop');
 
         // AttributeI18n
-        $attrI18ns = [];
+        $attrI18ns = array();
         foreach ($product->getAttributes() as $attr) {
             foreach ($attr->getI18ns() as $attrI18n) {
-                if ($attrI18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                    if (!isset($attrI18ns[$attrI18n->getLanguageISO()])) {
-                        $attrI18ns[$attrI18n->getLanguageISO()] = [];
-                    }
+                if ($attrI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    continue;
+                }
+                
+                if (!isset($attrI18ns[$attrI18n->getLanguageISO()])) {
+                    $attrI18ns[$attrI18n->getLanguageISO()] = array();
+                }
 
-                    if (($index = array_search($attr->getId()->getHost(), $attrMappings)) !== false) {
-                        $i = "__attribute_{$index}";
-                        $attrI18ns[$attrI18n->getLanguageISO()][$i] = $attrI18n->getValue();
-                    }
+                if (($index = array_search($attr->getId()->getHost(), $attrMappings)) !== false) {
+                    $i = "__attribute_{$index}";
+                    $attrI18ns[$attrI18n->getLanguageISO()][$i] = $attrI18n->getValue();
                 }
             }
         }
@@ -1082,96 +1084,151 @@ class Product extends DataMapper
         // ProductI18n
         $translationUtil = new TranslationUtil();
         $cache = array();
+        $exists = false;
         foreach ($product->getI18ns() as $i18n) {
             $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $i18n->getLanguageISO()));
 
-            if ($locale === null) {
+            if (is_null($locale)) {
                 Logger::write(sprintf('Could not find any locale for (%s)', $i18n->getLanguageISO()), Logger::WARNING, 'database');
 
                 continue;
             }
 
-            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                $shops = $shopMapper->findByLocale($locale->getLocale());
+            if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                continue;
+            }
+            
+            $shops = $shopMapper->findByLocale($locale->getLocale());
 
-                if ($shops !== null && is_array($shops) && count($shops) > 0) {
-                    $helper = ProductNameHelper::build($product, $i18n->getLanguageISO());
+            if (is_null($shops) || !is_array($shops) || count($shops) == 0) {
+                Logger::write(
+                    sprintf('Could not find any shop with locale (%s) and iso (%s)',
+                        $locale->getLocale(),
+                        $i18n->getLanguageISO()
+                    ), Logger::WARNING, 'database');
+    
+                continue;
+            }
+            
+            $helper = ProductNameHelper::build($product, $i18n->getLanguageISO());
 
-                    foreach ($shops as $shop) {
-                        $cache[$shop->getId()] = array(
-                            'name' => $helper->getProductName(),
-                            'descriptionLong' => $i18n->getDescription(),
-                            'metaTitle' => $i18n->getTitleTag(),
-                            'description' => $i18n->getMetaDescription(),
-                            'keywords' => $i18n->getMetaKeywords(),
-                            'packUnit' => ''
-                        );
+            foreach ($shops as $shop) {
+                $cache[$shop->getId()] = array(
+                    'name' => $helper->getProductName(),
+                    'descriptionLong' => $i18n->getDescription(),
+                    'metaTitle' => $i18n->getTitleTag(),
+                    'description' => $i18n->getMetaDescription(),
+                    'keywords' => $i18n->getMetaKeywords(),
+                    'packUnit' => ''
+                );
 
-                        if (isset($attrI18ns[$i18n->getLanguageISO()])) {
-                            $cache[$shop->getId()] = array_merge($cache[$shop->getId()], $attrI18ns[$i18n->getLanguageISO()]);
-                        }
+                if (isset($attrI18ns[$i18n->getLanguageISO()])) {
+                    $cache[$shop->getId()] = array_merge($cache[$shop->getId()], $attrI18ns[$i18n->getLanguageISO()]);
+                }
 
-                        $translationUtil->write(
-                            $shop->getId(),
-                            'article',
-                            $productSW->getId(),
-                            $cache[$shop->getId()]
-                        );
-                    }
-                } else {
-                    Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $i18n->getLanguageISO()), Logger::WARNING, 'database');
-
+                $translationUtil->write(
+                    $shop->getId(),
+                    'article',
+                    $productSW->getId(),
+                    $cache[$shop->getId()]
+                );
+    
+                $exists = true;
+            }
+        }
+        
+        // AttributeI18n if product has no language infos
+        if (!$exists) {
+            foreach ($attrI18ns as $language_iso => $attrI18nss) {
+                $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $language_iso));
+    
+                if (is_null($locale)) {
+                    Logger::write(sprintf('Could not find any locale for (%s)', $language_iso), Logger::WARNING, 'database');
+        
                     continue;
+                }
+                
+                $shops = $shopMapper->findByLocale($locale->getLocale());
+    
+                if (is_null($shops) || !is_array($shops) || count($shops) == 0) {
+                    Logger::write(
+                        sprintf('Could not find any shop with locale (%s) and iso (%s)',
+                            $locale->getLocale(),
+                            $language_iso
+                        ), Logger::WARNING, 'database');
+        
+                    continue;
+                }
+    
+                foreach ($shops as $shop) {
+                    $cache[$shop->getId()] = $attrI18nss;
+    
+                    $translationUtil->write(
+                        $shop->getId(),
+                        'article',
+                        $productSW->getId(),
+                        $cache[$shop->getId()]
+                    );
                 }
             }
         }
 
         // Unit
-        if ($product->getUnitId()->getHost() > 0) {
-            $unitMapper = Mmc::getMapper('Unit');
-            $unitSW = $unitMapper->findOneBy(array('hostId' => $product->getUnitId()->getHost()));
-            if ($unitSW !== null) {
-                foreach ($unitSW->getI18ns() as $unitI18n) {
-                    if ($unitI18n->getLanguageIso() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                        $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $unitI18n->getLanguageIso()));
+        if ($product->getUnitId()->getHost() == 0) {
+            return;
+        }
+        
+        $unitMapper = Mmc::getMapper('Unit');
+        $unitSW = $unitMapper->findOneBy(array('hostId' => $product->getUnitId()->getHost()));
+        if (is_null($unitSW)) {
+            return;
+        }
+        
+        foreach ($unitSW->getI18ns() as $unitI18n) {
+            if ($unitI18n->getLanguageIso() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                continue;
+            }
+            
+            $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $unitI18n->getLanguageIso()));
 
-                        if ($locale === null) {
-                            Logger::write(sprintf('Could not find any locale for (%s)', $unitI18n->getLanguageIso()), Logger::WARNING, 'database');
+            if (is_null($locale)) {
+                Logger::write(sprintf('Could not find any locale for (%s)', $unitI18n->getLanguageIso()), Logger::WARNING, 'database');
 
-                            continue;
-                        }
+                continue;
+            }
 
-                        $shops = $shopMapper->findByLocale($locale->getLocale());
-
-                        if ($shops !== null && is_array($shops) && count($shops) > 0) {
-                            foreach ($shops as $shop) {
-                                $data = array();
-                                if (array_key_exists($shop->getId(), $cache)) {
-                                    $data = $cache[$shop->getId()];
-                                } else {
-                                    $data = $translationUtil->read(
-                                        $shop->getId(),
-                                        'article',
-                                        $productSW->getId()
-                                    );
-                                }
-
-                                $data['packUnit'] = $unitI18n->getName();
-
-                                $translationUtil->write(
-                                    $shop->getId(),
-                                    'article',
-                                    $productSW->getId(),
-                                    $data
-                                );
-                            }
-                        } else {
-                            Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $unitI18n->getLanguageISO()), Logger::WARNING, 'database');
-
-                            continue;
-                        }
-                    }
+            $shops = $shopMapper->findByLocale($locale->getLocale());
+    
+            if (is_null($shops) || !is_array($shops) || count($shops) == 0) {
+                Logger::write(
+                    sprintf('Could not find any shop with locale (%s) and iso (%s)',
+                        $locale->getLocale(),
+                        $unitI18n->getLanguageIso()
+                    ), Logger::WARNING, 'database');
+        
+                continue;
+            }
+            
+            foreach ($shops as $shop) {
+                $data = array();
+                if (array_key_exists($shop->getId(), $cache)) {
+                    $data = $cache[$shop->getId()];
+                } else {
+                    $data = $translationUtil->read(
+                        $shop->getId(),
+                        'article',
+                        $productSW->getId()
+                    );
                 }
+
+                $data['packUnit'] = $unitI18n->getName();
+
+                $translationUtil->write(
+                    $shop->getId(),
+                    'article',
+                    $productSW->getId(),
+                    $data
+                );
             }
         }
     }

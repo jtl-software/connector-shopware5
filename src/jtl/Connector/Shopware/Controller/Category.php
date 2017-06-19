@@ -8,6 +8,7 @@ namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Result\Action;
 use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use Shopware\Models\Category\Category as CategoryShopware;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Core\Utilities\DataConverter;
@@ -143,7 +144,7 @@ class Category extends DataController
 
                     // Other languages
                     if (Application()->getConfig()->get('category_mapping')) {
-                        $mappings = $mapper->findAllCategoryMappingByParent($category->getId()->getEndpoint());
+                        $mappings = CategoryMappingUtil::findAllCategoryMappingByParent($category->getId()->getEndpoint());
                         foreach ($mappings as $mapping) {
                             $mapping['category']['id'] = $category->getId()->getEndpoint();
                             $mapping['category']['localeName'] = LanguageUtil::map(null, null, $mapping['lang']);

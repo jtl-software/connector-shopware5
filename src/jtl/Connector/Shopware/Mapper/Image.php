@@ -32,6 +32,7 @@ use \Symfony\Component\HttpFoundation\File\File;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 
 class Image extends DataMapper
 {
@@ -972,18 +973,29 @@ class Image extends DataMapper
 
     protected function prepareCategoryImageAssociateData(ImageModel &$image, MediaSW &$mediaSW, ArticleImageSW &$imageSW = null)
     {
-        $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? (int) $image->getForeignKey()->getEndpoint() : null;
+        $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ?
+            (int) $image->getForeignKey()->getEndpoint() : null;
 
-        if ($foreignId !== null) {
-            $imageSW = $this->Manager()->getRepository('Shopware\Models\Category\Category')->find((int) $foreignId);
-        } else {
+        if (is_null($foreignId)) {
             throw new \Exception('Category foreign key cannot be null');
         }
+    
+        $imageSW = $this->Manager()->getRepository('Shopware\Models\Category\Category')->find((int) $foreignId);
 
-        if ($imageSW === null) {
+        if (is_null($imageSW)) {
             throw new \Exception(sprintf('Cannot find category with id (%s)', $foreignId));
         }
 
+        // Special category mapping
+        if (Application()->getConfig()->get('category_mapping')) {
+            $categorySWs = CategoryMappingUtil::findAllCategoriesByMappingParent((int) $foreignId);
+            foreach ($categorySWs as $categorySW) {
+                $categorySW->setMedia($mediaSW);
+    
+                $this->Manager()->persist($categorySW);
+            }
+        }
+        
         $imageSW->setMedia($mediaSW);
     }
 
@@ -1254,8 +1266,6 @@ class Image extends DataMapper
      */
     private function saveAltText(ImageModel $image, ArticleImageSW &$imageSW)
     {
-        Logger::write('webwe', Logger::DEBUG, 'wewe');
-        
         $translationUtil = new TranslationUtil();
         $translationUtil->delete('articleimage', $imageSW->getId());
         
@@ -1264,20 +1274,13 @@ class Image extends DataMapper
             if (empty($i18n->getAltText())) {
                 continue;
             }
-    
-            Logger::write($i18n->getAltText(), Logger::DEBUG, 'wewe');
             
             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                 $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $i18n->getLanguageISO()));
                 $shops = $shopMapper->findByLocale($locale->getLocale());
                 
-                Logger::write($i18n->getLanguageISO(), Logger::DEBUG, 'wewe');
-                
                 if ($shops !== null && is_array($shops) && count($shops) > 0) {
                     foreach ($shops as $shop) {
-    
-                        Logger::write('jap', Logger::DEBUG, 'wewe');
-                        
                         $translationUtil->write(
                             $shop->getId(),
                             'articleimage',

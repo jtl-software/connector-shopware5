@@ -31,7 +31,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '2.0.17';
+        return '2.0.18';
     }
 
     public function getInfo()
@@ -137,7 +137,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->fillCategoryTable();
         $this->fillPaymentTable();
         $this->fillCrossSellingGroupTable();
-
+        
         return array(
             'success' => true,
             'invalidateCache' => array('backend', 'proxy')
@@ -248,6 +248,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.0.15':
                 $this->createSpecialProductAttributeTable();
             case '2.0.16':
+            case '2.0.17':
                 break;
             default:
                 return false;
