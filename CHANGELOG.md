@@ -1,3 +1,7 @@
+2.0.19 (unreleased)
+-------------------
+- Shopware 5.3 preparations
+
 2.0.18
 ------
 - Added category mapping check for missing data
