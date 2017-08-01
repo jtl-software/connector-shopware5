@@ -1,3 +1,7 @@
+2.1.1 (unreleased)
+------------------
+- CO-92 Fixed supplier delivery time
+
 2.1
 ---
 - Shopware 5.3 support
