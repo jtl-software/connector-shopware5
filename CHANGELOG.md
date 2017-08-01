@@ -1,6 +1,7 @@
-2.0.19 (unreleased)
--------------------
-- Shopware 5.3 preparations
+2.1
+---
+- Shopware 5.3 support
+- Added connector core log control
 
 2.0.18
 ------
