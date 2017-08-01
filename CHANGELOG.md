@@ -1,3 +1,8 @@
+2.1
+---
+- Shopware 5.3 support
+- Added connector core log control
+
 2.0.18
 ------
 - Added category mapping check for missing data

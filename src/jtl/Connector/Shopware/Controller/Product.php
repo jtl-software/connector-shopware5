@@ -284,56 +284,58 @@ class Product extends DataController
         }
 
         // Attributes
-        $exclusives = ['id', 'articleId', 'articleDetailId'];
-        //for ($i = 1; $i <= 20; $i++) {
-        $i = 1;
-        foreach ($data['attribute'] as $key => $value) {
-            if (in_array($key, $exclusives)) {
-                continue;
-            }
+        if (isset($data['attribute']) && !is_null($data['attribute'])) {
+            $exclusives = ['id', 'articleId', 'articleDetailId'];
+            $i = 1;
             
-            //if (isset($data['attribute']["attr{$i}"]) && strlen($data['attribute']["attr{$i}"]) > 0) {
-            if (!is_null($value) && !empty($value)) {
-                $attrId = IdConcatenator::link(array($data['attribute']['id'], $i));
-
-                $productAttr = Mmc::getModel('ProductAttr');
-                $productAttr->map(true, DataConverter::toObject($data['attribute']));
-                $productAttr->setId(new Identity($attrId))
-                    ->setProductId($product->getId());
-
-                $productAttrI18n = Mmc::getModel('ProductAttrI18n');
-                $productAttrI18n->map(true, DataConverter::toObject($data['attribute'], true));
-                $productAttrI18n->setProductAttrId($productAttr->getId());
-                //$productAttrI18n->setName("attr{$i}")
-                $productAttrI18n->setName($key)
-                    //->setValue($data['attribute']["attr{$i}"]);
-                    ->setValue((string) $value);
-    
-                $productAttr->addI18n($productAttrI18n);
-                
-                // Attribute Translation
-                if (isset($data['translations'])) {
-                    foreach ($data['translations'] as $localeName => $translation) {
-                        $index = sprintf('__attribute_%s', $key);
-                        if (!isset($translation[$index])) {
-                            continue;
-                        }
-    
-                        $productAttrI18n = Mmc::getModel('ProductAttrI18n');
-                        $productAttrI18n->setProductAttrId($productAttr->getId())
-                            ->setLanguageISO(LanguageUtil::map($localeName))
-                            ->setName($key)
-                            ->setValue((string) $translation[$index]);
-    
-                        $productAttr->addI18n($productAttrI18n);
-                        $productAttr->setIsTranslated(true);
-                    }
+            foreach ($data['attribute'] as $key => $value) {
+                if (in_array($key, $exclusives)) {
+                    continue;
                 }
-                
-                $product->addAttribute($productAttr);
+        
+                //if (isset($data['attribute']["attr{$i}"]) && strlen($data['attribute']["attr{$i}"]) > 0) {
+                if (!is_null($value) && !empty($value)) {
+                    $attrId = IdConcatenator::link(array($data['attribute']['id'], $i));
+            
+                    $productAttr = Mmc::getModel('ProductAttr');
+                    $productAttr->map(true, DataConverter::toObject($data['attribute']));
+                    $productAttr->setId(new Identity($attrId))
+                        ->setProductId($product->getId());
+            
+                    $productAttrI18n = Mmc::getModel('ProductAttrI18n');
+                    $productAttrI18n->map(true, DataConverter::toObject($data['attribute'], true));
+                    $productAttrI18n->setProductAttrId($productAttr->getId());
+                    //$productAttrI18n->setName("attr{$i}")
+                    $productAttrI18n->setName($key)
+                        //->setValue($data['attribute']["attr{$i}"]);
+                        ->setValue((string)$value);
+            
+                    $productAttr->addI18n($productAttrI18n);
+            
+                    // Attribute Translation
+                    if (isset($data['translations'])) {
+                        foreach ($data['translations'] as $localeName => $translation) {
+                            $index = sprintf('__attribute_%s', $key);
+                            if (!isset($translation[$index])) {
+                                continue;
+                            }
+                    
+                            $productAttrI18n = Mmc::getModel('ProductAttrI18n');
+                            $productAttrI18n->setProductAttrId($productAttr->getId())
+                                ->setLanguageISO(LanguageUtil::map($localeName))
+                                ->setName($key)
+                                ->setValue((string) $translation[$index]);
+                    
+                            $productAttr->addI18n($productAttrI18n);
+                            $productAttr->setIsTranslated(true);
+                        }
+                    }
+            
+                    $product->addAttribute($productAttr);
+                }
+        
+                $i++;
             }
-    
-            $i++;
         }
 
         // ProductInvisibility

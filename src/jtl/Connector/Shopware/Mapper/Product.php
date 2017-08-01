@@ -152,6 +152,7 @@ class Product extends DataMapper
         return [];
         */
 
+        /** @var \Doctrine\ORM\Query $query */
         $query = $this->Manager()->createQueryBuilder()->select(
             'detail',
             'article',
@@ -181,7 +182,8 @@ class Product extends DataMapper
             ->leftJoin('article.mainDetail', 'maindetail')
             ->leftJoin('maindetail.prices', 'prices')
             ->leftJoin('article.links', 'links')
-            ->leftJoin('article.attribute', 'attribute', \Doctrine\ORM\Query\Expr\Join::WITH, 'attribute.articleDetailId = detail.id')
+            //->leftJoin('article.attribute', 'attribute', \Doctrine\ORM\Query\Expr\Join::WITH, 'attribute.articleDetailId = detail.id')
+            ->leftJoin('detail.attribute', 'attribute')
             ->leftJoin('article.downloads', 'downloads')
             ->leftJoin('article.supplier', 'supplier')
             ->leftJoin('article.priceGroup', 'pricegroup')
