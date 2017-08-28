@@ -58,6 +58,9 @@ class CustomerOrder extends DataController
             // Check if PayPal Plus installment is installed
             $usePPPInstallment = PaymentUtil::usePPPInstallment();
     
+            // Check if Heidelpay invoice is installed
+            $useHeidelpayInvoice = PaymentUtil::useHeidelpayInvoice();
+    
             foreach ($orders as $orderSW) {
                 try {
                     // CustomerOrders
@@ -80,6 +83,11 @@ class CustomerOrder extends DataController
                     // Paypal Plus installment
                     if ($usePPPInstallment) {
                         $this->addPayPalPlusInstallment($paymentModuleCode, $orderSW, $order);
+                    }
+                    
+                    // Heidelpay invoice
+                    if ($useHeidelpayInvoice) {
+                        $this->addHeidelpayInvoice($paymentModuleCode, $orderSW, $order);
                     }
 
                     // CustomerOrderStatus
@@ -357,6 +365,20 @@ class CustomerOrder extends DataController
                 ))
                     ->setPaymentModuleCode(PaymentTypes::TYPE_PAYPAL_PLUS);
             }
+        }
+    }
+    
+    /**
+     * @param $paymentModuleCode
+     * @param array $orderSW
+     * @param CustomerOrderModel $order
+     */
+    protected function addHeidelpayInvoice($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
+    {
+        if ($paymentModuleCode === PaymentTypes::TYPE_HEIDELPAY) {
+            
+            // Invoice
+            $order->setPui(html_entity_decode(strip_tags($orderSW['comment'])));
         }
     }
 

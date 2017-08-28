@@ -1,6 +1,7 @@
 2.1.1 (unreleased)
 ------------------
 - CO-92 Fixed supplier delivery time
+- CO-99 Added Heidelpay invoice support
 
 2.1
 ---
