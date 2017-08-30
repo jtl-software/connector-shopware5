@@ -2,6 +2,7 @@
 ------------------
 - CO-92 Fixed supplier delivery time
 - CO-99 Added Heidelpay invoice support
+- CO-101 Added wawi float to shopware integer instock conversion
 
 2.1
 ---

@@ -57,7 +57,7 @@ final class Payment
     }
     
     /**
-     * Check if Heidelpay installment is installed
+     * Check if Heidelpay invoice is installed
      * @return bool
      */
     public static function useHeidelpayInvoice()

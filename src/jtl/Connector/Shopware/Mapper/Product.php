@@ -636,7 +636,7 @@ class Product extends DataMapper
             ->setStockMin(0)
             ->setPosition($product->getSort())
             ->setWeight($product->getProductWeight())
-            ->setInStock($product->getStockLevel()->getStockLevel())
+            ->setInStock(floor($product->getStockLevel()->getStockLevel()))
             ->setStockMin($product->getMinimumQuantity())
             ->setMinPurchase($product->getMinimumOrderQuantity())
             ->setReleaseDate($product->getAvailableFrom())
