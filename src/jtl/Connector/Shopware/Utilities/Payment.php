@@ -17,7 +17,8 @@ final class Payment
         PaymentTypes::TYPE_PREPAYMENT => 'prepayment',
         PaymentTypes::TYPE_PAYPAL_EXPRESS => 'paypal',
         PaymentTypes::TYPE_SOFORT => 'sofortbanking',
-        PaymentTypes::TYPE_BILLSAFE => 'billsafe_invoice'
+        PaymentTypes::TYPE_BILLSAFE => 'billsafe_invoice',
+        PaymentTypes::TYPE_HEIDELPAY => 'hgw_iv'
     );
 
     public static function map($paymentModuleCode = null, $swCode = null)
@@ -52,6 +53,17 @@ final class Payment
     {
         $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_paypal_installments_financing\'');
         
+        return is_array($mysql_result) && count($mysql_result) > 0;
+    }
+    
+    /**
+     * Check if Heidelpay invoice is installed
+     * @return bool
+     */
+    public static function useHeidelpayInvoice()
+    {
+        $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_hgw_transactions\'');
+    
         return is_array($mysql_result) && count($mysql_result) > 0;
     }
 }

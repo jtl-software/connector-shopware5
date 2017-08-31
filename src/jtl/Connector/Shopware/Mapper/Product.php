@@ -636,7 +636,7 @@ class Product extends DataMapper
             ->setStockMin(0)
             ->setPosition($product->getSort())
             ->setWeight($product->getProductWeight())
-            ->setInStock($product->getStockLevel()->getStockLevel())
+            ->setInStock(floor($product->getStockLevel()->getStockLevel()))
             ->setStockMin($product->getMinimumQuantity())
             ->setMinPurchase($product->getMinimumOrderQuantity())
             ->setReleaseDate($product->getAvailableFrom())
@@ -648,17 +648,20 @@ class Product extends DataMapper
         $detailSW->setHeight($product->getHeight());
 
         // Delivery time
-        if ($product->getSupplierDeliveryTime() > 0) {
-            $detailSW->setShippingTime($product->getSupplierDeliveryTime());
-        } else {
-            foreach ($product->getI18ns() as $i18n) {
-                if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                    $days = trim(str_replace(['Tage', 'Days', 'Tag', 'Day'], '', $i18n->getDeliveryStatus()));
-                    if (strlen($days) > 0 && $days !== '0') {
-                        $detailSW->setShippingTime($days);
-                    }
+        $exists = false;
+        foreach ($product->getI18ns() as $i18n) {
+            if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                $days = trim(str_replace(['Tage', 'Days', 'Tag', 'Day'], '', $i18n->getDeliveryStatus()));
+                if (strlen($days) > 0 && $days !== '0') {
+                    $detailSW->setShippingTime($days);
+                    $exists = true;
+                    break;
                 }
             }
+        }
+        
+        if (!$exists) {
+            $detailSW->setShippingTime($product->getSupplierDeliveryTime());
         }
 
         // Base Price

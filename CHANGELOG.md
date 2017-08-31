@@ -1,3 +1,10 @@
+2.1.1
+-----
+- CO-92 Fixed supplier delivery time
+- CO-99 Added Heidelpay invoice support
+- CO-101 Added wawi float to shopware integer instock conversion
+- CO-103 Added missing customer push validation
+
 2.1
 ---
 - Shopware 5.3 support
