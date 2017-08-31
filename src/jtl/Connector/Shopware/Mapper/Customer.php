@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Model\Customer as CustomerModel;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\Identity;
@@ -83,23 +84,31 @@ class Customer extends DataMapper
         $billingSW = null;
         $result = new CustomerModel;
 
-        $this->prepareCustomerAssociatedData($customer, $customerSW, $billingSW);        
-        $this->prepareCustomerGroupAssociatedData($customer, $customerSW);
-
-        $violations = $this->Manager()->validate($customerSW);
-        if ($violations->count() > 0) {
-            throw new ApiException\ValidationException($violations);
+        try {
+            $this->prepareCustomerAssociatedData($customer, $customerSW, $billingSW);
+            $this->prepareCustomerGroupAssociatedData($customer, $customerSW);
+    
+            $violations = $this->Manager()->validate($customerSW);
+            if ($violations->count() > 0) {
+                throw new ApiException\ValidationException($violations);
+            }
+    
+            $this->prepareBillingAssociatedData($customer, $customerSW, $billingSW);
+    
+            $this->Manager()->persist($customerSW);
+            $this->Manager()->persist($billingSW);
+            $this->flush();
+        } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
 
-        $this->prepareBillingAssociatedData($customer, $customerSW, $billingSW);
-
-        $this->Manager()->persist($customerSW);
-        $this->Manager()->persist($billingSW);
-        $this->flush();
-
         // Result
-        $result->setId(new Identity($customerSW->getId(), $customer->getId()->getHost()));
+        $result->setId(new Identity('', $customer->getId()->getHost()));
 
+        if (!is_null($customerSW)) {
+            $result->getId()->setEndpoint($customerSW->getId());
+        }
+        
         return $result;
     }
 
@@ -132,9 +141,17 @@ class Customer extends DataMapper
         if (!is_null($customerSW)) {
             $billingSW = $this->Manager()->getRepository('Shopware\Models\Customer\Billing')->findOneBy(array('customerId' => $customerId));
         }
-    
+        
         if (is_null($customerSW)) {
-            $customerSW = new CustomerSW;
+            throw new \Exception(sprintf(
+                'Customer (E-Mail: %s | HostId: %s) could not be found',
+                $customer->getEMail(),
+                $customer->getId()->getHost()
+            ));
+        }
+    
+        if (is_null($billingSW)) {
+            $billingSW = new BillingSW;
         }
 
         $shopMapper = Mmc::getMapper('Shop');
