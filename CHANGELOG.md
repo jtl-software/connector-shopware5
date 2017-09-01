@@ -1,3 +1,7 @@
+2.1.2 (unreleased)
+------------------
+- CO-99 Added Heidelpay invoice fallback
+
 2.1.1
 -----
 - CO-92 Fixed supplier delivery time
