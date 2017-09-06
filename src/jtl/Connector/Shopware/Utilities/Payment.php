@@ -18,7 +18,8 @@ final class Payment
         PaymentTypes::TYPE_PAYPAL_EXPRESS => 'paypal',
         PaymentTypes::TYPE_SOFORT => 'sofortbanking',
         PaymentTypes::TYPE_BILLSAFE => 'billsafe_invoice',
-        PaymentTypes::TYPE_HEIDELPAY => 'hgw_iv'
+        PaymentTypes::TYPE_HEIDELPAY => 'hgw_iv',
+        PaymentTypes::TYPE_HEIDELPAY => 'hgw_papg'
     );
 
     public static function map($paymentModuleCode = null, $swCode = null)

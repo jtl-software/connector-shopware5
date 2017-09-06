@@ -1,3 +1,9 @@
+2.1.2
+-----
+- CO-99 Added Heidelpay invoice fallback
+- CO-106 Added product sku fallback detection
+- CO-107 Removed customer order attribute limit
+
 2.1.1
 -----
 - CO-92 Fixed supplier delivery time

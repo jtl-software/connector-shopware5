@@ -365,23 +365,23 @@ class Product extends DataMapper
         $productId = (strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
         $masterProductId = (strlen($product->getMasterProductId()->getEndpoint()) > 0) ? $product->getMasterProductId()->getEndpoint() : null;
 
-        if ($masterProductId === null) {
+        if (is_null($masterProductId)) {
             throw new \Exception('Master product id is empty');
         }
 
         list($detailId, $id) = IdConcatenator::unlink($masterProductId);
         $productSW = $this->find($id);
-        if ($productSW === null) {
+        if (is_null($productSW)) {
             throw new \Exception(sprintf('Cannot find parent product with id (%s)', $masterProductId));
         }
 
-        if ($productId !== null) {
+        if (!is_null($productId)) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
             $detailSW = $this->findDetail((int) $detailId);
-
-            if ($detailSW === null && strlen($product->getSku()) > 0) {
-                $detailSW = Shopware()->Models()->getRepository('Shopware\Models\Article\Detail')->findOneBy(array('number' => $product->getSku()));
-            }
+        }
+    
+        if (is_null($detailSW) && strlen($product->getSku()) > 0) {
+            $detailSW = Shopware()->Models()->getRepository('Shopware\Models\Article\Detail')->findOneBy(array('number' => $product->getSku()));
         }
     }
 

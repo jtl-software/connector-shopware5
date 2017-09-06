@@ -199,8 +199,30 @@ class CustomerOrder extends DataController
                         ->setVat(self::calcShippingVat($order));
 
                     $order->addItem($item);
-
+                    
                     // Attributes
+                    if (isset($orderSW['attribute']) && !is_null($orderSW['attribute'])) {
+                        $excludes = ['id', 'orderId'];
+                        
+                        foreach ($orderSW['attribute'] as $key => $value) {
+                            if (in_array($key, $excludes)) {
+                                continue;
+                            }
+    
+                            if (is_null($value) || empty($value)) {
+                                continue;
+                            }
+    
+                            $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
+                            $customerOrderAttr->map(true, DataConverter::toObject($orderSW['attribute']));
+                            $customerOrderAttr->setKey($key)
+                                ->setValue((string) $value);
+    
+                            $order->addAttribute($customerOrderAttr);
+                        }
+                    }
+                    
+                    /*
                     for ($i = 1; $i <= 6; $i++) {
                         if (isset($orderSW['attribute']["attribute{$i}"]) && strlen($orderSW['attribute']["attribute{$i}"]) > 0) {
                             $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
@@ -211,6 +233,7 @@ class CustomerOrder extends DataController
                             $order->addAttribute($customerOrderAttr);
                         }
                     }
+                    */
 
                     // Payment Data
                     if (isset($orderSW['customer']['paymentData']) && is_array($orderSW['customer']['paymentData'])) {
@@ -378,7 +401,24 @@ class CustomerOrder extends DataController
         if ($paymentModuleCode === PaymentTypes::TYPE_HEIDELPAY) {
             
             // Invoice
-            $order->setPui(html_entity_decode(strip_tags($orderSW['comment'])));
+            if (strlen(strip_tags($orderSW['comment'])) > 10) {
+                $order->setPui(html_entity_decode(strip_tags($orderSW['comment'])));
+            } else { // Fallback
+                $shortid = Shopware()->Db()->fetchOne('SELECT shortid FROM s_plugin_hgw_transactions WHERE transactionid = ?', [
+                    $orderSW['transactionId']
+                ]);
+                
+                if (empty($shortid) || is_null($shortid)) {
+                    return;
+                }
+                
+                $order->setPui(sprintf(
+                    'Bitte überweisen Sie uns den Betrag von %s %s auf folgendes Konto: Kontoinhaber: Heidelberger Payment GmbH Konto-Nr.: 5320130 Bankleitzahl: 37040044 IBAN: DE89370400440532013000 BIC: COBADEFFXXX Geben Sie als Verwendungszweck bitte ausschließlich diese Identifikationsnummer an: %s',
+                    number_format((float) $orderSW['invoiceAmount'], 2),
+                    $order->getCurrencyIso(),
+                    $shortid
+                ));
+            }
         }
     }
 
