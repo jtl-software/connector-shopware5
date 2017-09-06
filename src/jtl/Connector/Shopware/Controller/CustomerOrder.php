@@ -199,8 +199,30 @@ class CustomerOrder extends DataController
                         ->setVat(self::calcShippingVat($order));
 
                     $order->addItem($item);
-
+                    
                     // Attributes
+                    if (isset($orderSW['attribute']) && !is_null($orderSW['attribute'])) {
+                        $excludes = ['id', 'orderId'];
+                        
+                        foreach ($orderSW['attribute'] as $key => $value) {
+                            if (in_array($key, $excludes)) {
+                                continue;
+                            }
+    
+                            if (is_null($value) || empty($value)) {
+                                continue;
+                            }
+    
+                            $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
+                            $customerOrderAttr->map(true, DataConverter::toObject($orderSW['attribute']));
+                            $customerOrderAttr->setKey($key)
+                                ->setValue((string) $value);
+    
+                            $order->addAttribute($customerOrderAttr);
+                        }
+                    }
+                    
+                    /*
                     for ($i = 1; $i <= 6; $i++) {
                         if (isset($orderSW['attribute']["attribute{$i}"]) && strlen($orderSW['attribute']["attribute{$i}"]) > 0) {
                             $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
@@ -211,6 +233,7 @@ class CustomerOrder extends DataController
                             $order->addAttribute($customerOrderAttr);
                         }
                     }
+                    */
 
                     // Payment Data
                     if (isset($orderSW['customer']['paymentData']) && is_array($orderSW['customer']['paymentData'])) {

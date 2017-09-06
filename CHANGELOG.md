@@ -1,6 +1,8 @@
 2.1.2 (unreleased)
 ------------------
 - CO-99 Added Heidelpay invoice fallback
+- CO-106 Added product sku fallback detection
+- CO-107 Removed customer order attribute limit
 
 2.1.1
 -----
