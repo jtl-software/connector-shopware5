@@ -1,3 +1,7 @@
+2.1.3 (unreleased)
+------------------
+- CO-120 Added customer note property
+
 2.1.2
 -----
 - CO-99 Added Heidelpay invoice fallback
