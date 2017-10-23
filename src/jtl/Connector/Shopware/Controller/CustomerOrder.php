@@ -259,6 +259,13 @@ class CustomerOrder extends DataController
 
                         $order->setPaymentInfo($customerOrderPaymentInfo);
                     }
+                    
+                    // Update order status
+                    $value = Application()->getConfig()->get('customer_order_processing_after_pull');
+                    if (is_null($value) || $value === true) {
+                        $sql = 'UPDATE s_order SET status = 1 WHERE id = ?';
+                        Shopware()->Db()->query($sql, array($order->getId()->getEndpoint()));
+                    }
 
                     $result[] = $order;
                 } catch (\Exception $exc) {

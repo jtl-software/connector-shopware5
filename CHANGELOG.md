@@ -1,6 +1,7 @@
 2.1.3 (unreleased)
 ------------------
 - CO-120 Added customer note property
+- CO-125 Added customer order status change to processing after pull
 
 2.1.2
 -----
