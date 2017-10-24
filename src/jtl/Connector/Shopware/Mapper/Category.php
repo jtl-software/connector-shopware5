@@ -473,26 +473,25 @@ class Category extends DataMapper
         foreach ($category->getI18ns() as $i18n) {
             if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) !== Shopware()->Shop()->getLocale()->getLocale()) {
                 $categoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
-
+                
                 if (is_null($categoryMappingSW)) {
                     $categoryMappingSW = new CategorySW();
-    
-                    $parentCategorySW = null;
-                    $parentCategoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getParent()->getId(), $i18n->getLanguageISO());
-                    
-                    if (!is_null($parentCategoryMappingSW)) {
-                        $parentCategorySW = $parentCategoryMappingSW;
-                    } else {
-                        $rootCategorySW = $this->findOneBy(array('parent' => null));
-                        $parentCategorySW = $this->find($categorySW->getParent()->getId());
-                        if (is_null($parentCategorySW) || $rootCategorySW->getId() != $parentCategorySW->getId()) {
-                            continue;
-                        }
-                    }
-
-                    $categoryMappingSW->setParent($parentCategorySW);
-                    $categoryMappingSW->setPosition($category->getSort());
                 }
+    
+                $parentCategorySW = null;
+                $parentCategoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getParent()->getId(), $i18n->getLanguageISO());
+                if (!is_null($parentCategoryMappingSW)) {
+                    $parentCategorySW = $parentCategoryMappingSW;
+                } else {
+                    $rootCategorySW = $this->findOneBy(array('parent' => null));
+                    $parentCategorySW = $this->find($categorySW->getParent()->getId());
+                    if (is_null($parentCategorySW) || $rootCategorySW->getId() != $parentCategorySW->getId()) {
+                        continue;
+                    }
+                }
+
+                $categoryMappingSW->setParent($parentCategorySW);
+                $categoryMappingSW->setPosition($category->getSort());
 
                 $categoryMappingSW->setName($i18n->getName());
                 $categoryMappingSW->setPosition($category->getSort());

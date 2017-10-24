@@ -1,3 +1,9 @@
+2.1.3
+-----
+- CO-120 Added customer note property
+- CO-125 Added customer order status change to processing after pull
+- CO-129 Fixed category mapping parents when moving to another level
+
 2.1.2
 -----
 - CO-99 Added Heidelpay invoice fallback

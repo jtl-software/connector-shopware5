@@ -34,6 +34,7 @@ class Customer extends CustomerModel
         'countryIso' => '',
         'phone' => ['billing', 'phone'],
         'mobile' => '',
+        'note' => 'internalcomment',
         'fax' => '',
         'eMail' => 'email',
         'vatNumber' => ['billing', 'vatId'],

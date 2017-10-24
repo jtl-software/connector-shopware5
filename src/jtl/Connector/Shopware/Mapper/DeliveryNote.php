@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Core\Logger\Logger;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\DeliveryNote as DeliveryNoteModel;
 use \Shopware\Models\Order\Document\Document as DocumentSW;
@@ -115,15 +116,11 @@ class DeliveryNote extends DataMapper
         $orderSW = $orderMapper->find($deliveryNote->getCustomerOrderId()->getEndpoint());
 
         if ($orderSW !== null) {
-            if ($deliveryNoteSW === null) {
-                $deliveryNoteSW = new DocumentSW;
-            }
-
             // Tracking
             if (count($deliveryNote->getTrackingLists()) > 0) {
                 $trackingLists = $deliveryNote->getTrackingLists();
                 $codes = $trackingLists[0]->getCodes();
-
+        
                 if (count($codes) > 0) {
                     $orderSW->setTrackingCode($codes[0]);
                     $this->Manager()->persist($orderSW);
@@ -131,17 +128,26 @@ class DeliveryNote extends DataMapper
             }
 
             $type = $this->findType('Lieferschein');
-            $amount = $orderSW->getNet() == 0 ? $orderSW->getInvoiceAmount() : $orderSW->getInvoiceAmountNet();
-
-            $deliveryNoteSW->setDate($deliveryNote->getCreationDate())
+            
+            if (!is_null($type)) {
+                if (is_null($deliveryNoteSW)) {
+                    $deliveryNoteSW = new DocumentSW;
+                }
+                
+                $amount = $orderSW->getNet() == 0 ? $orderSW->getInvoiceAmount() : $orderSW->getInvoiceAmountNet();
+    
+                $deliveryNoteSW->setDate($deliveryNote->getCreationDate())
                     ->setCustomerId($orderSW->getCustomer()->getId())
                     ->setOrderId($orderSW->getId())
                     ->setAmount($amount)
                     ->setHash(md5(uniqid(rand())))
                     ->setDocumentId($orderSW->getNumber());
-
-            $deliveryNoteSW->setType($type);
-            $deliveryNoteSW->setOrder($orderSW);
+    
+                $deliveryNoteSW->setType($type);
+                $deliveryNoteSW->setOrder($orderSW);
+            } else {
+                Logger::write('Could not find type \'Lieferschein\'. Please check your shopware backend settings', Logger::WARNING, 'database');
+            }
         }
     }
 }
