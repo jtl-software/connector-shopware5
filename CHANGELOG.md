@@ -1,3 +1,8 @@
+2.1.4 (unreleased)
+------------------
+- CO-157 Fixed missing ProductSpecialPriceItem class
+- CO-158 Added shopware media service support
+
 2.1.3
 -----
 - CO-120 Added customer note property

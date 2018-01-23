@@ -57,7 +57,9 @@ class Image extends DataController
                 }
             }
 
-            $proto = ShopUtil::getProtocol();
+            $mediaServie = Shopware()->Container()->get('shopware_media.media_service');
+            
+            //$proto = ShopUtil::getProtocol();
             foreach ($modelContainer as $relationType => $models) {
                 foreach ($models as $modelSW) {
                     switch ($relationType) {
@@ -65,37 +67,17 @@ class Image extends DataController
                             $model = Mmc::getModel('Image');
 
                             $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int) $modelSW['cId'], (int) $modelSW['media_id']);
-                            $path = $modelSW['path'];
+                            //$path = $modelSW['path'];
                             $foreignKey = IdConcatenator::link(array($modelSW['detailId'], $modelSW['articleID']));
 
                             $model->setId(new Identity($id));
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($foreignKey))
-                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
-                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
+                                ->setFilename($mediaServie->getUrl('media/image/' . $modelSW['path']))
+                                ->setRemoteUrl($mediaServie->getUrl('media/image/' . $modelSW['path']))
                                 ->setSort((int) $modelSW['position']);
-
-                            // Parent
-                            /*
-                            $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, $modelSW['id'], $modelSW['media']['id']);
-                            $path = $modelSW['media']['path'];
-
-                            // Child?
-                            if (isset($modelSW['parent']) && $modelSW['parent'] !== null) {
-                                $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, $modelSW['id'], $modelSW['parent']['media']['id']);
-                                $foreignKey = IdConcatenator::link(array($modelSW['articleDetailId'], $modelSW['parent']['articleId']));
-                                $path = $modelSW['parent']['media']['path'];
-                            } else {
-                                $foreignKey = IdConcatenator::link(array($modelSW['article']['mainDetailId'], $modelSW['articleId']));
-                            }
-
-                            $model->setId(new Identity($id));
-                            $model->setRelationType($relationType)
-                                ->setForeignKey(new Identity($foreignKey))
-                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
-                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
-                                ->setSort($modelSW['position']);
-                            */
+                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
+                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
 
                             $result[] = $model;
                             break;
@@ -106,8 +88,10 @@ class Image extends DataController
 
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
-                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
-                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
+                                ->setFilename($mediaServie->getUrl('media/image/' . $modelSW['path']))
+                                ->setRemoteUrl($mediaServie->getUrl('media/image/' . $modelSW['path']));
+                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
+                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
 
                             $result[] = $model;
                             break;
@@ -118,8 +102,10 @@ class Image extends DataController
                             
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
-                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
-                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
+                                ->setFilename($mediaServie->getUrl('media/image/' . $modelSW['path']))
+                                ->setRemoteUrl($mediaServie->getUrl('media/image/' . $modelSW['path']));
+                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
+                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
 
                             $result[] = $model;
                             break;
@@ -130,26 +116,13 @@ class Image extends DataController
 
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
-                                ->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
-                                ->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
+                                ->setFilename($mediaServie->getUrl('media/image/' . $modelSW['path']))
+                                ->setRemoteUrl($mediaServie->getUrl('media/image/' . $modelSW['path']));
+                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
+                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
 
                             $result[] = $model;
                             break;
-                        /*
-                        case ImageRelationType::TYPE_PRODUCT_VARIATION_VALUE:
-                            $model = Mmc::getModel('Image');
-
-                            // Work Around
-                            // id = s_article_img_mapping_rules.id
-                            $model->setId(new Identity('option_' . $modelSW['id']));
-                            
-                            $model->setRelationType($relationType)
-                                ->setForeignKey(new Identity($modelSW['articleID'] . '_' . $modelSW['group_id'] . '_' . $modelSW['foreignKey']))
-                                ->setFilename(sprintf('http://%s%s/%s%s', Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), 'media/image/', $modelSW['path'] . '.' . $modelSW['extension']));
-
-                            $result[] = $model->getPublic();
-                            break;
-                        */
                     }
                 }
             }
