@@ -1,5 +1,5 @@
-2.1.4 (unreleased)
-------------------
+2.1.4
+-----
 - CO-157 Fixed missing ProductSpecialPriceItem class
 - CO-158 Added shopware media service support
 
