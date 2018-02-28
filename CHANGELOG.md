@@ -1,8 +1,11 @@
+2.1.5 (unreleased)
+-----
+- CO-183 Added shopware variants in listing support
+
 2.1.4
 -----
 - CO-157 Fixed missing ProductSpecialPriceItem class
 - CO-158 Added shopware media service support
-- CO-183 Added shopware variants in listing support
 
 2.1.3
 -----
