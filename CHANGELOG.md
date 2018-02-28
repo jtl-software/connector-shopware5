@@ -1,3 +1,8 @@
+2.1.5
+-----
+- CO-182 Added shopware 5.4.0 support
+- CO-183 Added shopware variants in listing support
+
 2.1.4
 -----
 - CO-157 Fixed missing ProductSpecialPriceItem class

@@ -423,13 +423,16 @@ class Product extends DataMapper
         if ($product->getisNewProduct() && !is_null($product->getNewReleaseDate())) {
             $productSW->setAdded($product->getNewReleaseDate());
         }
-
+    
+        // Last stock
         $inStock = 0;
         if ($product->getConsiderStock()) {
             $inStock = $product->getPermitNegativeStock() ? 0 : 1;
         }
 
-        $productSW->setLastStock($inStock);
+        if (is_callable([$productSW, 'setLastStock'])) {
+            $productSW->setLastStock($inStock);
+        }
 
         // I18n
         foreach ($product->getI18ns() as $i18n) {
@@ -638,7 +641,7 @@ class Product extends DataMapper
             ->setWeight($product->getProductWeight())
             ->setInStock(floor($product->getStockLevel()->getStockLevel()))
             ->setStockMin($product->getMinimumQuantity())
-            ->setMinPurchase($product->getMinimumOrderQuantity())
+            ->setMinPurchase(floor($product->getMinimumOrderQuantity()))
             ->setReleaseDate($product->getAvailableFrom())
             ->setPurchasePrice($product->getPurchasePrice())
             ->setEan($product->getEan());
@@ -662,6 +665,16 @@ class Product extends DataMapper
         
         if (!$exists) {
             $detailSW->setShippingTime($product->getSupplierDeliveryTime());
+        }
+    
+        // Last stock
+        $inStock = 0;
+        if ($product->getConsiderStock()) {
+            $inStock = $product->getPermitNegativeStock() ? 0 : 1;
+        }
+        
+        if (is_callable([$detailSW, 'setLastStock'])) {
+            $detailSW->setLastStock($inStock);
         }
 
         // Base Price
