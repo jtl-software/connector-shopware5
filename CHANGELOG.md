@@ -1,3 +1,7 @@
+2.1.6
+-----
+- Fixed wrong version string
+
 2.1.5
 -----
 - CO-182 Added shopware 5.4.0 support
