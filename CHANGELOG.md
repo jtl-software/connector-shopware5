@@ -1,3 +1,7 @@
+2.1.8
+-----
+- CO-185 Added shopware order document type support
+
 2.1.7
 -----
 - Fixed missing default laststock value

@@ -25,6 +25,11 @@ class DeliveryNote extends DataMapper
         return $this->Manager()->getRepository('Shopware\Models\Order\Document\Type')->findOneBy(array('name' => $name));
     }
     
+    public function findNewType($name)
+    {
+        return $this->Manager()->getRepository('Shopware\Models\Document\Document')->findOneBy(array('name' => $name));
+    }
+    
     public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(array(
@@ -126,8 +131,10 @@ class DeliveryNote extends DataMapper
                     $this->Manager()->persist($orderSW);
                 }
             }
-
-            $type = $this->findType('Lieferschein');
+    
+            $sw = Shopware();
+            $type = version_compare($sw::VERSION, '5.4', '>=') ? $this->findNewType('Lieferschein')
+                : $this->findType('Lieferschein');
             
             if (!is_null($type)) {
                 if (is_null($deliveryNoteSW)) {
