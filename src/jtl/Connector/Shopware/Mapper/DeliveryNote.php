@@ -236,6 +236,6 @@ class DeliveryNote extends DataMapper
         } else {
             Logger::write('Could not find type \'Lieferschein\'. Please check your shopware backend settings', Logger::WARNING, 'database');
         }
-        */
+        */ 
     }
 }
