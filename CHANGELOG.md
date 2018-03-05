@@ -1,3 +1,7 @@
+2.1.9 (unreleased)
+-----
+- CO-186 Added full shopware delivery note support with pdf creation
+
 2.1.8
 -----
 - CO-185 Added shopware order document type support
