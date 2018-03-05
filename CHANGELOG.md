@@ -1,3 +1,7 @@
+2.1.7
+-----
+- Fixed missing default laststock value
+
 2.1.6
 -----
 - Fixed wrong version string
