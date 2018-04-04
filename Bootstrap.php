@@ -416,9 +416,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 ->setKind(0)
                 ->setStockMin($product['stockmin'])
                 ->setInStock($product['instock'])
-                ->setLastStock((int) $product['laststock'])
                 ->setReleaseDate($product['releasedate'])
                 ->setEan($product['ean']);
+    
+            if (is_callable([$parentDetailSW, 'setLastStock'])) {
+                $detailSW->setLastStock((int) $product['laststock']);
+            }
 
             $parentDetailSW->setArticle($productSW);
 

@@ -15,8 +15,8 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "jtl/connector": "^2.4.0",
-	    "monolog/monolog": "1.19.0 as 1.17.2"
+        "jtl/connector": "^2.4.11",
+	    "monolog/monolog": "^1.23"
     },
     "autoload": {
         "psr-0": {
