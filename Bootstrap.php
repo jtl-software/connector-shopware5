@@ -420,7 +420,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 ->setEan($product['ean']);
     
             if (is_callable([$parentDetailSW, 'setLastStock'])) {
-                $detailSW->setLastStock((int) $product['laststock']);
+                $parentDetailSW->setLastStock((int) $product['laststock']);
             }
 
             $parentDetailSW->setArticle($productSW);
