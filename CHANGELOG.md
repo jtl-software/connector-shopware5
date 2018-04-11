@@ -1,3 +1,8 @@
+2.1.9
+-----
+- CO-186 Added full shopware delivery note support with pdf creation
+- CO-195 Fixed compatibility issues with SW < 5.4.0
+
 2.1.8
 -----
 - CO-185 Added shopware order document type support

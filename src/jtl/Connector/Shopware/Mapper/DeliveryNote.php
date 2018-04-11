@@ -7,6 +7,7 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\DeliveryNote as DeliveryNoteModel;
 use \Shopware\Models\Order\Document\Document as DocumentSW;
@@ -63,7 +64,7 @@ class DeliveryNote extends DataMapper
 
     public function delete(DeliveryNoteModel $deliveryNote)
     {
-        $result = new DeliveryNoteModel;
+        $result = $deliveryNote;
 
         $this->deleteDeliveryNoteData($deliveryNote);
 
@@ -75,9 +76,14 @@ class DeliveryNote extends DataMapper
 
     public function save(DeliveryNoteModel $deliveryNote)
     {
-        $deliveryNoteSW = null;
-        $result = new DeliveryNoteModel;
-
+        //$deliveryNoteSW = null;
+        $result = $deliveryNote;
+    
+        $endpointId = 0;
+        $hostId = $deliveryNote->getId()->getHost();
+        $this->prepareDeliveryNoteAssociatedData($deliveryNote, $endpointId);
+        
+        /*
         $this->prepareDeliveryNoteAssociatedData($deliveryNote, $deliveryNoteSW);
 
         $endpointId = 0;
@@ -89,6 +95,7 @@ class DeliveryNote extends DataMapper
             $endpointId = $deliveryNoteSW->getId();
             $hostId = $deliveryNote->getId()->getHost();
         }
+        */
 
         // Result
         $result->setId(new Identity($endpointId, $hostId));
@@ -101,60 +108,134 @@ class DeliveryNote extends DataMapper
         $deliveryNoteId = (strlen($deliveryNote->getId()->getEndpoint()) > 0) ? (int) $deliveryNote->getId()->getEndpoint() : null;
 
         if ($deliveryNoteId !== null && $deliveryNoteId > 0) {
+            /*
             $deliveryNoteSW = $this->find((int) $deliveryNoteId);
             if ($deliveryNoteSW !== null) {
+            */
+    
+                $documentPath = rtrim(Shopware()->Container()->getParameter('shopware.app.documentsdir'), '/') . DIRECTORY_SEPARATOR;
+                /** @var \Doctrine\DBAL\Connection $connection */
+                $connection = Shopware()->Container()->get('dbal_connection');
+                $queryBuilder = $connection->createQueryBuilder();
+    
+                $documentHash = $queryBuilder->select('hash')
+                    ->from('s_order_documents')
+                    ->where('id = :documentId')
+                    ->setParameter('documentId', $deliveryNoteId)
+                    ->execute()
+                    ->fetchColumn();
+    
+                $queryBuilder = $connection->createQueryBuilder();
+                $queryBuilder->delete('s_order_documents')
+                    ->where('id = :documentId')
+                    ->setParameter('documentId', $deliveryNoteId)
+                    ->execute();
+    
+                $file = $documentPath . $documentHash . '.pdf';
+                if (!is_file($file)) {
+                    return;
+                }
+    
+                unlink($file);
+                
+                /*
                 $this->Manager()->remove($deliveryNoteSW);
                 $this->Manager()->flush($deliveryNoteSW);
-            }
+                */
+            //}
         }
     }
 
-    protected function prepareDeliveryNoteAssociatedData(DeliveryNoteModel $deliveryNote, DocumentSW &$deliveryNoteSW = null)
+    //protected function prepareDeliveryNoteAssociatedData(DeliveryNoteModel $deliveryNote, DocumentSW &$deliveryNoteSW = null)
+    protected function prepareDeliveryNoteAssociatedData(DeliveryNoteModel &$deliveryNote, &$endpointId)
     {
+        /*
         $deliveryNoteId = (strlen($deliveryNote->getId()->getEndpoint()) > 0) ? (int) $deliveryNote->getId()->getEndpoint() : null;
 
         if ($deliveryNoteId !== null && $deliveryNoteId > 0) {
             $deliveryNoteSW = $this->find($deliveryNoteId);
         }
+        */
 
         $orderMapper = Mmc::getMapper('CustomerOrder');
+        
+        /** @var \Shopware\Models\Order\Order $orderSW */
         $orderSW = $orderMapper->find($deliveryNote->getCustomerOrderId()->getEndpoint());
 
-        if ($orderSW !== null) {
-            // Tracking
-            if (count($deliveryNote->getTrackingLists()) > 0) {
-                $trackingLists = $deliveryNote->getTrackingLists();
-                $codes = $trackingLists[0]->getCodes();
+        if (is_null($orderSW)) {
+            return;
+        }
+    
+        $deliveryNote->getCustomerOrderId()->setEndpoint($orderSW->getId());
         
-                if (count($codes) > 0) {
-                    $orderSW->setTrackingCode($codes[0]);
-                    $this->Manager()->persist($orderSW);
-                }
-            }
+        // Tracking
+        if (count($deliveryNote->getTrackingLists()) > 0) {
+            $trackingLists = $deliveryNote->getTrackingLists();
+            $codes = $trackingLists[0]->getCodes();
     
-            $sw = Shopware();
-            $type = version_compare($sw::VERSION, '5.4', '>=') ? $this->findNewType('Lieferschein')
-                : $this->findType('Lieferschein');
-            
-            if (!is_null($type)) {
-                if (is_null($deliveryNoteSW)) {
-                    $deliveryNoteSW = new DocumentSW;
-                }
-                
-                $amount = $orderSW->getNet() == 0 ? $orderSW->getInvoiceAmount() : $orderSW->getInvoiceAmountNet();
-    
-                $deliveryNoteSW->setDate($deliveryNote->getCreationDate())
-                    ->setCustomerId($orderSW->getCustomer()->getId())
-                    ->setOrderId($orderSW->getId())
-                    ->setAmount($amount)
-                    ->setHash(md5(uniqid(rand())))
-                    ->setDocumentId($orderSW->getNumber());
-    
-                $deliveryNoteSW->setType($type);
-                $deliveryNoteSW->setOrder($orderSW);
-            } else {
-                Logger::write('Could not find type \'Lieferschein\'. Please check your shopware backend settings', Logger::WARNING, 'database');
+            if (count($codes) > 0) {
+                $orderSW->setTrackingCode($codes[0]);
+                $this->Manager()->persist($orderSW);
             }
         }
+    
+        /** @var \Shopware\Models\Document\Document $document */
+        $document = Shopware()->Models()->getRepository(\Shopware\Models\Document\Document::class)->find(2);
+        if (!is_null($document)) {
+        
+            try {
+                // Create order document
+                $document = \Shopware_Components_Document::initDocument(
+                    $orderSW->getId(),
+                    $document->getId(),
+                    [
+                        'netto' => false,
+                        'bid' => '',
+                        'voucher' => null,
+                        'date' => $deliveryNote->getCreationDate()->format('d.m.Y'),
+                        'delivery_date' => $deliveryNote->getCreationDate()->format('d.m.Y'),
+                        'shippingCostsAsPosition' => 0,
+                        '_renderer' => 'pdf',
+                        '_preview' => false,
+                        '_previewForcePagebreak' => '',
+                        '_previewSample' => '',
+                        'docComment' => $deliveryNote->getNote(),
+                        'forceTaxCheck' => false,
+                    ]
+                );
+            
+                $document->render();
+            } catch (\Exception $e) {
+                Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+            }
+        }
+    
+        $endpointId = $document->_documentRowID;
+        
+        /*
+        $sw = Shopware();
+        $type = version_compare($sw::VERSION, '5.4', '>=') ? $this->findNewType('Lieferschein')
+            : $this->findType('Lieferschein');
+        
+        if (!is_null($type)) {
+            if (is_null($deliveryNoteSW)) {
+                $deliveryNoteSW = new DocumentSW;
+            }
+            
+            $amount = $orderSW->getNet() == 0 ? $orderSW->getInvoiceAmount() : $orderSW->getInvoiceAmountNet();
+
+            $deliveryNoteSW->setDate($deliveryNote->getCreationDate())
+                ->setCustomerId($orderSW->getCustomer()->getId())
+                ->setOrderId($orderSW->getId())
+                ->setAmount($amount)
+                ->setHash(md5(uniqid(rand())))
+                ->setDocumentId($orderSW->getNumber());
+
+            $deliveryNoteSW->setType($type);
+            $deliveryNoteSW->setOrder($orderSW);
+        } else {
+            Logger::write('Could not find type \'Lieferschein\'. Please check your shopware backend settings', Logger::WARNING, 'database');
+        }
+        */
     }
 }

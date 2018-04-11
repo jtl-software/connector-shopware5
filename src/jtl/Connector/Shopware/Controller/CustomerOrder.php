@@ -110,7 +110,7 @@ class CustomerOrder extends DataController
                         //$order->setLanguageISO(LanguageUtil::map($localeSW->getLocale()));
                         $order->setLanguageISO(LanguageUtil::map($shop->getLocale()->getLocale()));
                     }
-
+                    
                     foreach ($orderSW['details'] as $detailSW) {
 
                         // Tax Free
@@ -128,11 +128,31 @@ class CustomerOrder extends DataController
                                 break;
                         }
                         
-                        // Type
+                        // Type (mode)
+                        switch ((int) $detailSW['mode']) {
+                            case 0:
+                                $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
+                                break;
+                            case 2:
+                                $detailSW['type'] = CustomerOrderItem::TYPE_COUPON;
+                                break;
+                            case 3:
+                                $detailSW['type'] = CustomerOrderItem::TYPE_DISCOUNT;
+                                break;
+                            case 4:
+                                $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
+                                break;
+                            default:
+                                $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
+                                break;
+                        }
+                        
+                        /*
                         $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
                         if ($detailSW['articleId'] == 0 && ($detailSW['articleNumber'] === 'sw-payment' || $detailSW['articleNumber'] === 'sw-payment-absolute')) {
                             $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
                         }
+                        */
 
                         $orderItem = Mmc::getModel('CustomerOrderItem');
                         $orderItem->map(true, DataConverter::toObject($detailSW, true));
