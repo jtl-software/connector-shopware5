@@ -1,4 +1,4 @@
-2.1.9 (unreleased)
+2.1.9
 -----
 - CO-186 Added full shopware delivery note support with pdf creation
 - CO-195 Fixed compatibility issues with SW < 5.4.0
