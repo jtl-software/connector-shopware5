@@ -45,7 +45,7 @@ class Customer extends DataController
                     $customerSW['newsletter'] = (bool)$customerSW['newsletter'];
                     $customer = Mmc::getModel('Customer');
                     $customer->map(true, DataConverter::toObject($customerSW, true));
-    
+                    
                     /**
                      * 0 => normal account ("don't create customer account" wasn't checked)<br>
                      * 1 => hidden account ("don't create customer account" was checked)

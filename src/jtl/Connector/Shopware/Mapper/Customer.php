@@ -221,8 +221,17 @@ class Customer extends DataMapper
         $prop->setValue($addressSW, $customerSW->getId());
         */
 
+        $stateSW = $this->Manager()->getRepository('Shopware\Models\Country\State')->findOneBy([
+            'name' => $customer->getState(),
+            'active' => true
+        ]);
+        
+        if ($stateSW) {
+            $addressSW->setState($stateSW);
+        }
+        
         /** @var \Shopware\Models\Country\Country $countrySW */
-        $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')->findOneBy(array('iso' => $customer->getCountryIso()));
+        $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')->findOneBy(['iso' => $customer->getCountryIso()]);
         if ($countrySW) {
             $addressSW->setCountry($countrySW);
         }
