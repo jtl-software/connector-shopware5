@@ -317,12 +317,12 @@ class CustomerOrder extends DataController
         $property = $dhlInfoPropertyInfo['prop'];
         $name = $dhlInfoPropertyInfo['name'];
 
-        if (isset($orderSW['customer']['shipping']['attribute'][$property])
-            && $orderSW['customer']['shipping']['attribute'][$property] !== null
-            && strlen($orderSW['customer']['shipping']['attribute'][$property]) > 0) {
+        if (isset($orderSW['customer']['defaultShippingAddress']['attribute'][$property])
+            && $orderSW['customer']['defaultShippingAddress']['attribute'][$property] !== null
+            && strlen($orderSW['customer']['defaultShippingAddress']['attribute'][$property]) > 0) {
 
             if ($dhlInfoPropertyInfo['serialized']) {
-                $obj = @unserialize($orderSW['customer']['shipping']['attribute'][$property]);
+                $obj = @unserialize($orderSW['customer']['defaultShippingAddress']['attribute'][$property]);
                 if ($obj !== false) {
                     $number = isset($obj->officeNumber) ? $obj->officeNumber : $obj->stationNumber;
                     if (strlen(trim($obj->zip)) > 0 && strlen(trim($obj->city)) > 0) {
@@ -331,7 +331,7 @@ class CustomerOrder extends DataController
                     }
                 }
             } else {
-                $dhlInfos[] = sprintf('%s: %s', $name, $orderSW['customer']['shipping']['attribute'][$property]);
+                $dhlInfos[] = sprintf('%s: %s', $name, $orderSW['customer']['defaultShippingAddress']['attribute'][$property]);
             }
         }
     }

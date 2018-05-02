@@ -1,3 +1,8 @@
+3.0.0
+-----
+- CO-212 Fixed customer address support
+- CO-213 Added Core Version 3.0.0 support and pushed php requirement to >= 7.1.3
+
 2.1.9
 -----
 - CO-186 Added full shopware delivery note support with pdf creation

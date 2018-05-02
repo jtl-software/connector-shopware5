@@ -53,7 +53,7 @@ class Customer extends DataController
                     $customer->setHasCustomerAccount((int) $customerSW['accountMode'] == 0);
 
                     $country = Shopware()->Models()->getRepository('Shopware\Models\Country\Country')
-                        ->findOneById($customerSW['billing']['countryId']);
+                        ->findOneById($customerSW['defaultBillingAddress']['countryId']);
 
                     $iso = ($country !== null) ? $country->getIso() : 'DE';
                     
@@ -75,14 +75,14 @@ class Customer extends DataController
                         ->setLanguageISO(LanguageUtil::map($customerSW['languageSubShop']['locale']['locale']));
 
                     // Attributes
-                    if (isset($customerSW['billing']['attribute']) && is_array($customerSW['billing']['attribute'])) {
+                    if (isset($customerSW['defaultBillingAddress']['attribute']) && is_array($customerSW['defaultBillingAddress']['attribute'])) {
                         for ($i = 1; $i <= 6; $i++) {
-                            if (isset($customerSW['billing']['attribute']["text{$i}"]) && strlen(trim($customerSW['billing']['attribute']["text{$i}"]))) {
+                            if (isset($customerSW['defaultBillingAddress']['attribute']["text{$i}"]) && strlen(trim($customerSW['defaultBillingAddress']['attribute']["text{$i}"]))) {
                                 $customerAttr = Mmc::getModel('CustomerAttr');
-                                $customerAttr->map(true, DataConverter::toObject($customerSW['billing']['attribute']));
+                                $customerAttr->map(true, DataConverter::toObject($customerSW['defaultBillingAddress']['attribute']));
                                 $customerAttr->setCustomerId($customer->getId())
                                     ->setKey("text{$i}")
-                                    ->setValue((string) $customerSW['billing']['attribute']["text{$i}"]);
+                                    ->setValue((string) $customerSW['defaultBillingAddress']['attribute']["text{$i}"]);
 
                                 $customer->addAttribute($customerAttr);
                             }
