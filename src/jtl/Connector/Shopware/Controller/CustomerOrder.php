@@ -136,9 +136,11 @@ class CustomerOrder extends DataController
                             case 2:
                                 $detailSW['type'] = CustomerOrderItem::TYPE_COUPON;
                                 break;
+                            /*
                             case 3:
                                 $detailSW['type'] = CustomerOrderItem::TYPE_DISCOUNT;
                                 break;
+                            */
                             case 4:
                                 $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
                                 break;
@@ -146,13 +148,6 @@ class CustomerOrder extends DataController
                                 $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
                                 break;
                         }
-                        
-                        /*
-                        $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
-                        if ($detailSW['articleId'] == 0 && ($detailSW['articleNumber'] === 'sw-payment' || $detailSW['articleNumber'] === 'sw-payment-absolute')) {
-                            $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
-                        }
-                        */
 
                         $orderItem = Mmc::getModel('CustomerOrderItem');
                         $orderItem->map(true, DataConverter::toObject($detailSW, true));
