@@ -136,9 +136,11 @@ class CustomerOrder extends DataController
                             case 2:
                                 $detailSW['type'] = CustomerOrderItem::TYPE_COUPON;
                                 break;
+                            /*
                             case 3:
                                 $detailSW['type'] = CustomerOrderItem::TYPE_DISCOUNT;
                                 break;
+                            */
                             case 4:
                                 $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
                                 break;
@@ -146,13 +148,6 @@ class CustomerOrder extends DataController
                                 $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
                                 break;
                         }
-                        
-                        /*
-                        $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
-                        if ($detailSW['articleId'] == 0 && ($detailSW['articleNumber'] === 'sw-payment' || $detailSW['articleNumber'] === 'sw-payment-absolute')) {
-                            $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
-                        }
-                        */
 
                         $orderItem = Mmc::getModel('CustomerOrderItem');
                         $orderItem->map(true, DataConverter::toObject($detailSW, true));
@@ -317,12 +312,12 @@ class CustomerOrder extends DataController
         $property = $dhlInfoPropertyInfo['prop'];
         $name = $dhlInfoPropertyInfo['name'];
 
-        if (isset($orderSW['customer']['shipping']['attribute'][$property])
-            && $orderSW['customer']['shipping']['attribute'][$property] !== null
-            && strlen($orderSW['customer']['shipping']['attribute'][$property]) > 0) {
+        if (isset($orderSW['customer']['defaultShippingAddress']['attribute'][$property])
+            && $orderSW['customer']['defaultShippingAddress']['attribute'][$property] !== null
+            && strlen($orderSW['customer']['defaultShippingAddress']['attribute'][$property]) > 0) {
 
             if ($dhlInfoPropertyInfo['serialized']) {
-                $obj = @unserialize($orderSW['customer']['shipping']['attribute'][$property]);
+                $obj = @unserialize($orderSW['customer']['defaultShippingAddress']['attribute'][$property]);
                 if ($obj !== false) {
                     $number = isset($obj->officeNumber) ? $obj->officeNumber : $obj->stationNumber;
                     if (strlen(trim($obj->zip)) > 0 && strlen(trim($obj->city)) > 0) {
@@ -331,7 +326,7 @@ class CustomerOrder extends DataController
                     }
                 }
             } else {
-                $dhlInfos[] = sprintf('%s: %s', $name, $orderSW['customer']['shipping']['attribute'][$property]);
+                $dhlInfos[] = sprintf('%s: %s', $name, $orderSW['customer']['defaultShippingAddress']['attribute'][$property]);
             }
         }
     }

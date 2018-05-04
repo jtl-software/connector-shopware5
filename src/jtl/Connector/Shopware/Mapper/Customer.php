@@ -13,8 +13,8 @@ use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Salutation as SalutationUtil;
+use Shopware\Models\Customer\Address as AddressSW;
 use \Shopware\Models\Customer\Customer as CustomerSW;
-use \Shopware\Models\Customer\Billing as BillingSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 class Customer extends DataMapper
@@ -39,8 +39,8 @@ class Customer extends DataMapper
             //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link', \Doctrine\ORM\Query\Expr\Join::WITH, 'customer.id = link.endpointId AND link.type = 16')
             ->from('jtl\Connector\Shopware\Model\Linker\Customer', 'customer')
             ->leftJoin('customer.linker', 'linker')
-            ->leftJoin('customer.billing', 'billing')
-            ->leftJoin('customer.shipping', 'shipping')
+            ->leftJoin('customer.defaultBillingAddress', 'billing')
+            ->leftJoin('customer.defaultShippingAddress', 'shipping')
             ->leftJoin('customer.group', 'customergroup')
             ->leftJoin('billing.attribute', 'attribute')
             ->leftJoin('customer.languageSubShop', 'shop')
@@ -81,11 +81,11 @@ class Customer extends DataMapper
     public function save(CustomerModel $customer)
     {
         $customerSW = null;
-        $billingSW = null;
+        $addressSW = null;
         $result = new CustomerModel;
 
         try {
-            $this->prepareCustomerAssociatedData($customer, $customerSW, $billingSW);
+            $this->prepareCustomerAssociatedData($customer, $customerSW, $addressSW);
             $this->prepareCustomerGroupAssociatedData($customer, $customerSW);
     
             $violations = $this->Manager()->validate($customerSW);
@@ -93,10 +93,10 @@ class Customer extends DataMapper
                 throw new ApiException\ValidationException($violations);
             }
     
-            $this->prepareBillingAssociatedData($customer, $customerSW, $billingSW);
+            $this->prepareBillingAssociatedData($customer, $customerSW, $addressSW);
     
             $this->Manager()->persist($customerSW);
-            $this->Manager()->persist($billingSW);
+            $this->Manager()->persist($addressSW);
             $this->flush();
         } catch (\Exception $e) {
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
@@ -125,7 +125,10 @@ class Customer extends DataMapper
         }
     }
 
-    protected function prepareCustomerAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW = null, BillingSW &$billingSW = null)
+    protected function prepareCustomerAssociatedData(
+        CustomerModel &$customer,
+        CustomerSW &$customerSW = null,
+        AddressSW &$addressSW = null)
     {
         $customerId = (strlen($customer->getId()->getEndpoint()) > 0) ? (int)$customer->getId()->getEndpoint() : null;
     
@@ -139,7 +142,7 @@ class Customer extends DataMapper
         }
         
         if (!is_null($customerSW)) {
-            $billingSW = $this->Manager()->getRepository('Shopware\Models\Customer\Billing')->findOneBy(array('customerId' => $customerId));
+            $addressSW = $customerSW->getDefaultBillingAddress();
         }
         
         if (is_null($customerSW)) {
@@ -150,8 +153,9 @@ class Customer extends DataMapper
             ));
         }
     
-        if (is_null($billingSW)) {
-            $billingSW = new BillingSW;
+        if (is_null($addressSW)) {
+            $addressSW = new AddressSW;
+            $customerSW->setDefaultBillingAddress($addressSW);
         }
 
         $shopMapper = Mmc::getMapper('Shop');
@@ -189,40 +193,47 @@ class Customer extends DataMapper
         }
     }
 
-    protected function prepareBillingAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW, BillingSW &$billingSW)
+    protected function prepareBillingAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW, AddressSW &$addressSW)
     {
         // Billing
-        if (!$billingSW) {
-            $billingSW = new BillingSW;
+        if (!$addressSW) {
+            $addressSW = new AddressSW;
         }
+    
+        $addressSW->setCompany($customer->getCompany());
+        $addressSW->setDepartment($customer->getDeliveryInstruction());
+        $addressSW->setSalutation(SalutationUtil::toEndpoint($customer->getSalutation()));
+        $addressSW->setFirstName($customer->getFirstName());
+        $addressSW->setLastName($customer->getLastName());
+        $addressSW->setStreet($customer->getStreet());
+        $addressSW->setZipCode($customer->getZipCode());
+        $addressSW->setCity($customer->getCity());
+        $addressSW->setPhone($customer->getPhone());
+        $addressSW->setVatId($customer->getVatNumber());
+        $addressSW->setCustomer($customerSW);
+        $addressSW->setAdditionalAddressLine1($customer->getExtraAddressLine());
+        $addressSW->setTitle($customer->getTitle());
 
-        $billingSW->setCompany($customer->getCompany())
-            ->setDepartment($customer->getDeliveryInstruction())
-            ->setSalutation(SalutationUtil::toEndpoint($customer->getSalutation()))
-            //->setNumber($customer->getCustomerNumber())
-            ->setFirstName($customer->getFirstName())
-            ->setLastName($customer->getLastName())
-            ->setStreet($customer->getStreet())
-            ->setZipCode($customer->getZipCode())
-            ->setCity($customer->getCity())
-            ->setPhone($customer->getPhone())
-            //->setFax($customer->getFax())
-            ->setVatId($customer->getVatNumber())
-            //->setBirthday($customer->getBirthday())
-            ->setCustomer($customerSW);
-        
-        // No fluent interfaces on some properties, thx @Shopware
-        $billingSW->setAdditionalAddressLine1($customer->getExtraAddressLine());
-        $billingSW->setTitle($customer->getTitle());
-
-        $ref = new \ReflectionClass($billingSW);
-        $prop = $ref->getProperty('customerId');
+        /*
+        $ref = new \ReflectionClass($addressSW);
+        $prop = $ref->getProperty('user_id');
         $prop->setAccessible(true);
-        $prop->setValue($billingSW, $customerSW->getId());
+        $prop->setValue($addressSW, $customerSW->getId());
+        */
 
-        $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')->findOneBy(array('iso' => $customer->getCountryIso()));
+        $stateSW = $this->Manager()->getRepository('Shopware\Models\Country\State')->findOneBy([
+            'name' => $customer->getState(),
+            'active' => true
+        ]);
+        
+        if ($stateSW) {
+            $addressSW->setState($stateSW);
+        }
+        
+        /** @var \Shopware\Models\Country\Country $countrySW */
+        $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')->findOneBy(['iso' => $customer->getCountryIso()]);
         if ($countrySW) {
-            $billingSW->setCountryId($countrySW->getId());
+            $addressSW->setCountry($countrySW);
         }
     }
 }

@@ -14,9 +14,9 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "jtl/connector": "^2.4.11",
-	    "monolog/monolog": "^1.23"
+        "php": ">=5.6",
+        "jtl/connector": "^2.4.12",
+	    "monolog/monolog": "1.*"
     },
     "autoload": {
         "psr-0": {

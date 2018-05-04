@@ -6,9 +6,11 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
+use jtl\Connector\Model\Identity;
 use \jtl\Connector\Result\Action;
 use \jtl\Connector\Core\Rpc\Error;
 use \jtl\Connector\Core\Utilities\DataInjector;
+use jtl\Connector\Shopware\Model\ShippingClass;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Core\Utilities\DataConverter;
 use \jtl\Connector\Formatter\ExceptionFormatter;
@@ -38,6 +40,7 @@ class GlobalData extends DataController
             $result = array();
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
+            /** @var \jtl\Connector\Shopware\Model\GlobalData $globalData */
             $globalData = Mmc::getModel('GlobalData');
 
             $shopMapper = Mmc::getMapper('Shop');

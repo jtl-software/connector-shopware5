@@ -6,6 +6,9 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
+use jtl\Connector\Application\Application;
+use jtl\Connector\Event\EventHandler;
+use jtl\Connector\Model\BoolResult;
 use jtl\Connector\Model\ConnectorServerInfo;
 use \jtl\Connector\Result\Action;
 use \jtl\Connector\Shopware\Utilities\Mmc;
@@ -79,7 +82,7 @@ class Connector extends DataController
         
         $action->setHandled(true);
         $action->setResult(true);
-
+        
         return $action;
     }
 

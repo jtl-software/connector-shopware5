@@ -1,3 +1,7 @@
+2.1.10
+------
+- CO-212 Fixed customer address support
+
 2.1.9
 -----
 - CO-186 Added full shopware delivery note support with pdf creation
