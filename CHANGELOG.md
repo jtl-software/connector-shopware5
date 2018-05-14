@@ -2,6 +2,10 @@
 ------------------
 - CO-213 Added Core Version 3.0.0 support and pushed php requirement to >= 7.1.3
 
+2.1.11 (unreleased)
+-------------------
+- CO-215 Fixed missing customer order billing and shipping title
+
 2.1.10
 ------
 - CO-212 Fixed customer address support
