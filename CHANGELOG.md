@@ -6,6 +6,8 @@
 -------------------
 - CO-215 Fixed missing customer order billing and shipping title
 - CO-218 Fixed pre 5.2.25 access on protected property
+- CO-184 Added customer order voucher support
+- CO-196 Added product changed date support
 
 2.1.10
 ------
