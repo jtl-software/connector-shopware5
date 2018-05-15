@@ -5,6 +5,7 @@
 2.1.11 (unreleased)
 -------------------
 - CO-215 Fixed missing customer order billing and shipping title
+- CO-218 Fixed pre 5.2.25 access on protected property
 
 2.1.10
 ------
