@@ -113,7 +113,6 @@ class DeliveryNote extends DataMapper
             if ($deliveryNoteSW !== null) {
             */
     
-                $documentPath = rtrim(Shopware()->Container()->getParameter('shopware.app.documentsdir'), '/') . DIRECTORY_SEPARATOR;
                 /** @var \Doctrine\DBAL\Connection $connection */
                 $connection = Shopware()->Container()->get('dbal_connection');
                 $queryBuilder = $connection->createQueryBuilder();
@@ -131,6 +130,20 @@ class DeliveryNote extends DataMapper
                     ->setParameter('documentId', $deliveryNoteId)
                     ->execute();
     
+                $sw = Shopware();
+                $documentPath = '';
+                if (version_compare($sw::VERSION, '5.3.0', '<')) {
+                    $documentPath = Shopware()->DocPath() . 'files/documents' . DIRECTORY_SEPARATOR;
+                } elseif (version_compare($sw::VERSION, '5.4.0', '<')) {
+                    $documentPath = rtrim(Shopware()->DocPath('files_documents'), '/') . DIRECTORY_SEPARATOR;
+                } else {
+                    try {
+                        $documentPath = rtrim(Shopware()->Container()->getParameter('shopware.app.documentsdir'), '/') . DIRECTORY_SEPARATOR;
+                    } catch (\Exception $e) {
+                        return;
+                    }
+                }
+                
                 $file = $documentPath . $documentHash . '.pdf';
                 if (!is_file($file)) {
                     return;
@@ -210,32 +223,17 @@ class DeliveryNote extends DataMapper
             }
         }
     
-        $endpointId = $document->_documentRowID;
-        
-        /*
         $sw = Shopware();
-        $type = version_compare($sw::VERSION, '5.4', '>=') ? $this->findNewType('Lieferschein')
-            : $this->findType('Lieferschein');
-        
-        if (!is_null($type)) {
-            if (is_null($deliveryNoteSW)) {
-                $deliveryNoteSW = new DocumentSW;
+        if (version_compare($sw::VERSION, '5.2.25', '<')) {
+            try {
+                $prop = new \ReflectionProperty(get_class($document), '_documentRowID');
+                $prop->setAccessible(true);
+                $endpointId = $prop->getValue($document);
+            } catch (\Exception $e) {
+                Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
             }
-            
-            $amount = $orderSW->getNet() == 0 ? $orderSW->getInvoiceAmount() : $orderSW->getInvoiceAmountNet();
-
-            $deliveryNoteSW->setDate($deliveryNote->getCreationDate())
-                ->setCustomerId($orderSW->getCustomer()->getId())
-                ->setOrderId($orderSW->getId())
-                ->setAmount($amount)
-                ->setHash(md5(uniqid(rand())))
-                ->setDocumentId($orderSW->getNumber());
-
-            $deliveryNoteSW->setType($type);
-            $deliveryNoteSW->setOrder($orderSW);
         } else {
-            Logger::write('Could not find type \'Lieferschein\'. Please check your shopware backend settings', Logger::WARNING, 'database');
+            $endpointId = $document->_documentRowID;
         }
-        */
     }
 }

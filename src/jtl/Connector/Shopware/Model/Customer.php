@@ -21,7 +21,7 @@ class Customer extends CustomerModel
         'customerNumber' => 'number',
         //'password' => 'hashPassword',
         'salutation' => ['defaultBillingAddress', 'salutation'],
-        'title' => 'title',
+        'title' => ['defaultBillingAddress', 'title'],
         'firstName' => ['defaultBillingAddress', 'firstname'],
         'lastName' => ['defaultBillingAddress', 'lastname'],
         'company' => ['defaultBillingAddress', 'company'],

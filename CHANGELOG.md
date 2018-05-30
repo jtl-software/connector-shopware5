@@ -1,3 +1,11 @@
+2.1.11
+------
+- CO-215 Fixed missing customer order billing and shipping title
+- CO-218 Fixed sw pre 5.2.25 access on protected property
+- CO-226 Fixed sw pre 5.4 delivery note path access
+- CO-184 Added customer order voucher support
+- CO-196 Added product changed date support
+
 2.1.10
 ------
 - CO-212 Fixed customer address support

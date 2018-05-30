@@ -21,7 +21,7 @@ class CustomerOrderBillingAddress extends CustomerOrderBillingAddressModel
         'salutation' => 'salutation',
         'firstName' => 'firstName',
         'lastName' => 'lastName',
-        'title' => '',
+        'title' => 'title',
         'company' => 'company',
         'deliveryInstruction' => 'department',
         'street' => 'street',

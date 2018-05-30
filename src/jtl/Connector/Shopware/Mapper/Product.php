@@ -623,6 +623,7 @@ class Product extends DataMapper
         //$helper = ProductNameHelper::build($product);
         //$detailSW->setAdditionalText($helper->getAdditionalName());
         $detailSW->setAdditionalText('');
+        $productSW->setChanged();
 
         $kind = ($isChild && $detailSW->getId() > 0 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
         $active = $product->getIsActive();

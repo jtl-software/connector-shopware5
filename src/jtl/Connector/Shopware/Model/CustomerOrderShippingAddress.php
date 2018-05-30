@@ -21,7 +21,7 @@ class CustomerOrderShippingAddress extends CustomerOrderShippingAddressModel
         'salutation' => 'salutation',
         'firstName' => 'firstName',
         'lastName' => 'lastName',
-        'title' => '',
+        'title' => 'title',
         'company' => 'company',
         'deliveryInstruction' => 'department',
         'street' => 'street',
