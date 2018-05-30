@@ -1,11 +1,8 @@
-3.0.0 (unreleased)
-------------------
-- CO-213 Added Core Version 3.0.0 support and pushed php requirement to >= 7.1.3
-
-2.1.11 (unreleased)
--------------------
+2.1.11
+------
 - CO-215 Fixed missing customer order billing and shipping title
-- CO-218 Fixed pre 5.2.25 access on protected property
+- CO-218 Fixed sw pre 5.2.25 access on protected property
+- CO-226 Fixed sw pre 5.4 delivery note path access
 - CO-184 Added customer order voucher support
 - CO-196 Added product changed date support
 

@@ -113,7 +113,6 @@ class DeliveryNote extends DataMapper
             if ($deliveryNoteSW !== null) {
             */
     
-                $documentPath = rtrim(Shopware()->Container()->getParameter('shopware.app.documentsdir'), '/') . DIRECTORY_SEPARATOR;
                 /** @var \Doctrine\DBAL\Connection $connection */
                 $connection = Shopware()->Container()->get('dbal_connection');
                 $queryBuilder = $connection->createQueryBuilder();
@@ -131,6 +130,20 @@ class DeliveryNote extends DataMapper
                     ->setParameter('documentId', $deliveryNoteId)
                     ->execute();
     
+                $sw = Shopware();
+                $documentPath = '';
+                if (version_compare($sw::VERSION, '5.3.0', '<')) {
+                    $documentPath = Shopware()->DocPath() . 'files/documents' . DIRECTORY_SEPARATOR;
+                } elseif (version_compare($sw::VERSION, '5.4.0', '<')) {
+                    $documentPath = rtrim(Shopware()->DocPath('files_documents'), '/') . DIRECTORY_SEPARATOR;
+                } else {
+                    try {
+                        $documentPath = rtrim(Shopware()->Container()->getParameter('shopware.app.documentsdir'), '/') . DIRECTORY_SEPARATOR;
+                    } catch (\Exception $e) {
+                        return;
+                    }
+                }
+                
                 $file = $documentPath . $documentHash . '.pdf';
                 if (!is_file($file)) {
                     return;
