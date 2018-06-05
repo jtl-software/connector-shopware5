@@ -1,10 +1,11 @@
 3.0.0 (unreleased)
 ------------------
 - CO-213 Added Core Version 3.0.0 support and pushed php requirement to >= 7.1.3
+- CO-232 Added customer order cleared date when payment is completed
 
 2.1.12 (unreleased)
 -------------------
-- CO-229 Fixed 
+- CO-229 Fixed saving the customer order tracking code
 
 2.1.11
 ------

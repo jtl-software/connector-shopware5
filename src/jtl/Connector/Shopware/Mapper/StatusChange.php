@@ -20,15 +20,20 @@ class StatusChange extends DataMapper
         if ($customerOrderId > 0) {
             $mapper = Mmc::getMapper('CustomerOrder');
             $customerOrder = $mapper->find($customerOrderId);
-            if ($customerOrder !== null) {
+            if (!is_null($customerOrder)) {
 
                 // Payment Status
                 if ($status->getPaymentStatus() !== null && strlen($status->getPaymentStatus()) > 0) {
                     $statusId = PaymentStatusUtil::map($status->getPaymentStatus());
-                    if ($statusId !== null) {
+                    if (!is_null($statusId)) {
                         $customerOrderStatusSW = $mapper->findStatus($statusId);
                         if ($customerOrderStatusSW !== null) {
                             $customerOrder->setPaymentStatus($customerOrderStatusSW);
+    
+                            if ($status->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED) {
+                                $customerOrder->setClearedDate(new \DateTime());
+                            }
+                            
                             $this->Manager()->persist($customerOrder);
                             $this->Manager()->flush();
                         }
