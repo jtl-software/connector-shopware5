@@ -1,3 +1,8 @@
+2.1.12
+------
+- CO-229 Fixed saving the customer order tracking code
+- CO-232 Added customer order cleared date when payment is completed
+
 2.1.11
 ------
 - CO-215 Fixed missing customer order billing and shipping title

@@ -82,20 +82,6 @@ class DeliveryNote extends DataMapper
         $endpointId = 0;
         $hostId = $deliveryNote->getId()->getHost();
         $this->prepareDeliveryNoteAssociatedData($deliveryNote, $endpointId);
-        
-        /*
-        $this->prepareDeliveryNoteAssociatedData($deliveryNote, $deliveryNoteSW);
-
-        $endpointId = 0;
-        $hostId = 0;
-        if ($deliveryNoteSW !== null) {
-            $this->Manager()->persist($deliveryNoteSW);
-            $this->flush();
-
-            $endpointId = $deliveryNoteSW->getId();
-            $hostId = $deliveryNote->getId()->getHost();
-        }
-        */
 
         // Result
         $result->setId(new Identity($endpointId, $hostId));
@@ -189,6 +175,7 @@ class DeliveryNote extends DataMapper
             if (count($codes) > 0) {
                 $orderSW->setTrackingCode($codes[0]);
                 $this->Manager()->persist($orderSW);
+                $this->Manager()->flush($orderSW);
             }
         }
     
