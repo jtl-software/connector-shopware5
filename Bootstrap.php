@@ -31,7 +31,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '2.1.11';
+        return '2.1.12';
     }
 
     public function getInfo()
@@ -262,6 +262,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.1.8':
             case '2.1.9':
             case '2.1.10':
+            case '2.1.11':
                 break;
             default:
                 return false;
@@ -454,28 +455,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $priceCollection[] = $parentPriceSW;
             }
 
-            /*
-            $priceCollection = array();
-            foreach ($detailSW->getPrices() as $priceSW) {
-                $parentPriceSW = new Shopware\Models\Article\Price();
-                $parentPriceSW->setArticle($productSW)
-                    ->setCustomerGroup($priceSW->getCustomerGroup())
-                    ->setFrom($priceSW->getFrom())
-                    ->setTo($priceSW->getTo())
-                    ->setDetail($parentDetailSW)
-                    ->setPrice($priceSW->getPrice())
-                    ->setPseudoPrice($priceSW->getPseudoPrice())
-                    ->setBasePrice($priceSW->getBasePrice())
-                    ->setPercent($priceSW->getPercent());
-
-                $priceCollection[] = $parentPriceSW;
-            }
-            */
-
             $parentDetailSW->setPrices($priceCollection);
 
             Shopware()->Models()->persist($parentDetailSW);
-            //Shopware()->Models()->persist($detailSW);
             $i++;
 
             if ($i % 50 == 0) {
