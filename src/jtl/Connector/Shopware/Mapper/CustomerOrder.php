@@ -208,6 +208,12 @@ class CustomerOrder extends DataMapper
             ->setComment('')
             ->setInternalComment('')
             ->setReferer('');
+        
+        if (!is_null($customerOrder->getPaymentDate()) &&
+            $customerOrder->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED) {
+            
+            $orderSW->setClearedDate($customerOrder->getPaymentDate());
+        }
 
         $ref = new \ReflectionClass($orderSW);
 

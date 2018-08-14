@@ -18,8 +18,10 @@ final class Payment
         PaymentTypes::TYPE_PAYPAL_EXPRESS => 'paypal',
         PaymentTypes::TYPE_SOFORT => 'sofortbanking',
         PaymentTypes::TYPE_BILLSAFE => 'billsafe_invoice',
-        PaymentTypes::TYPE_HEIDELPAY => 'hgw_iv',
-        PaymentTypes::TYPE_HEIDELPAY => 'hgw_papg'
+        PaymentTypes::TYPE_HEIDELPAY => [
+            'hgw_iv',
+            'hgw_papg'
+        ]
     );
 
     public static function map($paymentModuleCode = null, $swCode = null)
@@ -27,8 +29,16 @@ final class Payment
         if ($paymentModuleCode !== null && isset(self::$_mappings[$paymentModuleCode])) {
             return self::$_mappings[$paymentModuleCode];
         } elseif ($swCode !== null) {
-            if (($connectorType = array_search($swCode, self::$_mappings)) !== false) {
-                return $connectorType;
+            foreach (self::$_mappings as $key => $value) {
+                if (is_array($value)) {
+                    if (array_search($swCode, $value, true) !== false) {
+                        return $key;
+                    }
+                }
+                
+                if ($value === $swCode) {
+                    return $key;
+                }
             }
         }
 
