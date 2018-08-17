@@ -13,3 +13,4 @@ config/**
 db/**
 !db/.htaccess
 validation/**
+/plugins/rpcview/

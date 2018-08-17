@@ -31,7 +31,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '2.1.12';
+        return file_get_contents(__DIR__ . '/version');
     }
 
     public function getInfo()
@@ -49,7 +49,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public function install()
     {
         define('CONNECTOR_DIR', __DIR__);
-
+        
         try {
             $this->runAutoload();
         } catch (\Exception $e) {
