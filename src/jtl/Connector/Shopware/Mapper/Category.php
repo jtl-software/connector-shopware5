@@ -312,8 +312,6 @@ class Category extends DataMapper
                     $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
                     $used[] = $sw_attribute->getColumnName();
                     unset($attributes[$sw_attribute->getColumnName()]);
-                } else if (method_exists($attributeSW, $setter)) {
-                    $attributeSW->{$setter}(null);
                 }
             }
         }
