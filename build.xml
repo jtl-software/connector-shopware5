@@ -43,6 +43,7 @@
                 <include name="LICENSE" />
                 <include name="CHANGELOG.md" />
                 <include name="plugin.png" />
+                <include name="version" />
             </fileset>
         </copy>
         <delete dir="./build" />
@@ -56,6 +57,7 @@
     </target>
 
     <target name="package" depends="build">
+        <loadfile property="version" file="version"/>
         <delete file="./dist/Frontend/jtlconnector/connector.phar" />
         <pharpackage
             destfile="./dist/Frontend/jtlconnector/index.phar"
@@ -67,7 +69,7 @@
                 <include name="**/**" />
             </fileset>
             <metadata>
-                <element name="version" value="2.1.12" />
+                <element name="version" value="${version}" />
                 <element name="authors">
                     <element name="Daniel Böhmer">
                         <element name="email" value="daniel.boehmer@jtl-software.com" />
@@ -81,10 +83,7 @@
             <include name="Frontend/**" />
         </fileset>
 
-        <exec command="php jtlasc.phar validation:create:file ${project.basedir}/dist/Frontend/jtlconnector/ ${project.basedir}/dist/Frontend/jtlconnector/validation/files.json -e 'config' -p '*.ph*'" />
-        <exec command="php jtlasc.phar validation:create:mysql localhost shopware 7jsDwv679GjYAX5lBU shopware ${project.basedir}/dist/Frontend/jtlconnector/validation/mysql.json -p '/jtl_connector_[\w]+/i'" />
-
-        <zip destfile="./dist/jtl-connector-shopware5-2.1.12.zip">
+        <zip destfile="./dist/jtl-connector-shopware5-${version}.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>

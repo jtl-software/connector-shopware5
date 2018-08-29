@@ -31,7 +31,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return '2.1.12';
+        return trim(file_get_contents(__DIR__ . '/version'));
     }
 
     public function getInfo()
@@ -75,7 +75,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         
         Logger::write('Checking shopware version...', Logger::INFO, 'install');
 
-        if (!$this->assertVersionGreaterThen('5.2.0')) {
+        if (!$this->assertMinimumVersion('5.2.0')) {
             Logger::write('Shopware version missmatch', Logger::ERROR, 'install');
 
             return array(
@@ -263,6 +263,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.1.9':
             case '2.1.10':
             case '2.1.11':
+            case '2.1.12':
                 break;
             default:
                 return false;
