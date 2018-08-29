@@ -67,7 +67,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             file_put_contents($config_file, json_encode(array(
                 'developer_logging' => false,
                 'customer_order_pull_start_date' => null,
-                'customer_order_processing_after_pull' => true
+                'customer_order_processing_after_pull' => true,
+                'null_undefined_category_attributes_during_push' => true,
+                'null_undefined_product_attributes_during_push' => true,
             ), JSON_PRETTY_PRINT));
         }
         
