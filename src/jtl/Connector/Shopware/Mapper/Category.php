@@ -301,7 +301,9 @@ class Category extends DataMapper
                 }
             }
         }
-        
+
+        $nullUndefinedAttributes = (bool)Application()->getConfig()->get('null_undefined_category_attributes_during_push', true);
+
         // Reset
         $used = [];
         $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_categories_attributes');
@@ -312,7 +314,7 @@ class Category extends DataMapper
                     $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
                     $used[] = $sw_attribute->getColumnName();
                     unset($attributes[$sw_attribute->getColumnName()]);
-                } else if (method_exists($attributeSW, $setter)) {
+                } else if ($nullUndefinedAttributes && method_exists($attributeSW, $setter)) {
                     $attributeSW->{$setter}(null);
                 }
             }
