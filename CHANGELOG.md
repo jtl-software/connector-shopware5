@@ -1,3 +1,9 @@
+2.1.13
+- CO-269 Consider seo description, seo keywords and page title by manufacturer pull
+- Config flags added for undefined attributes handling during push
+- Deprecations replaced for Shopware 5.5 compatiblity
+- Connector Core downgraded, due to compatiblity reasons
+
 2.1.12
 ------
 - CO-229 Fixed saving the customer order tracking code
