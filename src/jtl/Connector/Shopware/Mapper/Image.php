@@ -495,7 +495,7 @@ class Image extends DataMapper
             if ($service !== null) {
                 $service->delete($mediaSW->getPath());
             } else {
-                @unlink(sprintf('%s%s', Shopware()->OldPath(), $mediaSW->getPath()));
+                @unlink(sprintf('%s%s', Shopware()->DocPath(), $mediaSW->getPath()));
             }
 
             try {
@@ -1103,7 +1103,7 @@ class Image extends DataMapper
         $path = Shopware()->DocPath('media_' . strtolower(MediaSW::TYPE_IMAGE));
 
         if ($relativeley) {
-            $path = str_replace(Shopware()->OldPath(), '', $path);
+            $path = str_replace(Shopware()->DocPath(), '', $path);
         }
 
         return $stripLastSlash ? substr($path, 0, strrpos($path, DIRECTORY_SEPARATOR)) : $path;

@@ -18,9 +18,9 @@ class ManufacturerI18n extends ManufacturerI18nModel
         'manufacturerId' => 'id',
         'languageISO' => '',
         'description' => 'description',
-        'metaDescription' => '',
-        'metaKeywords' => '',
-        'titleTag' => ''
+        'metaDescription' => 'metaDescription',
+        'metaKeywords' => 'metaKeywords',
+        'titleTag' => 'metaTitle'
     );
     
     /**

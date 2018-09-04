@@ -16,6 +16,7 @@ use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Core\Model\QueryFilter;
 use \jtl\Connector\Model\ConnectorIdentification;
+use Shopware\Components\ShopwareReleaseStruct;
 
 /**
  * Connector Controller
@@ -59,10 +60,22 @@ class Connector extends DataController
             ->setPostMaxSize($returnMegaBytes(ini_get('post_max_size')))
             ->setUploadMaxFilesize($returnMegaBytes(ini_get('upload_max_filesize')));
 
+
+        if (defined('Shopware::VERSION')) {
+            $version = \Shopware::VERSION;
+        }
+        elseif($sw->Container()->has('shopware.release')) {
+            /** @var ShopwareReleaseStruct $shopwareRelease */
+            $shopwareRelease = $sw->Container()->get('shopware.release');
+            $version = $shopwareRelease->getVersion();
+        } else {
+            throw new \RuntimeException('Shopware version could not get found!');
+        }
+
         $identification = new ConnectorIdentification();
         $identification->setEndpointVersion($plugin_controller->getVersion())
             ->setPlatformName('Shopware')
-            ->setPlatformVersion($sw::VERSION)
+            ->setPlatformVersion($version)
             ->setProtocolVersion(Application()->getProtocolVersion())
             ->setServerInfo($serverInfo);
 

@@ -1,10 +1,14 @@
-3.0.0 (unreleased)
-------------------
-- CO-213 Added Core Version 3.0.0 support and pushed php requirement to >= 7.1.3
-
-2.1.13 (unreleased)
+2.1.14 (unreleased)
 -------------------
 - Fixed payment mapping for heidelpay
+
+=======
+2.1.13
+------
+- CO-269 Consider seo description, seo keywords and page title by manufacturer pull
+- Config flags added for undefined attributes handling during push
+- Deprecations replaced for Shopware 5.5 compatiblity
+- Connector Core downgraded, due to compatiblity reasons
 
 2.1.12
 ------
