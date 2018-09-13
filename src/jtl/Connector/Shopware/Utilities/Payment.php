@@ -57,6 +57,17 @@ final class Payment
     }
     
     /**
+     * Check if PayPal Plugin >= 1.0.5 is installed
+     * @return bool
+     */
+    public static function usePaypalUnified()
+    {
+        $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'swag_payment_paypal_unified_%\'');
+        
+        return is_array($mysql_result) && count($mysql_result) > 0;
+    }
+    
+    /**
      * Check if PayPal Plus installment is installed
      * @return bool
      */

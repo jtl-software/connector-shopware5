@@ -1,8 +1,8 @@
 2.1.14 (unreleased)
--------------------
+------
 - Fixed payment mapping for heidelpay
+- CO-254 / CO-251 Added Support for new Paypal Plugin
 
-=======
 2.1.13
 ------
 - CO-269 Consider seo description, seo keywords and page title by manufacturer pull
