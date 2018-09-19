@@ -68,6 +68,7 @@ class CustomerOrder extends DataController
             foreach ($orders as $orderSW) {
                 try {
                     // CustomerOrders
+                    /** @var \jtl\Connector\Shopware\Model\CustomerOrder $order */
                     $order = Mmc::getModel('CustomerOrder');
                     $order->map(true, DataConverter::toObject($orderSW, true));
                     
@@ -187,6 +188,11 @@ class CustomerOrder extends DataController
                     if ($order->getBillingAddress() !== null) {
                         $order->getBillingAddress()->setSalutation(Salutation::toConnector($orderSW['billing']['salutation']))
                             ->setEmail($orderSW['customer']['email']);
+
+                        $vatNumber = $order->getBillingAddress()->getVatNumber();
+                        if(strlen($vatNumber) > 20) {
+                            $order->getBillingAddress()->setVatNumber(substr($vatNumber, 0, 20));
+                        }
                     }
                     
                     if ($order->getShippingAddress() !== null) {

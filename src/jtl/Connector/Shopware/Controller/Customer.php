@@ -43,9 +43,16 @@ class Customer extends DataController
             foreach ($customers as $customerSW) {
                 try {
                     $customerSW['newsletter'] = (bool)$customerSW['newsletter'];
+
+                    /** @var \jtl\Connector\Shopware\Model\Customer $customer */
                     $customer = Mmc::getModel('Customer');
                     $customer->map(true, DataConverter::toObject($customerSW, true));
-                    
+
+                    $vatNumber = $customer->getVatNumber();
+                    if(strlen($vatNumber) > 20) {
+                        $customer->setVatNumber(substr($vatNumber, 0, 20));
+                    }
+
                     /**
                      * 0 => normal account ("don't create customer account" wasn't checked)<br>
                      * 1 => hidden account ("don't create customer account" was checked)
