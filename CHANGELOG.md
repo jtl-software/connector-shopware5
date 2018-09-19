@@ -1,7 +1,9 @@
-2.1.14 (unreleased)
+2.1.14
 ------
 - Fixed payment mapping for heidelpay
 - CO-254 / CO-251 Added Support for new Paypal Plugin
+- CO-255 Shorten vat number in case it is longer than 20 chars
+- CO-283 CrossSelling events are available
 
 2.1.13
 ------

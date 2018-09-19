@@ -16,7 +16,7 @@
     "repositories": [
         {
             "type": "git",
-            "url": "git@gitlab.jtl-software.de:jtl-software-gmbh/jtlconnector.git",
+            "url": "https://gitlab.jtl-software.de/jtl-software-gmbh/jtlconnector.git",
             "reference": "origin/master"
         }
     ],
