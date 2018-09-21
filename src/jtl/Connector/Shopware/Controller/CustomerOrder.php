@@ -476,7 +476,7 @@ class CustomerOrder extends DataController
                             (new \DateTime($result[0]['due_date']))->format('d.m.Y'),
                             sprintf(
                                 'Empfänger: %s, Bank: %s, IBAN: %s, BIC: %s',
-                                $result[0]['account_holder_name'],
+                                $result[0]['account_holder'],
                                 $result[0]['bank_name'],
                                 $result[0]['iban'],
                                 $result[0]['bic']
