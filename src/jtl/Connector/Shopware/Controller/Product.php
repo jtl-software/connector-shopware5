@@ -19,6 +19,7 @@ use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Utilities\VariationType;
 
 /**
@@ -315,7 +316,7 @@ class Product extends DataController
                     // Attribute Translation
                     if (isset($data['translations'])) {
                         foreach ($data['translations'] as $localeName => $translation) {
-                            $index = sprintf('__attribute_%s', $key);
+                            $index = sprintf('__attribute_%s', Str::snake($key, '_'));
                             if (!isset($translation[$index])) {
                                 continue;
                             }
