@@ -15,6 +15,7 @@ use jtl\Connector\Shopware\Utilities\Str;
 use Shopware\Models\Category\Category as CategorySW;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 
 class Category extends DataMapper
 {
@@ -89,7 +90,23 @@ class Category extends DataMapper
 
         //return $count ? count($res) : $res;
 
-        return $count ? ($paginator->count() - 1) : iterator_to_array($paginator);
+        $categories = iterator_to_array($paginator);
+
+        $shopMapper = Mmc::getMapper('Shop');
+        $shops = $shopMapper->findAll(null, null);
+
+        $translationUtil = new TranslationUtil();
+        for ($i = 0; $i < count($categories); $i++) {
+            foreach ($shops as $shop) {
+                $translation = $translationUtil->read($shop['id'], 's_categories_attributes', $categories[$i]['id']);
+                if (!empty($translation)) {
+                    $translation['shopId'] = $shop['id'];
+                    $categories[$i]['translations'][$shop['locale']['locale']] = $translation;
+                }
+            }
+        }
+
+        return $categories;
     }
 
     public function fetchCount($limit = 100)
