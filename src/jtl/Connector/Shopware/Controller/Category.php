@@ -8,7 +8,10 @@ namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Result\Action;
 use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Shopware\Model\CategoryAttr;
+use jtl\Connector\Shopware\Model\CategoryAttrI18n;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use jtl\Connector\Shopware\Utilities\Str;
 use Shopware\Models\Category\Category as CategoryShopware;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Core\Utilities\DataConverter;
@@ -45,7 +48,7 @@ class Category extends DataController
 
             $shopMapper = Mmc::getMapper('Shop');
             $shops = $shopMapper->findAll(null);
-            
+
             $rootCategories = array();
             $rootCategoryIds = array();
             foreach ($shops as $shop) {
@@ -72,37 +75,66 @@ class Category extends DataController
                         $categorySW['parentId'] = null;
                     }
 
+                    /** @var \jtl\Connector\Shopware\Model\Category $category */
                     $category = Mmc::getModel('Category');
                     $category->map(true, DataConverter::toObject($categorySW, true));
 
+                    /** @var \Shopware\Models\Category\Category $categoryObj */
                     $categoryObj = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
                         ->findOneById($categorySW['id']);
 
                     // Level
                     //$category->setLevel($categoryObj->getLevel() - 1);
-                    $category->setLevel((int) $categorySW['categoryLevel']['level'] - 1);
+                    $category->setLevel((int)$categorySW['categoryLevel']['level'] - 1);
 
                     // Attributes
                     if (isset($categorySW['attribute']) && is_array($categorySW['attribute'])) {
-                        for ($i = 1; $i <= 6; $i++) {
-                            if (isset($categorySW['attribute']["attribute{$i}"]) && strlen(trim($categorySW['attribute']["attribute{$i}"]))) {
-                                $attrId = IdConcatenator::link(array($categorySW['attribute']['id'], $i));
-
-                                $categoryAttr = Mmc::getModel('CategoryAttr');
-                                $categoryAttr->map(true, DataConverter::toObject($categorySW['attribute'], true));
-                                $categoryAttr->setId(new Identity($attrId));
-
-                                $categoryAttrI18n = Mmc::getModel('CategoryAttrI18n');
-                                $categoryAttrI18n->map(true, DataConverter::toObject($categorySW['attribute'], true));
-                                $categoryAttrI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
-                                    ->setName("attribute{$i}")
-                                    ->setValue((string) $categorySW['attribute']["attribute{$i}"])
-                                    ->setCategoryAttrId(new Identity($attrId));
-
-                                $categoryAttr->addI18n($categoryAttrI18n);
-
-                                $category->addAttribute($categoryAttr);
+                        $ignoreAttributes = ['id', 'categoryId'];
+                        foreach ($categorySW['attribute'] AS $name => $value) {
+                            //for ($i = 1; $i <= 6; $i++) {
+                            if (empty($value) || in_array($name, $ignoreAttributes)) {
+                                continue;
                             }
+
+                            //if (isset($categorySW['attribute']["attribute{$i}"]) && strlen(trim($categorySW['attribute']["attribute{$i}"]))) {
+                            $attrId = IdConcatenator::link(array($categorySW['attribute']['id'], $name));
+                            $attrIdentity = new Identity($attrId);
+
+                            /** @var CategoryAttr $categoryAttr */
+                            $categoryAttr = Mmc::getModel('CategoryAttr')
+                                ->setCategoryId($category->getId())
+                                ->setId($attrIdentity);
+
+                            /** @var CategoryAttrI18n $categoryAttrI18n */
+                            $categoryAttrI18n = Mmc::getModel('CategoryAttrI18n')
+                                ->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                                ->setName($name)
+                                ->setValue((string)$value)
+                                ->setCategoryAttrId($category->getId());
+
+                            $categoryAttr->addI18n($categoryAttrI18n);
+
+                            // Attribute Translation
+                            if (isset($categorySW['translations'])) {
+                                foreach ($categorySW['translations'] as $localeName => $translation) {
+                                    $index = sprintf('__attribute_%s', Str::snake($name, '_'));
+                                    if (!isset($translation[$index])) {
+                                        continue;
+                                    }
+
+                                    $categoryAttrI18n = Mmc::getModel('CategoryAttrI18n');
+                                    $categoryAttrI18n->setCategoryAttrId($categoryAttr->getId())
+                                        ->setLanguageISO(LanguageUtil::map($localeName))
+                                        ->setName($name)
+                                        ->setValue((string) $translation[$index]);
+
+                                    $categoryAttr->addI18n($categoryAttrI18n);
+                                    $categoryAttr->setIsTranslated(true);
+                                }
+                            }
+
+                            $category->addAttribute($categoryAttr);
+
                         }
                     }
 
