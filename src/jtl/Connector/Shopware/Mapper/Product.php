@@ -192,7 +192,7 @@ class Product extends DataMapper
             ->leftJoin('detail.configuratorOptions', 'configuratorOptions')
             ->leftJoin('article.propertyValues', 'propertyvalues')
             ->where('linker.hostId IS NULL')
-            ->orderBy('detail.kind', 'ASC')
+            ->orderBy('detail.kind', 'DESC')
             ->setFirstResult(0)
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
@@ -245,7 +245,7 @@ class Product extends DataMapper
     public function getParentDetailId($productId)
     {
         return (int) Shopware()->Db()->fetchOne(
-            'SELECT id FROM s_articles_details WHERE articleID = ? AND kind = 0',
+            'SELECT id FROM s_articles_details WHERE articleID = ? AND kind = 3',
             array($productId)
         );
     }
@@ -625,10 +625,10 @@ class Product extends DataMapper
         $detailSW->setAdditionalText('');
         $productSW->setChanged();
 
-        $kind = ($isChild && $detailSW->getId() > 0 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
+        $kind = ($isChild && $detailSW->getId() != 3 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
         $active = $product->getIsActive();
         if (!$isChild) {
-            $kind = $this->isParent($product) ? 0 : 1;
+            $kind = $this->isParent($product) ? 3 : 1;
             $active = $this->isParent($product) ? false : $active;
         }
 
@@ -1472,7 +1472,7 @@ class Product extends DataMapper
                             array($productSW->getId())
                         );
 
-                        $kindSql = ($count > 1) ? ' AND kind != 0 ' : '';
+                        $kindSql = ($count > 1) ? ' AND kind != 3 ' : '';
 
                         Shopware()->Db()->query(
                             'UPDATE s_articles SET main_detail_id = (SELECT id FROM s_articles_details WHERE articleID = ? ' . $kindSql . ' LIMIT 1) WHERE id = ?',
@@ -1584,7 +1584,7 @@ class Product extends DataMapper
     {
         // If the parent is already deleted or a configurator set is present
         if ($productSW === null || ($productSW->getConfiguratorSet() !== null && $productSW->getConfiguratorSet()->getId() > 0)) {
-            return ((int) $detailSW->getKind() != 0) ? true : false;
+            return ((int) $detailSW->getKind() != 3) ? true : false;
         }
 
         return false;

@@ -30,12 +30,12 @@ class CrossSelling extends DataMapper
                     FROM s_articles a
                     LEFT JOIN jtl_connector_crossselling c ON c.product_id = a.id
                     LEFT JOIN s_articles_details d ON d.articleID = a.id
-                        AND d.kind = 0
+                        AND d.kind = 3
                     WHERE c.product_id IS NULL
                  ) as ss ON ss.id = r.articleID
                  JOIN s_articles a ON a.id = r.relatedarticle
                  LEFT JOIN s_articles_details d ON d.articleID = r.relatedarticle
-                     AND d.kind = 0
+                     AND d.kind = 3
                  JOIN jtl_connector_crosssellinggroup_i18n gi ON gi.languageISO = \'ger\' AND gi.name = \'' . CrossSellingGroupModel::RELATED . '\'
                  UNION
                  SELECT s.id, s.articleID, s.relatedarticle, ss.detailId, if (a.configurator_set_id > 0, d.id, a.main_detail_id) as relatedDetailId, gi.group_id
@@ -46,12 +46,12 @@ class CrossSelling extends DataMapper
                     FROM s_articles a
                     LEFT JOIN jtl_connector_crossselling c ON c.product_id = a.id
                     LEFT JOIN s_articles_details d ON d.articleID = a.id
-                        AND d.kind = 0
+                        AND d.kind = 3
                     WHERE c.product_id IS NULL
                  ) as ss ON ss.id = s.articleID
                  JOIN s_articles a ON a.id = s.relatedarticle
                  LEFT JOIN s_articles_details d ON d.articleID = s.relatedarticle
-                     AND d.kind = 0
+                     AND d.kind = 3
                  JOIN jtl_connector_crosssellinggroup_i18n gi ON gi.languageISO = \'ger\' AND gi.name = \'' . CrossSellingGroupModel::SIMILAR . '\'
              ) a
              ORDER BY articleID

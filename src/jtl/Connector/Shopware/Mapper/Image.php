@@ -79,7 +79,7 @@ class Image extends DataMapper
                       LEFT JOIN s_articles_img c ON c.parent_id = i.id
                       LEFT JOIN s_articles a ON a.id = i.articleID
                       LEFT JOIN s_articles_details d ON d.articleID = a.id
-                          AND d.kind = 0
+                          AND d.kind = 3
                       LEFT JOIN jtl_connector_link_product_image l ON l.id = i.id
                       JOIN s_media m ON m.id = i.media_id
                       WHERE i.articleID IS NOT NULL
@@ -267,7 +267,7 @@ class Image extends DataMapper
                 $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? $image->getForeignKey()->getEndpoint() : null;
                 list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
                 $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
-                if ($imageSW->getParent() === null && $detailSW !== null && $detailSW->getKind() == 0 && $image->getSort() == 1) {
+                if ($imageSW->getParent() === null && $detailSW !== null && $detailSW->getKind() != 3 && $image->getSort() == 1) {
                     Shopware()->Db()->query('UPDATE s_articles_img SET main = 2 WHERE articleID = ' . intval($articleId));
                     Shopware()->Db()->query(
                         'UPDATE s_articles_img
@@ -434,14 +434,14 @@ class Image extends DataMapper
 
                     try {
                         $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
-                        if ($detailSW !== null && $detailSW->getKind() == 0 && $this->isParentImageInUse($imageSW->getId(), $detailSW->getId())) {
+                        if ($detailSW !== null && $detailSW->getKind() == 3 && $this->isParentImageInUse($imageSW->getId(), $detailSW->getId())) {
                             return;
                         }
 
                         $this->Manager()->remove($imageSW);
                         $this->Manager()->flush();
 
-                        if ($detailSW !== null && $detailSW->getKind() == 0) {
+                        if ($detailSW !== null && $detailSW->getKind() == 3) {
                             Shopware()->Db()->query(
                                 'UPDATE s_articles_img
                                 SET main = 1, position = 1

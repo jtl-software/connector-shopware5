@@ -48,7 +48,7 @@ class Product extends DataController
             
             foreach ($products as $productSW) {
                 try {
-                    $isDetail = (isset($productSW['article']['configuratorSetId']) && (int) $productSW['article']['configuratorSetId'] > 0 && $productSW['kind'] != 0);
+                    $isDetail = (isset($productSW['article']['configuratorSetId']) && (int) $productSW['article']['configuratorSetId'] > 0 && $productSW['kind'] != 3);
                     $product = $this->buildProduct($productSW, $isDetail);
 
                     if ($product !== null) {
@@ -93,7 +93,7 @@ class Product extends DataController
         $data['detailId'] = $data['id'];
         $data['id'] = IdConcatenator::link(array($data['id'], $data['articleId']));
         $article = $data['article'];
-        $data['isMasterProduct'] = (isset($data['configuratorSetId']) && (int)$data['configuratorSetId'] > 0 && (int) $data['kind'] == 0);
+        $data['isMasterProduct'] = (isset($data['configuratorSetId']) && (int)$data['configuratorSetId'] > 0 && (int) $data['kind'] == 3);
 
         unset($data['article']);
 
