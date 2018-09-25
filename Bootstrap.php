@@ -339,7 +339,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public function uninstall()
     {
         $this->dropMappingTable();
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 0");
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 3");
 
         return true;
     }
@@ -400,7 +400,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         Logger::write('create parent dummies...', Logger::INFO, 'install');
 
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 0");
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 3");
 
         // Dirty inject parent and insert in db work around
         $res = Shopware()->Db()->query('SELECT d.*, a.configurator_set_id
@@ -423,7 +423,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $parentDetailSW->setSupplierNumber($product['suppliernumber'])
                 ->setNumber(sprintf('%s.%s', $product['ordernumber'], '0'))
                 ->setActive(0)
-                ->setKind(0)
+                ->setKind(3)
                 ->setStockMin($product['stockmin'])
                 ->setInStock($product['instock'])
                 ->setReleaseDate($product['releasedate'])
