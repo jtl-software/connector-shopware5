@@ -89,6 +89,9 @@ class Category extends DataMapper
         //$res = $query->getResult(\Doctrine\ORM\Query::HYDRATE_ARRAY);
 
         //return $count ? count($res) : $res;
+        if($count) {
+            return ($paginator->count() - 1);
+        }
 
         $categories = iterator_to_array($paginator);
 
