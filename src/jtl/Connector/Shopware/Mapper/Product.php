@@ -36,6 +36,10 @@ use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 
 class Product extends DataMapper
 {
+    const KIND_VALUE_PARENT = 3;
+    const KIND_VALUE_DEFAULT = 2;
+    const KIND_VALUE_MAIN = 1;
+
     protected static $masterProductIds = array();
 
     public function getRepository()
@@ -245,7 +249,7 @@ class Product extends DataMapper
     public function getParentDetailId($productId)
     {
         return (int) Shopware()->Db()->fetchOne(
-            'SELECT id FROM s_articles_details WHERE articleID = ? AND kind = 3',
+            'SELECT id FROM s_articles_details WHERE articleID = ? AND kind = ' . self::KIND_VALUE_PARENT,
             array($productId)
         );
     }
@@ -348,6 +352,8 @@ class Product extends DataMapper
             Logger::write(sprintf('Exception from Product (%s, %s)', $product->getId()->getEndpoint(), $product->getId()->getHost()), Logger::ERROR, 'database');
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
+
+
 
         // Result
         $result->setId(new Identity('', $product->getId()->getHost()))
@@ -625,10 +631,10 @@ class Product extends DataMapper
         $detailSW->setAdditionalText('');
         $productSW->setChanged();
 
-        $kind = ($isChild && $detailSW->getId() != 3 && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? 1 : 2;
+        $kind = ($isChild && $detailSW->getId() != self::KIND_VALUE_PARENT && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? self::KIND_VALUE_MAIN : self::KIND_VALUE_DEFAULT;
         $active = $product->getIsActive();
         if (!$isChild) {
-            $kind = $this->isParent($product) ? 3 : 1;
+            $kind = $this->isParent($product) ? self::KIND_VALUE_PARENT : self::KIND_VALUE_MAIN;
             $active = $this->isParent($product) ? false : $active;
         }
 
@@ -815,7 +821,21 @@ class Product extends DataMapper
         
                         continue;
                     }
-    
+
+                    if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IS_MAIN) && $isChild && (bool)$attributeI18n->getValue() === true) {
+                        /** @var DetailSW $detail */
+                        $this->Manager()->refresh($productSW);
+                        $details = $productSW->getDetails();
+                        foreach($details as $detail) {
+                            if($detail->getKind() !== self::KIND_VALUE_PARENT) {
+                                $detail->setKind(self::KIND_VALUE_DEFAULT);
+                            }
+                        }
+                        $productSW->setMainDetail($detailSW);
+
+                        continue;
+                    }
+
                     $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
                     $attributes[$attributeI18n->getName()] = $attributeI18n->getValue();
                 }
@@ -1472,7 +1492,7 @@ class Product extends DataMapper
                             array($productSW->getId())
                         );
 
-                        $kindSql = ($count > 1) ? ' AND kind != 3 ' : '';
+                        $kindSql = ($count > 1) ? ' AND kind != ' . self::KIND_VALUE_PARENT . ' ' : '';
 
                         Shopware()->Db()->query(
                             'UPDATE s_articles SET main_detail_id = (SELECT id FROM s_articles_details WHERE articleID = ? ' . $kindSql . ' LIMIT 1) WHERE id = ?',
@@ -1584,7 +1604,7 @@ class Product extends DataMapper
     {
         // If the parent is already deleted or a configurator set is present
         if ($productSW === null || ($productSW->getConfiguratorSet() !== null && $productSW->getConfiguratorSet()->getId() > 0)) {
-            return ((int) $detailSW->getKind() != 3) ? true : false;
+            return ((int) $detailSW->getKind() !== self::KIND_VALUE_PARENT);
         }
 
         return false;

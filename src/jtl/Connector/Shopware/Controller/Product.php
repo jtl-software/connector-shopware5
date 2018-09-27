@@ -21,6 +21,7 @@ use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Utilities\VariationType;
+use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
 
 /**
  * Product Controller
@@ -48,7 +49,7 @@ class Product extends DataController
             
             foreach ($products as $productSW) {
                 try {
-                    $isDetail = (isset($productSW['article']['configuratorSetId']) && (int) $productSW['article']['configuratorSetId'] > 0 && $productSW['kind'] != 3);
+                    $isDetail = (isset($productSW['article']['configuratorSetId']) && (int) $productSW['article']['configuratorSetId'] > 0 && $productSW['kind'] != ProductMapper::KIND_VALUE_PARENT);
                     $product = $this->buildProduct($productSW, $isDetail);
 
                     if ($product !== null) {
@@ -93,7 +94,7 @@ class Product extends DataController
         $data['detailId'] = $data['id'];
         $data['id'] = IdConcatenator::link(array($data['id'], $data['articleId']));
         $article = $data['article'];
-        $data['isMasterProduct'] = (isset($data['configuratorSetId']) && (int)$data['configuratorSetId'] > 0 && (int) $data['kind'] == 3);
+        $data['isMasterProduct'] = (isset($data['configuratorSetId']) && (int)$data['configuratorSetId'] > 0 && (int) $data['kind'] == ProductMapper::KIND_VALUE_PARENT);
 
         unset($data['article']);
 

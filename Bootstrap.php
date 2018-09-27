@@ -7,6 +7,7 @@ use jtl\Connector\Core\IO\Path;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
@@ -268,7 +269,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.1.12':
             case '2.1.13':
             case '2.1.14':
-                Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = 3 WHERE sad.kind = 0");
+                Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = " . ProductMapper::KIND_VALUE_PARENT . " WHERE sad.kind = 0");
                 break;
             default:
                 return false;
@@ -338,8 +339,17 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function uninstall()
     {
+        try {
+            $this->runAutoload();
+        } catch (\Exception $e) {
+            return array(
+                'success' => false,
+                'message' => $e->getMessage()
+            );
+        }
+
         $this->dropMappingTable();
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 3");
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
 
         return true;
     }
@@ -400,14 +410,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         Logger::write('create parent dummies...', Logger::INFO, 'install');
 
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = 3");
+        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
 
         // Dirty inject parent and insert in db work around
         $res = Shopware()->Db()->query('SELECT d.*, a.configurator_set_id
                                             FROM s_articles_details d
                                             JOIN s_articles a ON a.id = d.articleID
                                             WHERE a.configurator_set_id > 0
-                                                AND d.kind = 1');
+                                                AND d.kind = ?', [ProductMapper::KIND_VALUE_MAIN]);
 
         $i = 0;
         while ($product = $res->fetch()) {
@@ -423,7 +433,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $parentDetailSW->setSupplierNumber($product['suppliernumber'])
                 ->setNumber(sprintf('%s.%s', $product['ordernumber'], '0'))
                 ->setActive(0)
-                ->setKind(3)
+                ->setKind(ProductMapper::KIND_VALUE_PARENT)
                 ->setStockMin($product['stockmin'])
                 ->setInStock($product['instock'])
                 ->setReleaseDate($product['releasedate'])
