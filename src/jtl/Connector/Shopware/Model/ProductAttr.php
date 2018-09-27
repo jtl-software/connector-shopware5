@@ -3,7 +3,6 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
  */
-
 namespace jtl\Connector\Shopware\Model;
 
 use \jtl\Connector\Model\ProductAttr as ProductAttrModel;
@@ -19,6 +18,7 @@ class ProductAttr extends ProductAttrModel
     const SEND_NOTIFICATION = 'sw_send_notification';
     const PSEUDO_SALES = 'sw_pseudo_sales';
     const IMAGE_CONFIGURATION_IGNORES = 'sw_image_config_ignores';
+    const IS_MAIN = 'is_main';
 
     protected $fields = array(
         'id' => 'id',
