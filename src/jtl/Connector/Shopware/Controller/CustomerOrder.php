@@ -303,7 +303,7 @@ class CustomerOrder extends DataController
 
                     // Update order status
                     $value = Application()->getConfig()->get('customer_order_processing_after_pull');
-                    if ($swOrderObj->getOrderStatus()->getId() === Status::ORDER_STATE_OPEN && is_null($value) || $value === true) {
+                    if ($swOrderObj->getOrderStatus()->getId() === Status::ORDER_STATE_OPEN && (is_null($value) || $value === true)) {
                         $status = Shopware()->Models()->getRepository('Shopware\Models\Order\Status')->findOneById(Status::ORDER_STATE_IN_PROCESS);
 
                         $swOrderObj->setOrderStatus($status);
