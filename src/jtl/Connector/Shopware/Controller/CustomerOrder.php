@@ -25,6 +25,8 @@ use jtl\Connector\Core\Rpc\Error;
 use jtl\Connector\Core\Utilities\DataConverter;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\IdConcatenator;
+use Shopware\Models\Order\Order;
+use Shopware\Models\Order\Status;
 
 /**
  * CustomerOrder Controller
@@ -67,11 +69,16 @@ class CustomerOrder extends DataController
             
             foreach ($orders as $orderSW) {
                 try {
+
                     // CustomerOrders
                     /** @var \jtl\Connector\Shopware\Model\CustomerOrder $order */
                     $order = Mmc::getModel('CustomerOrder');
                     $order->map(true, DataConverter::toObject($orderSW, true));
-                    
+
+                    /** @var Order $swOrderObj */
+                    $swOrderObj = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')
+                        ->findOneById($order->getId()->getEndpoint());
+
                     // PaymentModuleCode
                     $paymentModuleCode = PaymentUtil::map(null, $orderSW['payment']['name']);
                     $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $orderSW['payment']['name'];
@@ -293,12 +300,15 @@ class CustomerOrder extends DataController
                         
                         $order->setPaymentInfo($customerOrderPaymentInfo);
                     }
-                    
+
                     // Update order status
                     $value = Application()->getConfig()->get('customer_order_processing_after_pull');
-                    if (is_null($value) || $value === true) {
-                        $sql = 'UPDATE s_order SET status = 1 WHERE id = ?';
-                        Shopware()->Db()->query($sql, [$order->getId()->getEndpoint()]);
+                    if ($swOrderObj->getOrderStatus()->getId() === Status::ORDER_STATE_OPEN && is_null($value) || $value === true) {
+                        $status = Shopware()->Models()->getRepository('Shopware\Models\Order\Status')->findOneById(Status::ORDER_STATE_IN_PROCESS);
+
+                        $swOrderObj->setOrderStatus($status);
+                        Shopware()->Models()->persist($swOrderObj);
+                        Shopware()->Models()->flush();
                     }
                     
                     $result[] = $order;
