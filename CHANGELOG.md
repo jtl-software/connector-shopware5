@@ -2,6 +2,7 @@
 ------
 - WAWI-25142 Order status mappings revised
 - CO-222 Main article detail can be changed in Wawi
+- CO-292 Account holder in PUI fixed
 - CO-293 kind value of pseudo master article detail changed to 3
 - CO-294 Changing main image of a product after push fix
 - Category attributes with individual names will be pulled into Wawi
