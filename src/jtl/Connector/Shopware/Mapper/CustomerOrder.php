@@ -306,14 +306,14 @@ class CustomerOrder extends DataMapper
     protected function prepareStatusAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
     {
         // Order Status
-        $status = StatusUtil::map($customerOrder->getStatus());
-        if ($status === null) {
+        $statusId = StatusUtil::map($customerOrder->getStatus());
+        if ($statusId === null) {
             throw new \Exception(sprintf('Order status with status (%s) not found', $customerOrder->getStatus()));
         }
 
-        $statusSW = $this->Manager()->getRepository('Shopware\Models\Order\Status')->findOneBy(array('id' => $status));
+        $statusSW = $this->Manager()->getRepository('Shopware\Models\Order\Status')->findOneBy(array('id' => $statusId));
         if ($statusSW === null) {
-            throw new \Exception(sprintf('Order status with id (%s) not found', $status));
+            throw new \Exception(sprintf('Order status with id (%s) not found', $statusId));
         }
 
         // Payment Status

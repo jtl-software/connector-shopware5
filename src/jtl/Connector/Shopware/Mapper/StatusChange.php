@@ -43,6 +43,7 @@ class StatusChange extends DataMapper
                 // Order Status
                 if ($status->getOrderStatus() !== null && strlen($status->getOrderStatus()) > 0) {
                     $statusId = StatusUtil::map($status->getOrderStatus());
+
                     if ($statusId !== null) {
                         $customerOrderStatusSW = $mapper->findStatus($statusId);
                         if ($customerOrderStatusSW !== null) {

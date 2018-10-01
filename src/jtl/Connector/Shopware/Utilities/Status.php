@@ -3,15 +3,15 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Utilities
  */
-
 namespace jtl\Connector\Shopware\Utilities;
 
 use \jtl\Connector\Model\CustomerOrder;
 
+
 final class Status
 {
-    private static $_mappings = array(
-        CustomerOrder::STATUS_NEW => 0,
+    private static $wawiStatusMappings = array(
+        CustomerOrder::STATUS_NEW => 1,
         //CustomerOrder::STATUS_PROCESSING => 1,
         //CustomerOrder::STATUS_COMPLETED => 2,
         CustomerOrder::STATUS_PARTIALLY_SHIPPED => 6,
@@ -19,14 +19,26 @@ final class Status
         CustomerOrder::STATUS_CANCELLED => 4
     );
 
-    public static function map($orderStatus = null, $swStatus = null)
+    protected static $shopwareStatusMappings = [
+        0 => CustomerOrder::STATUS_NEW,
+        1 => CustomerOrder::STATUS_NEW,
+        2 => CustomerOrder::STATUS_SHIPPED,
+        4 => CustomerOrder::STATUS_CANCELLED,
+        6 => CustomerOrder::STATUS_PARTIALLY_SHIPPED,
+        7 => CustomerOrder::STATUS_SHIPPED,
+    ];
+
+    /**
+     * @param string $wawiStatus
+     * @param integer $shopwareStatus
+     * @return string|integer|null
+     */
+    public static function map($wawiStatus = null, $shopwareStatus = null)
     {
-        if ($orderStatus !== null && isset(self::$_mappings[$orderStatus])) {
-            return self::$_mappings[$orderStatus];
-        } elseif ($swStatus !== null) {
-            if (($connectorStatus = array_search($swStatus, self::$_mappings)) !== false) {
-                return $connectorStatus;
-            }
+        if (isset(self::$wawiStatusMappings[$wawiStatus])) {
+            return self::$wawiStatusMappings[$wawiStatus];
+        } elseif (isset(self::$shopwareStatusMappings[$shopwareStatus])) {
+            return self::$shopwareStatusMappings[$shopwareStatus];
         }
 
         return null;
