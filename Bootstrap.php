@@ -270,6 +270,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.1.13':
             case '2.1.14':
                 Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = " . ProductMapper::KIND_VALUE_PARENT . " WHERE sad.kind = 0");
+            case '2.1.15':
                 break;
             default:
                 return false;
