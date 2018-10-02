@@ -7,6 +7,7 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\Utilities\Money;
+use jtl\Connector\Shopware\Model\ProductSpecific;
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Model\ProductVariation;
@@ -33,6 +34,9 @@ use jtl\Connector\Linker\ChecksumLinker;
 use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use Shopware\Models\Property\Group;
+use Shopware\Models\Property\Option;
+use Shopware\Models\Property\Value;
 
 class Product extends DataMapper
 {
@@ -1058,38 +1062,41 @@ class Product extends DataMapper
     protected function prepareSpecificAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW $detailSW)
     {
         try {
-            $group = $productSW->getPropertyGroup();
-            $collection = new ArrayCollection();
-    
+            $group = null;
+            $values = [];
             if (count($product->getSpecifics()) > 0) {
-                if ($group === null) {
-                    $group = new \Shopware\Models\Property\Group();
-                    $group->setName($product->getSku())
-                        ->setPosition(0)
-                        ->setComparable(1)
-                        ->setSortMode(0);
-            
-                    $this->Manager()->persist($group);
-                }
-        
-                $mapper = Mmc::getMapper('Specific');
-                $group->setOptions(array());
-                $options = array();
-                foreach ($product->getSpecifics() as $productSpecific) {
-                    $valueSW = $mapper->findValue((int)$productSpecific->getSpecificValueId()->getEndpoint());
-                    if ($valueSW !== null) {
-                        $collection->add($valueSW);
-                        if (!in_array($valueSW->getOption()->getId(), $options)) {
-                            $group->addOption($valueSW->getOption());
-                            $options[] = $valueSW->getOption()->getId();
+                $group = $productSW->getPropertyGroup();
+                $optionIds = $this->getFilterOptionIds($product);
+                if(is_null($group) || !$this->isSuitableFilterGroup($group, $optionIds)) {
+                    $group = null;
+
+                    /** @var Group $fetchedGroup */
+                    foreach(Shopware()->Models()->getRepository(Group::class)->findAll() as $fetchedGroup) {
+                        if($this->isSuitableFilterGroup($fetchedGroup, $optionIds)) {
+                            $group = $fetchedGroup;
+                            break;
                         }
                     }
+
+                    if(is_null($group)) {
+                        $options = Shopware()->Models()->getRepository(Option::class)->findById($optionIds);
+                        $groupName = implode('_', array_map(function(Option $option) { return $option->getName(); }, $options));
+                        $group = (new \Shopware\Models\Property\Group())
+                            ->setName($groupName)
+                            ->setPosition(0)
+                            ->setComparable(1)
+                            ->setSortMode(0)
+                            ->setOptions($options)
+                        ;
+
+                        $this->Manager()->persist($group);
+                    }
                 }
-        
-                $this->Manager()->persist($group);
+
+                $values = Shopware()->Models()->getRepository(Value::class)->findById($this->getFilterValueIds($product));
             }
-    
-            $productSW->setPropertyValues($collection);
+
+            $productSW->setPropertyValues(new ArrayCollection($values));
             $productSW->setPropertyGroup($group);
         } catch (\Exception $e) {
             Logger::write(sprintf(
@@ -1097,6 +1104,52 @@ class Product extends DataMapper
                 ExceptionFormatter::format($e)
             ), Logger::ERROR, 'database');
         }
+    }
+
+    /**
+     * @param ProductModel $product
+     * @return integer[]
+     */
+    protected function getFilterOptionIds(ProductModel $product)
+    {
+        $ids = array_map(function(\jtl\Connector\Model\ProductSpecific $specific) {
+            return $specific->getId()->getEndpoint();
+        }, $product->getSpecifics());
+
+        return array_values(array_unique(array_filter($ids, function($id) { return !empty($id); })));
+    }
+
+    /**
+     * @param ProductModel $product
+     * @return integer[]
+     */
+    protected function getFilterValueIds(ProductModel $product)
+    {
+        $ids = array_map(function(\jtl\Connector\Model\ProductSpecific $specific) {
+            return $specific->getSpecificValueId()->getEndpoint();
+        }, $product->getSpecifics());
+
+        return array_values(array_filter($ids, function($id) { return !empty($id); }));
+    }
+
+    /**
+     * @param Group $group
+     * @param integer[] $optionIds
+     * @return boolean
+     */
+    protected function isSuitableFilterGroup(Group $group, array $optionIds)
+    {
+        $options = $group->getOptions();
+        if(count($options) !== count($optionIds)) {
+            return false;
+        }
+
+        foreach($options as $option) {
+            if(!in_array($option->getId(), $optionIds)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected function saveTranslationData(ProductModel $product, ArticleSW $productSW, array $attrMappings)
