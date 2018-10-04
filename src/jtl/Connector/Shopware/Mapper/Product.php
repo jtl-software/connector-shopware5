@@ -174,7 +174,8 @@ class Product extends DataMapper
             'discounts',
             'customergroups',
             'configuratorOptions',
-            'propertyvalues'
+            'propertyvalues',
+            '(CASE WHEN detail.kind = 3 THEN 0 ELSE detail.kind END) AS HIDDEN sort'
         )
             ->from('jtl\Connector\Shopware\Model\Linker\Detail', 'detail')
             ->leftJoin('detail.linker', 'linker')
@@ -196,7 +197,7 @@ class Product extends DataMapper
             ->leftJoin('detail.configuratorOptions', 'configuratorOptions')
             ->leftJoin('article.propertyValues', 'propertyvalues')
             ->where('linker.hostId IS NULL')
-            ->orderBy('detail.kind', 'DESC')
+            ->orderBy('sort', 'ASC')
             ->setFirstResult(0)
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
