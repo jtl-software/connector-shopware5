@@ -1,5 +1,5 @@
 #!/bin/bash
-ulimit -n100000;
+ulimit -n 100000;
 composer update --no-dev;
-phing package;
+php ./phing.phar package;
 composer update;
