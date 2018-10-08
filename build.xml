@@ -83,12 +83,13 @@
             <include name="Frontend/**" />
         </fileset>
 
-        <zip destfile="./dist/jtl-connector-shopware5-${version}.zip">
+        <zip destfile="./jtl-connector-shopware5-${version}.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>
 
-    <target name="clean" depends="package">
+    <target name="release" depends="package">
         <delete dir="./build" />
+        <delete dir="./dist" />
     </target>
 </project>
