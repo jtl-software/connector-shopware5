@@ -273,7 +273,9 @@ class Product extends DataMapper
 
     public function save(ProductModel $product)
     {
+        /** @var ArticleSW $productSW */
         $productSW = null;
+        /** @var DetailSW $detailSW */
         $detailSW = null;
         //$result = new ProductModel();
         $result = $product;
@@ -313,8 +315,39 @@ class Product extends DataMapper
 
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
-                $this->Manager()->flush();
 
+//                $setOptions = $productSW->getConfiguratorSet()->getOptions();
+//                /** @var \Shopware\Models\Article\Configurator\Group[] $group */
+//                foreach($productSW->getConfiguratorSet()->getGroups() as $group) {
+//                    $options = new ArrayCollection();
+//
+//                    /** @var \Shopware\Models\Article\Configurator\Group[] $groupOptions */
+//                    $groupOptions = $group->getOptions();
+//                    foreach($groupOptions as $option) {
+//                        if($options->contains($option)) {
+//                            continue;
+//                        }
+//
+//                        if($setOptions->contains($option)) {
+//                            $options->add($option);
+//                        }
+//                        else {
+//                            /** @var DetailSW $detail */
+//                            foreach ($productSW->getDetails() as $detail) {
+//                                if($detail->getConfiguratorOptions()->contains($option)) {
+//                                    $options->add($option);
+//                                    break;
+//                                }
+//                            }
+//                        }
+//
+//                        if(!$options->contains($option)) {
+//                            $this->Manager()->remove($option);
+//                        }
+//                    }
+//                }
+
+                $this->Manager()->flush();
 
 
             } else {
@@ -359,7 +392,6 @@ class Product extends DataMapper
             Logger::write(sprintf('Exception from Product (%s, %s)', $product->getId()->getEndpoint(), $product->getId()->getHost()), Logger::ERROR, 'database');
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
-
 
 
         // Result
@@ -742,7 +774,6 @@ class Product extends DataMapper
             }
         }
         $detailSW->setConfiguratorOptions(new ArrayCollection($options));
-
     }
 
     protected function prepareAttributeAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW, array &$attrMappings, $isChild = false)
