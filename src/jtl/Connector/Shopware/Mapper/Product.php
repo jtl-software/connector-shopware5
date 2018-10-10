@@ -273,7 +273,10 @@ class Product extends DataMapper
 
     public function save(ProductModel $product)
     {
+        /** @var ArticleSW $productSW */
         $productSW = null;
+
+        /** @var DetailSW $detailSW */
         $detailSW = null;
         //$result = new ProductModel();
         $result = $product;
@@ -303,10 +306,19 @@ class Product extends DataMapper
                 $this->prepareUnitAssociatedData($product, $detailSW);
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
 
+                $autoMainDetailSelection = (bool)Application()->getConfig()->get('product.push.article_detail_preselection', true);
                 // First Child
-                if ($this->fetchDetailCount($productSW->getId()) == 1) {
+                if (is_null($productSW->getMainDetail()) || ($autoMainDetailSelection && $productSW->getMainDetail()->getInStock() <= 0)) {
+                    $mainDetail = $detailSW;
                     // Set new main detail
-                    $productSW->setMainDetail($detailSW);
+                    /** @var DetailSW $detail */
+                    foreach($productSW->getDetails() as $detail) {
+                        if($mainDetail->getInStock() <= 0 && $detail->getInStock() > 0) {
+                            $mainDetail = $detail;
+                        }
+                        $detail->setKind(self::KIND_VALUE_DEFAULT);
+                    }
+                    $productSW->setMainDetail($mainDetail);
                 }
 
                 $this->Manager()->persist($detailSW);
@@ -847,7 +859,9 @@ class Product extends DataMapper
             }
         }
 
-        $nullUndefinedAttributes = (bool)Application()->getConfig()->get('null_undefined_product_attributes_during_push', true);
+        /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
+        $nullUndefinedAttributesOld = (bool)Application()->getConfig()->get('null_undefined_product_attributes_during_push', true);
+        $nullUndefinedAttributes = (bool)Application()->getConfig()->get('product.push.null_undefined_attributes', $nullUndefinedAttributesOld);
 
         // Reset
         $used = [];
