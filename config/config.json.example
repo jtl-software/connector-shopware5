@@ -1,0 +1,21 @@
+{
+    "developer_logging": false,
+    "category": {
+        "mapping": false,
+        "push": {
+            "null_undefined_attributes": true
+        }
+    },
+    "product": {
+        "push": {
+            "null_undefined_attributes": true,
+            "article_detail_preselection": true
+        }
+    },
+    "customer_order": {
+        "pull": {
+            "start_date": null,
+            "status_processing": true
+        }
+    }
+}

@@ -11,6 +11,7 @@ logs/**
 config/**
 !config/features.json
 !config/.htaccess
+!config/config.json.example
 db/**
 !db/.htaccess
 validation/**

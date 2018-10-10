@@ -255,29 +255,35 @@ class Image extends DataMapper
 
             $this->Manager()->persist($mediaSW);
 
-            if ($imageSW !== null) {
-                $this->Manager()->persist($imageSW);
-            }
-
-            $this->flush();
-
             // Save product image variation mappings, if product is a child
             if ($imageSW !== null && $imageSW instanceof ArticleImageSW && $image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
-
+                /** @var ArticleImageSW $imageSW */
                 $foreignId = (strlen($image->getForeignKey()->getEndpoint()) > 0) ? $image->getForeignKey()->getEndpoint() : null;
                 list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
+                /** @var DetailSW $detailSW */
                 $detailSW = $this->Manager()->getRepository('Shopware\Models\Article\Detail')->find((int) $detailId);
-                if ($imageSW->getParent() === null && $detailSW !== null && $detailSW->getKind() != 3 && $image->getSort() == 1) {
-                    Shopware()->Db()->query('UPDATE s_articles_img SET main = 2 WHERE articleID = ?', [intval($articleId)]);
-                    Shopware()->Db()->query('UPDATE s_articles_img SET main = 1, position = 1 WHERE id = ? LIMIT 1', [$imageSW->getId()]);
+                if ($imageSW->getParent() === null && $detailSW !== null && $detailSW->getKind() != Product::KIND_VALUE_PARENT && $image->getSort() == 1) {
+                    $article = $detailSW->getArticle();
+                    /** @var ArticleImageSW $image */
+                    foreach($article->getImages() as $tImage) {
+                        $tImage->setMain($tImage->getId() === $imageSW->getId() ? 1 : 2);
+                    }
+
+                    Shopware()->Models()->persist($article);
                 }
 
                 // Save mapping and rule
                 if ($imageSW->getParent() !== null) {
                     $this->saveImageMapping($imageSW->getParent());
-                    $this->flush();
+                    //$this->flush();
                 }
             }
+
+            if ($imageSW !== null) {
+                $this->Manager()->persist($imageSW);
+            }
+
+            $this->flush();
     
             // Save image title translations
             if (!is_null($parentImageSW)) {
@@ -982,7 +988,9 @@ class Image extends DataMapper
         }
 
         // Special category mapping
-        if (Application()->getConfig()->get('category_mapping')) {
+        /** @deprecated Will be removed in a future connector release  $mappingOld */
+        $mappingOld = Application()->getConfig()->get('category_mapping', false);
+        if (Application()->getConfig()->get('category.mapping', $mappingOld)) {
             $categorySWs = CategoryMappingUtil::findAllCategoriesByMappingParent((int) $foreignId);
             foreach ($categorySWs as $categorySW) {
                 $categorySW->setMedia($mediaSW);

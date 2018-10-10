@@ -7,6 +7,7 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\Utilities\Money;
+use jtl\Connector\Shopware\Model\ProductSpecific;
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Model\ProductVariation;
@@ -33,6 +34,9 @@ use jtl\Connector\Linker\ChecksumLinker;
 use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use Shopware\Models\Property\Group;
+use Shopware\Models\Property\Option;
+use Shopware\Models\Property\Value;
 
 class Product extends DataMapper
 {
@@ -174,7 +178,8 @@ class Product extends DataMapper
             'discounts',
             'customergroups',
             'configuratorOptions',
-            'propertyvalues'
+            'propertyvalues',
+            '(CASE WHEN detail.kind = 3 THEN 0 ELSE detail.kind END) AS HIDDEN sort'
         )
             ->from('jtl\Connector\Shopware\Model\Linker\Detail', 'detail')
             ->leftJoin('detail.linker', 'linker')
@@ -196,7 +201,7 @@ class Product extends DataMapper
             ->leftJoin('detail.configuratorOptions', 'configuratorOptions')
             ->leftJoin('article.propertyValues', 'propertyvalues')
             ->where('linker.hostId IS NULL')
-            ->orderBy('detail.kind', 'DESC')
+            ->orderBy('sort', 'ASC')
             ->setFirstResult(0)
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
@@ -268,7 +273,10 @@ class Product extends DataMapper
 
     public function save(ProductModel $product)
     {
+        /** @var ArticleSW $productSW */
         $productSW = null;
+
+        /** @var DetailSW $detailSW */
         $detailSW = null;
         //$result = new ProductModel();
         $result = $product;
@@ -298,17 +306,59 @@ class Product extends DataMapper
                 $this->prepareUnitAssociatedData($product, $detailSW);
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
 
+                $autoMainDetailSelection = (bool)Application()->getConfig()->get('product.push.article_detail_preselection', true);
                 // First Child
-                if ($this->fetchDetailCount($productSW->getId()) == 1) {
+                if (is_null($productSW->getMainDetail()) || ($autoMainDetailSelection && $productSW->getMainDetail()->getInStock() <= 0)) {
+                    $mainDetail = $detailSW;
                     // Set new main detail
-                    $productSW->setMainDetail($detailSW);
+                    /** @var DetailSW $detail */
+                    foreach($productSW->getDetails() as $detail) {
+                        if($mainDetail->getInStock() <= 0 && $detail->getInStock() > 0) {
+                            $mainDetail = $detail;
+                        }
+                        $detail->setKind(self::KIND_VALUE_DEFAULT);
+                    }
+                    $productSW->setMainDetail($mainDetail);
                 }
+
+                $this->prepareDetailVariationAssociatedData($product, $detailSW);
 
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
+
+//                $setOptions = $productSW->getConfiguratorSet()->getOptions();
+//                /** @var \Shopware\Models\Article\Configurator\Group[] $group */
+//                foreach($productSW->getConfiguratorSet()->getGroups() as $group) {
+//                    $options = new ArrayCollection();
+//
+//                    /** @var \Shopware\Models\Article\Configurator\Group[] $groupOptions */
+//                    $groupOptions = $group->getOptions();
+//                    foreach($groupOptions as $option) {
+//                        if($options->contains($option)) {
+//                            continue;
+//                        }
+//
+//                        if($setOptions->contains($option)) {
+//                            $options->add($option);
+//                        }
+//                        else {
+//                            /** @var DetailSW $detail */
+//                            foreach ($productSW->getDetails() as $detail) {
+//                                if($detail->getConfiguratorOptions()->contains($option)) {
+//                                    $options->add($option);
+//                                    break;
+//                                }
+//                            }
+//                        }
+//
+//                        if(!$options->contains($option)) {
+//                            $this->Manager()->remove($option);
+//                        }
+//                    }
+//                }
+
                 $this->Manager()->flush();
 
-                $this->prepareDetailVariationAssociatedData($product, $detailSW);
 
             } else {
                 $this->prepareProductAssociatedData($product, $productSW, $detailSW);
@@ -352,7 +402,6 @@ class Product extends DataMapper
             Logger::write(sprintf('Exception from Product (%s, %s)', $product->getId()->getEndpoint(), $product->getId()->getHost()), Logger::ERROR, 'database');
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
-
 
 
         // Result
@@ -463,7 +512,9 @@ class Product extends DataMapper
     {
         $collection = new ArrayCollection();
         $categoryMapper = Mmc::getMapper('Category');
-        $useMapping = Application()->getConfig()->get('category_mapping');
+        /** @deprecated Will be removed in a future connector release  $mappingOld */
+        $mappingOld = Application()->getConfig()->get('category_mapping', false);
+        $useMapping = Application()->getConfig()->get('category.mapping', $mappingOld);
         foreach ($product->getCategories() as $category) {
             if (strlen($category->getCategoryId()->getEndpoint()) > 0) {
                 $categorySW = $categoryMapper->find(intval($category->getCategoryId()->getEndpoint()));
@@ -702,6 +753,7 @@ class Product extends DataMapper
     {
         $groupMapper = Mmc::getMapper('ConfiguratorGroup');
         $optionMapper = Mmc::getMapper('ConfiguratorOption');
+        $options = [];
         foreach ($product->getVariations() as $variation) {
             $variationName = null;
             foreach ($variation->getI18ns() as $variationI18n) {
@@ -729,14 +781,11 @@ class Product extends DataMapper
                         continue;
                     }
 
-                    $sql = "DELETE FROM s_article_configurator_option_relations WHERE article_id = ? AND option_id = ?";
-                    Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
-
-                    $sql = "INSERT INTO s_article_configurator_option_relations (id, article_id, option_id) VALUES (NULL, ?, ?)";
-                    Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
+                    $options[] = $optionSW;
                 }
             }
         }
+        $detailSW->setConfiguratorOptions(new ArrayCollection($options));
     }
 
     protected function prepareAttributeAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW, array &$attrMappings, $isChild = false)
@@ -842,7 +891,9 @@ class Product extends DataMapper
             }
         }
 
-        $nullUndefinedAttributes = (bool)Application()->getConfig()->get('null_undefined_product_attributes_during_push', true);
+        /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
+        $nullUndefinedAttributesOld = (bool)Application()->getConfig()->get('null_undefined_product_attributes_during_push', true);
+        $nullUndefinedAttributes = (bool)Application()->getConfig()->get('product.push.null_undefined_attributes', $nullUndefinedAttributesOld);
 
         // Reset
         $used = [];
@@ -947,14 +998,12 @@ class Product extends DataMapper
 
                 $groupSW = $groupMapper->findOneBy(array('name' => $variationName));
                 if ($groupSW === null) {
-                    $groupSW = new \Shopware\Models\Article\Configurator\Group();
+                    $groupSW = (new \Shopware\Models\Article\Configurator\Group());
+                    $groupSW->setName($variationName);
+                    $groupSW->setDescription('');
                 }
 
-                $groupSW->setName($variationName);
-                $groupSW->setDescription('');
-                //$groupSW->setPosition(0);
                 $groupSW->setPosition($variation->getSort());
-
                 $this->Manager()->persist($groupSW);
 
                 //$groups->add($groupSW);
@@ -987,6 +1036,8 @@ class Product extends DataMapper
                     $options[] = $optionSW;
                 }
             }
+
+
 
             $confiSet->setOptions($options)
                 ->setGroups($groups)
@@ -1058,38 +1109,41 @@ class Product extends DataMapper
     protected function prepareSpecificAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW $detailSW)
     {
         try {
-            $group = $productSW->getPropertyGroup();
-            $collection = new ArrayCollection();
-    
+            $group = null;
+            $values = [];
             if (count($product->getSpecifics()) > 0) {
-                if ($group === null) {
-                    $group = new \Shopware\Models\Property\Group();
-                    $group->setName($product->getSku())
-                        ->setPosition(0)
-                        ->setComparable(1)
-                        ->setSortMode(0);
-            
-                    $this->Manager()->persist($group);
-                }
-        
-                $mapper = Mmc::getMapper('Specific');
-                $group->setOptions(array());
-                $options = array();
-                foreach ($product->getSpecifics() as $productSpecific) {
-                    $valueSW = $mapper->findValue((int)$productSpecific->getSpecificValueId()->getEndpoint());
-                    if ($valueSW !== null) {
-                        $collection->add($valueSW);
-                        if (!in_array($valueSW->getOption()->getId(), $options)) {
-                            $group->addOption($valueSW->getOption());
-                            $options[] = $valueSW->getOption()->getId();
+                $group = $productSW->getPropertyGroup();
+                $optionIds = $this->getFilterOptionIds($product);
+                if(is_null($group) || !$this->isSuitableFilterGroup($group, $optionIds)) {
+                    $group = null;
+
+                    /** @var Group $fetchedGroup */
+                    foreach(Shopware()->Models()->getRepository(Group::class)->findAll() as $fetchedGroup) {
+                        if($this->isSuitableFilterGroup($fetchedGroup, $optionIds)) {
+                            $group = $fetchedGroup;
+                            break;
                         }
                     }
+
+                    if(is_null($group)) {
+                        $options = Shopware()->Models()->getRepository(Option::class)->findById($optionIds);
+                        $groupName = implode('_', array_map(function(Option $option) { return $option->getName(); }, $options));
+                        $group = (new \Shopware\Models\Property\Group())
+                            ->setName($groupName)
+                            ->setPosition(0)
+                            ->setComparable(1)
+                            ->setSortMode(0)
+                            ->setOptions($options)
+                        ;
+
+                        $this->Manager()->persist($group);
+                    }
                 }
-        
-                $this->Manager()->persist($group);
+
+                $values = Shopware()->Models()->getRepository(Value::class)->findById($this->getFilterValueIds($product));
             }
-    
-            $productSW->setPropertyValues($collection);
+
+            $productSW->setPropertyValues(new ArrayCollection($values));
             $productSW->setPropertyGroup($group);
         } catch (\Exception $e) {
             Logger::write(sprintf(
@@ -1097,6 +1151,52 @@ class Product extends DataMapper
                 ExceptionFormatter::format($e)
             ), Logger::ERROR, 'database');
         }
+    }
+
+    /**
+     * @param ProductModel $product
+     * @return integer[]
+     */
+    protected function getFilterOptionIds(ProductModel $product)
+    {
+        $ids = array_map(function(\jtl\Connector\Model\ProductSpecific $specific) {
+            return $specific->getId()->getEndpoint();
+        }, $product->getSpecifics());
+
+        return array_values(array_unique(array_filter($ids, function($id) { return !empty($id); })));
+    }
+
+    /**
+     * @param ProductModel $product
+     * @return integer[]
+     */
+    protected function getFilterValueIds(ProductModel $product)
+    {
+        $ids = array_map(function(\jtl\Connector\Model\ProductSpecific $specific) {
+            return $specific->getSpecificValueId()->getEndpoint();
+        }, $product->getSpecifics());
+
+        return array_values(array_filter($ids, function($id) { return !empty($id); }));
+    }
+
+    /**
+     * @param Group $group
+     * @param integer[] $optionIds
+     * @return boolean
+     */
+    protected function isSuitableFilterGroup(Group $group, array $optionIds)
+    {
+        $options = $group->getOptions();
+        if(count($options) !== count($optionIds)) {
+            return false;
+        }
+
+        foreach($options as $option) {
+            if(!in_array($option->getId(), $optionIds)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected function saveTranslationData(ProductModel $product, ArticleSW $productSW, array $attrMappings)

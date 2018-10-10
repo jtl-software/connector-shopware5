@@ -175,7 +175,9 @@ class Category extends DataController
                     $this->addPos($category, 'addI18n', 'CategoryI18n', $categorySW);
 
                     // Other languages
-                    if (Application()->getConfig()->get('category_mapping')) {
+                    /** @deprecated Will be removed in a future connector release  $mappingOld */
+                    $mappingOld = Application()->getConfig()->get('category_mapping', false);
+                    if (Application()->getConfig()->get('category.mapping', $mappingOld)) {
                         $mappings = CategoryMappingUtil::findAllCategoryMappingByParent($category->getId()->getEndpoint());
                         foreach ($mappings as $mapping) {
                             $mapping['category']['id'] = $category->getId()->getEndpoint();

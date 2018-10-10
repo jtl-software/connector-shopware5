@@ -1,3 +1,10 @@
+2.1.16
+------
+- CO-288 Specifics assignment revised
+- CO-306 Changing variation values afterwards fix
+- Main article detail will be switched during push automatically if actual one has no stock
+- Config file structure completely revised
+
 2.1.15
 ------
 - WAWI-25142 Order status mappings revised
