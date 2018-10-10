@@ -321,11 +321,44 @@ class Product extends DataMapper
                     $productSW->setMainDetail($mainDetail);
                 }
 
+                $this->prepareDetailVariationAssociatedData($product, $detailSW);
+
                 $this->Manager()->persist($detailSW);
                 $this->Manager()->persist($productSW);
+
+//                $setOptions = $productSW->getConfiguratorSet()->getOptions();
+//                /** @var \Shopware\Models\Article\Configurator\Group[] $group */
+//                foreach($productSW->getConfiguratorSet()->getGroups() as $group) {
+//                    $options = new ArrayCollection();
+//
+//                    /** @var \Shopware\Models\Article\Configurator\Group[] $groupOptions */
+//                    $groupOptions = $group->getOptions();
+//                    foreach($groupOptions as $option) {
+//                        if($options->contains($option)) {
+//                            continue;
+//                        }
+//
+//                        if($setOptions->contains($option)) {
+//                            $options->add($option);
+//                        }
+//                        else {
+//                            /** @var DetailSW $detail */
+//                            foreach ($productSW->getDetails() as $detail) {
+//                                if($detail->getConfiguratorOptions()->contains($option)) {
+//                                    $options->add($option);
+//                                    break;
+//                                }
+//                            }
+//                        }
+//
+//                        if(!$options->contains($option)) {
+//                            $this->Manager()->remove($option);
+//                        }
+//                    }
+//                }
+
                 $this->Manager()->flush();
 
-                $this->prepareDetailVariationAssociatedData($product, $detailSW);
 
             } else {
                 $this->prepareProductAssociatedData($product, $productSW, $detailSW);
@@ -369,7 +402,6 @@ class Product extends DataMapper
             Logger::write(sprintf('Exception from Product (%s, %s)', $product->getId()->getEndpoint(), $product->getId()->getHost()), Logger::ERROR, 'database');
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
-
 
 
         // Result
@@ -719,6 +751,7 @@ class Product extends DataMapper
     {
         $groupMapper = Mmc::getMapper('ConfiguratorGroup');
         $optionMapper = Mmc::getMapper('ConfiguratorOption');
+        $options = [];
         foreach ($product->getVariations() as $variation) {
             $variationName = null;
             foreach ($variation->getI18ns() as $variationI18n) {
@@ -746,14 +779,11 @@ class Product extends DataMapper
                         continue;
                     }
 
-                    $sql = "DELETE FROM s_article_configurator_option_relations WHERE article_id = ? AND option_id = ?";
-                    Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
-
-                    $sql = "INSERT INTO s_article_configurator_option_relations (id, article_id, option_id) VALUES (NULL, ?, ?)";
-                    Shopware()->Db()->query($sql, array($detailSW->getId(), $optionSW->getId()));
+                    $options[] = $optionSW;
                 }
             }
         }
+        $detailSW->setConfiguratorOptions(new ArrayCollection($options));
     }
 
     protected function prepareAttributeAssociatedData(ProductModel $product, ArticleSW &$productSW, DetailSW &$detailSW, array &$attrMappings, $isChild = false)
@@ -966,14 +996,13 @@ class Product extends DataMapper
 
                 $groupSW = $groupMapper->findOneBy(array('name' => $variationName));
                 if ($groupSW === null) {
-                    $groupSW = new \Shopware\Models\Article\Configurator\Group();
+                    $groupSW = (new \Shopware\Models\Article\Configurator\Group())
+                        ->setName($variationName)
+                        ->setDescription('');
                 }
 
-                $groupSW->setName($variationName);
-                $groupSW->setDescription('');
-                //$groupSW->setPosition(0);
-                $groupSW->setPosition($variation->getSort());
 
+                $groupSW->setPosition($variation->getSort());
                 $this->Manager()->persist($groupSW);
 
                 //$groups->add($groupSW);
@@ -1006,6 +1035,8 @@ class Product extends DataMapper
                     $options[] = $optionSW;
                 }
             }
+
+
 
             $confiSet->setOptions($options)
                 ->setGroups($groups)
