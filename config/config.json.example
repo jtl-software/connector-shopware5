@@ -1,6 +1,7 @@
 {
     "developer_logging": false,
     "category": {
+        "mapping": false,
         "push": {
             "null_undefined_attributes": true
         }

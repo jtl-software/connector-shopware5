@@ -988,7 +988,9 @@ class Image extends DataMapper
         }
 
         // Special category mapping
-        if (Application()->getConfig()->get('category_mapping')) {
+        /** @deprecated Will be removed in a future connector release  $mappingOld */
+        $mappingOld = Application()->getConfig()->get('category_mapping', false);
+        if (Application()->getConfig()->get('category.mapping', $mappingOld)) {
             $categorySWs = CategoryMappingUtil::findAllCategoriesByMappingParent((int) $foreignId);
             foreach ($categorySWs as $categorySW) {
                 $categorySW->setMedia($mediaSW);

@@ -126,7 +126,9 @@ class Category extends DataMapper
     {
         $result = new CategoryModel;
 
-        if (Application()->getConfig()->get('category_mapping')) {
+        /** @deprecated Will be removed in a future connector release  $mappingOld */
+        $mappingOld = Application()->getConfig()->get('category_mapping', false);
+        if (Application()->getConfig()->get('category.mapping', $mappingOld)) {
             $this->deleteCategoryMappingData($category);
         }
 
@@ -158,7 +160,9 @@ class Category extends DataMapper
 
         $this->updateCategoryLevelTable();
 
-        if (Application()->getConfig()->get('category_mapping')) {
+        /** @deprecated Will be removed in a future connector release  $mappingOld */
+        $mappingOld = Application()->getConfig()->get('category_mapping', false);
+        if (Application()->getConfig()->get('category.mapping', $mappingOld)) {
             $this->prepareCategoryMapping($category, $categorySW);
         }
 

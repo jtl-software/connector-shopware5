@@ -68,6 +68,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             file_put_contents($config_file, json_encode(array(
                 'developer_logging' => false,
                 'category' => [
+                    'mapping' => false,
                     'push' => [
                         'null_undefined_attributes' => true,
                     ]

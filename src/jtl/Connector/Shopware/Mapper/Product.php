@@ -512,7 +512,9 @@ class Product extends DataMapper
     {
         $collection = new ArrayCollection();
         $categoryMapper = Mmc::getMapper('Category');
-        $useMapping = Application()->getConfig()->get('category_mapping');
+        /** @deprecated Will be removed in a future connector release  $mappingOld */
+        $mappingOld = Application()->getConfig()->get('category_mapping', false);
+        $useMapping = Application()->getConfig()->get('category.mapping', $mappingOld);
         foreach ($product->getCategories() as $category) {
             if (strlen($category->getCategoryId()->getEndpoint()) > 0) {
                 $categorySW = $categoryMapper->find(intval($category->getCategoryId()->getEndpoint()));
@@ -996,11 +998,10 @@ class Product extends DataMapper
 
                 $groupSW = $groupMapper->findOneBy(array('name' => $variationName));
                 if ($groupSW === null) {
-                    $groupSW = (new \Shopware\Models\Article\Configurator\Group())
-                        ->setName($variationName)
-                        ->setDescription('');
+                    $groupSW = (new \Shopware\Models\Article\Configurator\Group());
+                    $groupSW->setName($variationName);
+                    $groupSW->setDescription('');
                 }
-
 
                 $groupSW->setPosition($variation->getSort());
                 $this->Manager()->persist($groupSW);

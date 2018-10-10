@@ -19,6 +19,7 @@
             <fileset dir="./config">
                 <include name="features.json" />
 				<include name=".htaccess" />
+				<include name="config.json.example" />
             </fileset>
         </copy>
 		<copy todir="./dist/Frontend/jtlconnector/logs">
