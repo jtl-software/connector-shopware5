@@ -322,7 +322,9 @@ class Category extends DataMapper
             }
         }
 
-        $nullUndefinedAttributes = (bool)Application()->getConfig()->get('null_undefined_category_attributes_during_push', true);
+        /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
+        $nullUndefinedAttributesOld = (bool)Application()->getConfig()->get('null_undefined_category_attributes_during_push', true);
+        $nullUndefinedAttributes = (bool)Application()->getConfig()->get('category.push.null_undefined_attributes', $nullUndefinedAttributesOld);
 
         // Reset
         $used = [];

@@ -81,10 +81,13 @@ class CustomerOrder extends DataMapper
             ->setMaxResults($limit);
     
         // Customer Order pull start date
-        $start_date = Application()->getConfig()->get('customer_order_pull_start_date', null);
-        if (!is_null($start_date)) {
+
+        /** @deprecated Will be removed in a future connector release $startDateOld */
+        $startDateOld = Application()->getConfig()->get('customer_order_pull_start_date', null);
+        $startDate = Application()->getConfig()->get('customer_order.pull.start_date', $startDateOld);
+        if (!is_null($startDate)) {
             try {
-                $date_time = new \DateTime($start_date);
+                $date_time = new \DateTime($startDate);
                 $builder->andWhere(sprintf('orders.orderTime >= \'%s\'', $date_time->format('Y-m-d H:i:s')));
             } catch (\Exception $e) {
                 Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
