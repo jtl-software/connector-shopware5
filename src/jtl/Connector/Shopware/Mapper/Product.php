@@ -313,9 +313,14 @@ class Product extends DataMapper
                     // Set new main detail
                     /** @var DetailSW $detail */
                     foreach($productSW->getDetails() as $detail) {
+                        if($detail->getKind() === self::KIND_VALUE_PARENT) {
+                            continue;
+                        }
+
                         if($mainDetail->getInStock() <= 0 && $detail->getInStock() > 0) {
                             $mainDetail = $detail;
                         }
+
                         $detail->setKind(self::KIND_VALUE_DEFAULT);
                     }
                     $productSW->setMainDetail($mainDetail);
