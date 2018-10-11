@@ -283,9 +283,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.1.12':
             case '2.1.13':
             case '2.1.14':
-                Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = " . ProductMapper::KIND_VALUE_PARENT . " WHERE sad.kind = 0");
+                Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = 3 WHERE sad.kind = 0");
             case '2.1.15':
             case '2.1.16':
+                Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = 3 WHERE sad.active = 0 AND sad.ordernumber LIKE '%.0'");
                 break;
             default:
                 return false;
