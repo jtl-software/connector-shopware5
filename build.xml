@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="JTL-Connector-Shopware-Endpoint" default="clean">
+<project name="JTL-Connector-Shopware-Endpoint" default="release">
     <target name="build">
         <delete dir="./dist" />
         <mkdir dir="./dist" />
@@ -84,6 +84,7 @@
             <include name="Frontend/**" />
         </fileset>
 
+        <delete file="./jtl-connector-shopware5-${version}.zip"> </delete>
         <zip destfile="./jtl-connector-shopware5-${version}.zip">
             <fileset refid="zipFiles" />
         </zip>
