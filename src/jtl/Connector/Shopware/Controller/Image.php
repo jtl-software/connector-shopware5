@@ -16,6 +16,7 @@ use \jtl\Connector\Model\Statistic;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use Shopware\Bundle\MediaBundle\MediaService;
 
 /**
  * Image Controller
@@ -38,6 +39,7 @@ class Image extends DataController
             $result = array();
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
+            /** @var \jtl\Connector\Shopware\Mapper\Image $mapper */
             $mapper = Mmc::getMapper('Image');
 
             $modelContainer = array();
@@ -57,6 +59,7 @@ class Image extends DataController
                 }
             }
 
+            /** @var MediaService $mediaServie */
             $mediaServie = Shopware()->Container()->get('shopware_media.media_service');
             
             //$proto = ShopUtil::getProtocol();
@@ -65,6 +68,13 @@ class Image extends DataController
                     switch ($relationType) {
                         case ImageRelationType::TYPE_PRODUCT:
                             $model = Mmc::getModel('Image');
+
+                            //Clean unused files
+                            if(is_null($modelSW['articleID']) || is_null($modelSW['detailId'])) {
+                                $imageSW = Shopware()->Models()->find(\Shopware\Models\Article\Image::class, $modelSW['id']);
+                                Shopware()->Models()->remove($imageSW);
+                                continue;
+                            }
 
                             $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int) $modelSW['cId'], (int) $modelSW['media_id']);
                             //$path = $modelSW['path'];
@@ -126,6 +136,8 @@ class Image extends DataController
                     }
                 }
             }
+
+            Shopware()->Models()->flush();
 
             $action->setResult($result);
         } catch (\Exception $exc) {

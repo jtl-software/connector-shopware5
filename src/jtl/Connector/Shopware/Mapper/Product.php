@@ -306,64 +306,17 @@ class Product extends DataMapper
                 $this->prepareUnitAssociatedData($product, $detailSW);
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
 
-                $autoMainDetailSelection = (bool)Application()->getConfig()->get('product.push.article_detail_preselection', true);
                 // First Child
-                if (is_null($productSW->getMainDetail()) || ($autoMainDetailSelection && $productSW->getMainDetail()->getInStock() <= 0)) {
-                    $mainDetail = $detailSW;
-                    // Set new main detail
-                    /** @var DetailSW $detail */
-                    foreach($productSW->getDetails() as $detail) {
-                        if($detail->getKind() === self::KIND_VALUE_PARENT) {
-                            continue;
-                        }
-
-                        if($mainDetail->getInStock() <= 0 && $detail->getInStock() > 0) {
-                            $mainDetail = $detail;
-                        }
-
-                        $detail->setKind(self::KIND_VALUE_DEFAULT);
-                    }
-                    $productSW->setMainDetail($mainDetail);
+                if(is_null($productSW->getMainDetail()) || $productSW->getMainDetail()->getKind() === self::KIND_VALUE_PARENT) {
+                    $productSW->setMainDetail($detailSW);
                 }
 
                 $this->prepareDetailVariationAssociatedData($product, $detailSW);
 
-                $this->Manager()->persist($detailSW);
-                $this->Manager()->persist($productSW);
-
-//                $setOptions = $productSW->getConfiguratorSet()->getOptions();
-//                /** @var \Shopware\Models\Article\Configurator\Group[] $group */
-//                foreach($productSW->getConfiguratorSet()->getGroups() as $group) {
-//                    $options = new ArrayCollection();
-//
-//                    /** @var \Shopware\Models\Article\Configurator\Group[] $groupOptions */
-//                    $groupOptions = $group->getOptions();
-//                    foreach($groupOptions as $option) {
-//                        if($options->contains($option)) {
-//                            continue;
-//                        }
-//
-//                        if($setOptions->contains($option)) {
-//                            $options->add($option);
-//                        }
-//                        else {
-//                            /** @var DetailSW $detail */
-//                            foreach ($productSW->getDetails() as $detail) {
-//                                if($detail->getConfiguratorOptions()->contains($option)) {
-//                                    $options->add($option);
-//                                    break;
-//                                }
-//                            }
-//                        }
-//
-//                        if(!$options->contains($option)) {
-//                            $this->Manager()->remove($option);
-//                        }
-//                    }
-//                }
-
-                $this->Manager()->flush();
-
+                $autoMainDetailSelection = (bool)Application()->getConfig()->get('product.push.article_detail_preselection', true);
+                if ($autoMainDetailSelection && !$this->isSuitableForMainDetail($productSW->getMainDetail())) {
+                    $this->selectSuitableMainDetail($productSW);
+                }
 
             } else {
                 $this->prepareProductAssociatedData($product, $productSW, $detailSW);
@@ -382,27 +335,31 @@ class Product extends DataMapper
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
                 $this->prepareMediaFileAssociatedData($product, $productSW);
 
-                if (!($detailSW->getId() > 0)) {
+                if (is_null($detailSW->getId())) {
                     $kind = $detailSW->getKind();
                     $productSW->setMainDetail($detailSW);
                     $detailSW->setKind($kind);
                     $productSW->setDetails(array($detailSW));
                 }
 
-                // Save Product
-                $this->Manager()->persist($detailSW);
-                $this->Manager()->persist($productSW);
-                $this->Manager()->flush();
-
                 if ($this->isParent($product) && $productSW !== null) {
                     self::$masterProductIds[$product->getId()->getHost()] = IdConcatenator::link(array($productSW->getMainDetail()->getId(), $productSW->getId()));
                 }
+            }
 
+            // Save article and detail
+            $this->Manager()->persist($detailSW);
+            $this->Manager()->persist($productSW);
+            $this->Manager()->flush();
+
+            //Change back to entity manager instead of native queries
+            if(!$this->isChild($product)) {
                 $this->prepareSetVariationRelations($product, $productSW);
                 $this->saveVariationTranslationData($product, $productSW);
                 $this->deleteTranslationData($productSW);
                 $this->saveTranslationData($product, $productSW, $attrMappings);
             }
+
         } catch (\Exception $e) {
             Logger::write(sprintf('Exception from Product (%s, %s)', $product->getId()->getEndpoint(), $product->getId()->getHost()), Logger::ERROR, 'database');
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
@@ -418,6 +375,77 @@ class Product extends DataMapper
         }
 
         return $result;
+    }
+
+    /**
+     * @param DetailSW $detail
+     * @return boolean
+     */
+    protected function isSuitableForMainDetail(DetailSW $detail)
+    {
+        return $detail->getKind() !== self::KIND_VALUE_PARENT && ($detail->getInStock() > 0 || !(bool)$detail->getLastStock());
+    }
+
+    /**
+     * @param ArticleSW $article
+     * @return void
+     */
+    protected function selectSuitableMainDetail(ArticleSW $article)
+    {
+        $mainDetail = $article->getMainDetail();
+        // Set new main detail
+        /** @var DetailSW $detail */
+        foreach($article->getDetails() as $detail) {
+            if($detail->getKind() === self::KIND_VALUE_PARENT) {
+                continue;
+            }
+
+            if(!$this->isSuitableForMainDetail($mainDetail) && $this->isSuitableForMainDetail($detail)) {
+                $mainDetail = $detail;
+            }
+
+            $detail->setKind(self::KIND_VALUE_DEFAULT);
+        }
+
+        if($mainDetail->getKind() !== self::KIND_VALUE_PARENT) {
+            $article->setMainDetail($mainDetail);
+        }
+    }
+
+    /**
+     * @param ArticleSW $article
+     */
+    protected function cleanupConfiguratorSetOptions(ArticleSW $article)
+    {
+        $setOptions = $article->getConfiguratorSet()->getOptions();
+        /** @var \Shopware\Models\Article\Configurator\Group[] $group */
+        foreach ($article->getConfiguratorSet()->getGroups() as $group) {
+            $options = new ArrayCollection();
+
+            /** @var \Shopware\Models\Article\Configurator\Group[] $groupOptions */
+            $groupOptions = $group->getOptions();
+            foreach ($groupOptions as $option) {
+                if ($options->contains($option)) {
+                    continue;
+                }
+
+                if ($setOptions->contains($option)) {
+                    $options->add($option);
+                } else {
+                    /** @var DetailSW $detail */
+                    foreach ($article->getDetails() as $detail) {
+                        if ($detail->getConfiguratorOptions()->contains($option)) {
+                            $options->add($option);
+                            break;
+                        }
+                    }
+                }
+
+                if (!$options->contains($option)) {
+                    $this->Manager()->remove($option);
+                }
+            }
+        }
     }
 
     protected function prepareChildAssociatedData(ProductModel &$product, ArticleSW &$productSW = null, DetailSW &$detailSW = null)
