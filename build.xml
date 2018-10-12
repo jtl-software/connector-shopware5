@@ -3,10 +3,10 @@
     <target name="build">
         <delete dir="./dist" />
         <mkdir dir="./dist" />
-		<mkdir dir="./dist/Frontend/jtlconnector" />
-		<mkdir dir="./dist/Frontend/jtlconnector/plugins" />
+        <mkdir dir="./dist/Frontend/jtlconnector" />
+        <mkdir dir="./dist/Frontend/jtlconnector/plugins" />
         <mkdir dir="./dist/Frontend/jtlconnector/config" />
-		<mkdir dir="./dist/Frontend/jtlconnector/logs" />
+        <mkdir dir="./dist/Frontend/jtlconnector/logs" />
         <mkdir dir="./dist/Frontend/jtlconnector/db" />
         <mkdir dir="./dist/Frontend/jtlconnector/tmp" />
         <mkdir dir="./dist/Frontend/jtlconnector/validation" />
@@ -18,18 +18,18 @@
         <copy todir="./dist/Frontend/jtlconnector/config">
             <fileset dir="./config">
                 <include name="features.json" />
-				<include name=".htaccess" />
-				<include name="config.json.example" />
+                <include name=".htaccess" />
+                <include name="config.json.example" />
             </fileset>
         </copy>
-		<copy todir="./dist/Frontend/jtlconnector/logs">
+        <copy todir="./dist/Frontend/jtlconnector/logs">
             <fileset dir="./logs">
-				<include name=".htaccess" />
+                <include name=".htaccess" />
             </fileset>
         </copy>
-		<copy todir="./dist/Frontend/jtlconnector/db">
+        <copy todir="./dist/Frontend/jtlconnector/db">
             <fileset dir="./db">
-				<include name=".htaccess" />
+                <include name=".htaccess" />
             </fileset>
         </copy>
         <copy todir="./dist/Frontend/jtlconnector/tmp">
@@ -37,10 +37,10 @@
                 <include name=".htaccess" />
             </fileset>
         </copy>
-		<copy todir="./dist/Frontend/jtlconnector/">
+        <copy todir="./dist/Frontend/jtlconnector/">
             <fileset dir="./">
                 <include name="Bootstrap.php" />
-				<include name="Connector.php" />
+                <include name="Connector.php" />
                 <include name="LICENSE" />
                 <include name="CHANGELOG.md" />
                 <include name="plugin.png" />
@@ -61,11 +61,11 @@
         <loadfile property="version" file="version"/>
         <delete file="./dist/Frontend/jtlconnector/connector.phar" />
         <pharpackage
-            destfile="./dist/Frontend/jtlconnector/index.phar"
-            basedir="./build"
-            compression="gzip"
-            stub="./stub.php"
-            signature="sha256">
+                destfile="./dist/Frontend/jtlconnector/index.phar"
+                basedir="./build"
+                compression="gzip"
+                stub="./stub.php"
+                signature="sha256">
             <fileset dir="./build">
                 <include name="**/**" />
             </fileset>
@@ -74,6 +74,12 @@
                 <element name="authors">
                     <element name="Daniel Böhmer">
                         <element name="email" value="daniel.boehmer@jtl-software.com" />
+                    </element>
+                    <element name="Jan Weskamp">
+                        <element name="email" value="jan.weskamp@jtl-software.com" />
+                    </element>
+                    <element name="Immanuel Klinkenberg">
+                        <element name="email" value="immanuel.klinkenberg@jtl-software.com" />
                     </element>
                 </element>
             </metadata>
@@ -84,8 +90,8 @@
             <include name="Frontend/**" />
         </fileset>
 
-        <delete file="./jtl-connector-shopware5-${version}.zip"> </delete>
-        <zip destfile="./jtl-connector-shopware5-${version}.zip">
+        <delete file="./${zipname}-${version}.zip"> </delete>
+        <zip destfile="./${zipname}-${version}.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>
