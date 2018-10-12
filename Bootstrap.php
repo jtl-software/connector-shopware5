@@ -10,8 +10,16 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
 use Symfony\Component\Yaml\Yaml;
 
+
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
+    protected $isAutoloaded = false;
+    /**
+     * @var Config
+     */
+    protected $config;
+
+    
     public function __construct($name, Enlight_Config $info = null)
     {
         define('CONNECTOR_DIR', __DIR__);
@@ -19,21 +27,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         try {
             $this->runAutoload();
         } catch (\Exception $e) {
-            return array(
+            return [
                 'success' => false,
                 'message' => $e->getMessage()
-            );
+            ];
         }
-        
         parent::__construct($name, $info);
     }
     
-    
-    /**
-     * @var Config
-     */
-    protected $config;
-
     public function getCapabilities()
     {
         return array(
@@ -364,7 +365,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         return dirname(__FILE__) . '/Connector.php';
     }
-
+    
     private function runAutoload()
     {
         // Tmp directory fallback
@@ -384,14 +385,16 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                         throw new \Exception('Suhosin is active and the PHP extension \'phar\' needs to be on the executor include whitelist');
                     }
                 }
-
-                require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+    
+                $loader = require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
             } else {
                 throw new \Exception(sprintf('Das Verzeichnis %s ist nicht beschreibbar. Bitte kontaktieren Sie Ihren Administrator oder Hoster.', $dir));
             }
         } else {
-            require_once (dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+            $loader = require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
         }
+        
+        $loader->add('', CONNECTOR_DIR . '/plugins');
     }
 
     private function createGuid()
