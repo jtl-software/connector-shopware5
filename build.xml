@@ -45,7 +45,7 @@
                 <include name="LICENSE" />
                 <include name="CHANGELOG.md" />
                 <include name="plugin.png" />
-                <include name="version" />
+                <include name="build-config.xml" />
             </fileset>
         </copy>
         <delete dir="./build" />
@@ -59,7 +59,6 @@
     </target>
 
     <target name="package" depends="build">
-        <loadfile property="version" file="version"/>
         <delete file="./dist/Frontend/jtlconnector/connector.phar" />
         <pharpackage
                 destfile="./dist/Frontend/jtlconnector/index.phar"
