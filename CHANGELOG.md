@@ -1,3 +1,6 @@
+2.1.18-dev
+------
+
 2.1.17
 ------
 - Fixed main article detail preselection logic
