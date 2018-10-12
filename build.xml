@@ -45,7 +45,7 @@
                 <include name="LICENSE" />
                 <include name="CHANGELOG.md" />
                 <include name="plugin.png" />
-                <include name="build-config.xml" />
+                <include name="build-config.yaml" />
             </fileset>
         </copy>
         <delete dir="./build" />
