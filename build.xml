@@ -90,8 +90,8 @@
             <include name="Frontend/**" />
         </fileset>
 
-        <delete file="./${zipname}-${version}.zip"> </delete>
-        <zip destfile="./${zipname}-${version}.zip">
+        <delete file="./${zipname}${version}.zip"> </delete>
+        <zip destfile="./${zipname}${version}.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>
