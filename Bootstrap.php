@@ -8,10 +8,27 @@ use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
-
+use Symfony\Component\Yaml\Yaml;
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
+    public function __construct($name, Enlight_Config $info = null)
+    {
+        define('CONNECTOR_DIR', __DIR__);
+    
+        try {
+            $this->runAutoload();
+        } catch (\Exception $e) {
+            return array(
+                'success' => false,
+                'message' => $e->getMessage()
+            );
+        }
+        
+        parent::__construct($name, $info);
+    }
+    
+    
     /**
      * @var Config
      */
@@ -33,7 +50,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return trim(\Symfony\Component\Yaml\Yaml::parseFile(__DIR__ . '/build-config.yaml')['version']);
+        return trim(Yaml::parseFile(__DIR__ . '/build-config.yaml')['version']);
     }
 
     public function getInfo()
@@ -50,17 +67,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function install()
     {
-        define('CONNECTOR_DIR', __DIR__);
-        
-        try {
-            $this->runAutoload();
-        } catch (\Exception $e) {
-            return array(
-                'success' => false,
-                'message' => $e->getMessage()
-            );
-        }
-
         Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
 
         // Config
@@ -166,15 +172,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public function update($oldVersion)
     {
         ini_set('max_execution_time', 0);
-
-        try {
-            $this->runAutoload();
-        } catch (\Exception $e) {
-            return array(
-                'success' => false,
-                'message' => $e->getMessage()
-            );
-        }
 
         switch ($oldVersion) {
             case '1.0.0':
@@ -357,15 +354,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function uninstall()
     {
-        try {
-            $this->runAutoload();
-        } catch (\Exception $e) {
-            return array(
-                'success' => false,
-                'message' => $e->getMessage()
-            );
-        }
-
         $this->dropMappingTable();
         Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
 

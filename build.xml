@@ -75,12 +75,6 @@
                     <element name="Daniel Böhmer">
                         <element name="email" value="daniel.boehmer@jtl-software.com" />
                     </element>
-                    <element name="Jan Weskamp">
-                        <element name="email" value="jan.weskamp@jtl-software.com" />
-                    </element>
-                    <element name="Immanuel Klinkenberg">
-                        <element name="email" value="immanuel.klinkenberg@jtl-software.com" />
-                    </element>
                 </element>
             </metadata>
         </pharpackage>
