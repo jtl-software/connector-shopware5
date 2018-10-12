@@ -8,7 +8,7 @@ use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
-use Symfony\Component\Yaml\Yaml;
+
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
@@ -33,7 +33,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return trim(Yaml::parseFile(__DIR__ . '/build-config.yaml')['version']);
+        return trim(\Symfony\Component\Yaml\Yaml::parseFile(__DIR__ . '/build-config.yaml')['version']);
     }
 
     public function getInfo()
