@@ -10,10 +10,10 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
 use Symfony\Component\Yaml\Yaml;
 
+define('CONNECTOR_DIR', __DIR__);
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    protected $isAutoloaded = false;
     /**
      * @var Config
      */
@@ -22,16 +22,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     
     public function __construct($name, Enlight_Config $info = null)
     {
-        define('CONNECTOR_DIR', __DIR__);
-    
-        try {
-            $this->runAutoload();
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => $e->getMessage()
-            ];
-        }
+
+        $this->runAutoload();
+
         parent::__construct($name, $info);
     }
     
