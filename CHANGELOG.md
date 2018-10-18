@@ -1,7 +1,11 @@
+2.1.18-dev
+------
+
 2.1.17
 ------
 - Fixed main article detail preselection logic
 - Images from not existent products will be removed
+
 
 2.1.16
 ------

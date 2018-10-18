@@ -8,14 +8,33 @@ use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
+use Symfony\Component\Yaml\Yaml;
+
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
+    protected $isAutoloaded = false;
     /**
      * @var Config
      */
     protected $config;
 
+    
+    public function __construct($name, Enlight_Config $info = null)
+    {
+        define('CONNECTOR_DIR', __DIR__);
+    
+        try {
+            $this->runAutoload();
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+        parent::__construct($name, $info);
+    }
+    
     public function getCapabilities()
     {
         return array(
@@ -32,7 +51,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function getVersion()
     {
-        return trim(file_get_contents(__DIR__ . '/version'));
+        return trim(Yaml::parseFile(__DIR__ . '/build-config.yaml')['version']);
     }
 
     public function getInfo()
@@ -49,17 +68,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function install()
     {
-        define('CONNECTOR_DIR', __DIR__);
-        
-        try {
-            $this->runAutoload();
-        } catch (\Exception $e) {
-            return array(
-                'success' => false,
-                'message' => $e->getMessage()
-            );
-        }
-
         Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
 
         // Config
@@ -165,15 +173,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public function update($oldVersion)
     {
         ini_set('max_execution_time', 0);
-
-        try {
-            $this->runAutoload();
-        } catch (\Exception $e) {
-            return array(
-                'success' => false,
-                'message' => $e->getMessage()
-            );
-        }
 
         switch ($oldVersion) {
             case '1.0.0':
@@ -356,15 +355,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function uninstall()
     {
-        try {
-            $this->runAutoload();
-        } catch (\Exception $e) {
-            return array(
-                'success' => false,
-                'message' => $e->getMessage()
-            );
-        }
-
         $this->dropMappingTable();
         Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
 
@@ -375,7 +365,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         return dirname(__FILE__) . '/Connector.php';
     }
-
+    
     private function runAutoload()
     {
         // Tmp directory fallback
@@ -395,14 +385,22 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                         throw new \Exception('Suhosin is active and the PHP extension \'phar\' needs to be on the executor include whitelist');
                     }
                 }
-
-                require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+    
+                $loader = require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+                if (is_bool($loader)){
+                    $loader = require('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+                }
             } else {
                 throw new \Exception(sprintf('Das Verzeichnis %s ist nicht beschreibbar. Bitte kontaktieren Sie Ihren Administrator oder Hoster.', $dir));
             }
         } else {
-            require_once (dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+            $loader = require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+            if (is_bool($loader)){
+                $loader = require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
+            }
         }
+       
+        $loader->add('', CONNECTOR_DIR . '/plugins');
     }
 
     private function createGuid()

@@ -45,7 +45,7 @@
                 <include name="LICENSE" />
                 <include name="CHANGELOG.md" />
                 <include name="plugin.png" />
-                <include name="version" />
+                <include name="build-config.yaml" />
             </fileset>
         </copy>
         <delete dir="./build" />
@@ -59,7 +59,6 @@
     </target>
 
     <target name="package" depends="build">
-        <loadfile property="version" file="version"/>
         <delete file="./dist/Frontend/jtlconnector/connector.phar" />
         <pharpackage
                 destfile="./dist/Frontend/jtlconnector/index.phar"
@@ -76,12 +75,6 @@
                     <element name="Daniel Böhmer">
                         <element name="email" value="daniel.boehmer@jtl-software.com" />
                     </element>
-                    <element name="Jan Weskamp">
-                        <element name="email" value="jan.weskamp@jtl-software.com" />
-                    </element>
-                    <element name="Immanuel Klinkenberg">
-                        <element name="email" value="immanuel.klinkenberg@jtl-software.com" />
-                    </element>
                 </element>
             </metadata>
         </pharpackage>
@@ -91,8 +84,8 @@
             <include name="Frontend/**" />
         </fileset>
 
-        <delete file="./${zipname}-${version}.zip"> </delete>
-        <zip destfile="./${zipname}-${version}.zip">
+        <delete file="./${zipname}${version}.zip"> </delete>
+        <zip destfile="./${zipname}${version}.zip">
             <fileset refid="zipFiles" />
         </zip>
     </target>
