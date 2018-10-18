@@ -60,14 +60,12 @@ class Connector extends DataController
             ->setPostMaxSize($returnMegaBytes(ini_get('post_max_size')))
             ->setUploadMaxFilesize($returnMegaBytes(ini_get('upload_max_filesize')));
 
-
-        if (defined('Shopware::VERSION')) {
-            $version = \Shopware::VERSION;
-        }
-        elseif($sw->Container()->has('shopware.release')) {
+        if($sw->Container()->has('shopware.release')) {
             /** @var ShopwareReleaseStruct $shopwareRelease */
             $shopwareRelease = $sw->Container()->get('shopware.release');
             $version = $shopwareRelease->getVersion();
+        } elseif (defined('Shopware::VERSION')) {
+            $version = \Shopware::VERSION;
         } else {
             throw new \RuntimeException('Shopware version could not get found!');
         }
