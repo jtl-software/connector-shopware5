@@ -538,11 +538,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $categoryCount = $categoryMapper->fetchCountForLevel(2);
         
         if ($categoryCount > 0 || $shopMapper->duplicateLocalizationsExist()) {
-            $this->config->save('category_mapping', false);
+            $this->config->save('category.mapping', false);
 
             return;
         } else {
-            $this->config->save('category_mapping', true);
+            $this->config->save('category.mapping', true);
         }
 
         $mainShopId = (int) Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops WHERE `default` = 1');
