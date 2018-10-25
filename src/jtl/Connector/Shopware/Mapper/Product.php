@@ -383,7 +383,8 @@ class Product extends DataMapper
      */
     protected function isSuitableForMainDetail(DetailSW $detail)
     {
-        return $detail->getKind() !== self::KIND_VALUE_PARENT && ($detail->getInStock() > 0 || !(bool)$detail->getLastStock());
+        $lastStock = (bool)(method_exists($detail, 'getLastStock') ? $detail->getLastStock() : $detail->getArticle()->getLastStock());
+        return $detail->getKind() !== self::KIND_VALUE_PARENT && ($detail->getInStock() > 0 || !$lastStock);
     }
 
     /**
