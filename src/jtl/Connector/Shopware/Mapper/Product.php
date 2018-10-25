@@ -313,7 +313,7 @@ class Product extends DataMapper
 
                 $this->prepareDetailVariationAssociatedData($product, $detailSW);
 
-                $autoMainDetailSelection = (bool)Application()->getConfig()->get('product.push.article_detail_preselection', true);
+                $autoMainDetailSelection = (bool)Application()->getConfig()->get('product.push.article_detail_preselection', false);
                 if ($autoMainDetailSelection && !$this->isSuitableForMainDetail($productSW->getMainDetail())) {
                     $this->selectSuitableMainDetail($productSW);
                 }
