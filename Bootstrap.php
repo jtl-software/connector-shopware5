@@ -280,6 +280,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.1.16':
                 Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = 3 WHERE sad.active = 0 AND sad.ordernumber LIKE '%.0'");
             case '2.1.17':
+            case '2.1.18':
                 break;
             default:
                 return false;
