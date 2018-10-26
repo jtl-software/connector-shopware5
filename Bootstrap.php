@@ -363,12 +363,16 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     
     private function runAutoload()
     {
+        if(class_exists('Composer\Autoload\ClassLoader')) {
+            return;
+        }
+
         // Tmp directory fallback
         $dir = sys_get_temp_dir();
         if (!is_writeable($dir)) {
             $dir = CONNECTOR_DIR . DIRECTORY_SEPARATOR . 'tmp';
         }
-        
+
         if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
             if (is_writable($dir)) {
                 if (!extension_loaded('phar')) {
@@ -394,8 +398,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $loader = require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
             }
         }
-       
-        $loader->add('', CONNECTOR_DIR . '/plugins');
     }
 
     private function createGuid()

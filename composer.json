@@ -29,7 +29,8 @@
     },
     "autoload": {
         "psr-0": {
-            "jtl\\Connector\\Shopware\\": "src/"
+            "jtl\\Connector\\Shopware\\": "src/",
+            "": "plugins/"
         }
     }
 }
