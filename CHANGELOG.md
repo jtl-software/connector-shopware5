@@ -1,5 +1,14 @@
-2.1.18-dev
+2.1.19-dev
 ------
+
+=======
+
+2.1.18
+------
+- Backward compatiblity to SW 5.2 and 5.3 fixed
+- Write category.mapping flag correctly during connector installation
+- Compatiblity to Shopware composer installation fixed
+- Default value of article detail preselection changed to false
 
 2.1.17
 ------

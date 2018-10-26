@@ -9,7 +9,7 @@
     "product": {
         "push": {
             "null_undefined_attributes": true,
-            "article_detail_preselection": true
+            "article_detail_preselection": false
         }
     },
     "customer_order": {
