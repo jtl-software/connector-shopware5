@@ -6,10 +6,64 @@
 
 namespace jtl\Connector\Shopware\Utilities;
 
+use Shopware\Components\Thumbnail\Manager;
+
 final class Shop
 {
-    public static function getProtocol()
+    /**
+     * @return \Shopware
+     */
+    public static function get()
     {
-        return ((bool) Shopware()->Shop()->getAlwaysSecure()) ? 'https' : 'http';
+        return Shopware();
     }
+
+    /**
+     * @return string
+     */
+    public static function protocol()
+    {
+        return ((bool) static::get()->Shop()->getSecure()) ? 'https' : 'http';
+    }
+
+    /**
+     * @return string
+     */
+    public static function version()
+    {
+        if(static::get()->Container()->has('shopware.release')) {
+            /** @var ShopwareReleaseStruct $shopwareRelease */
+            $shopwareRelease = static::get()->Container()->get('shopware.release');
+            return $shopwareRelease->getVersion();
+        } elseif (defined('Shopware::VERSION') && \Shopware::VERSION !== '___VERSION___') {
+            return \Shopware::VERSION;
+        } else {
+            throw new \RuntimeException('Shopware version could not get found!');
+        }
+    }
+
+    /**
+     * @return \Shopware\Bundle\MediaBundle\MediaService
+     */
+    public static function mediaService()
+    {
+        return static::get()->Container()->get('shopware_media.media_service');
+    }
+
+    /**
+     * @return Manager
+     */
+    public static function thumbnailManager()
+    {
+        return static::get()->Container()->get('thumbnail_manager');
+    }
+
+    /**
+     * @return \Shopware\Components\Model\ModelManager
+     */
+    public static function entityManager()
+    {
+        return static::get()->Models();
+    }
+
 }
