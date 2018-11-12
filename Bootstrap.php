@@ -136,7 +136,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $shop = $res->fetch();
         $url = 'Hauptshop nicht gefunden';
         if (is_array($shop) && isset($shop['id'])) {
-            $proto = (bool) $shop['always_secure'] ? 'https' : 'http';
+            $proto = (bool) $shop['secure'] ? 'https' : 'http';
             $url = sprintf('%s://%s%s/%s', $proto, $shop['host'], $shop['base_path'], 'jtlconnector/');
         }
 
