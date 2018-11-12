@@ -132,12 +132,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             )
         );
 
-        $res = Shopware()->Db()->query('SELECT * FROM s_core_shops WHERE `default` = 1 AND active = 1');
-        $shop = $res->fetch();
+        /** @var \Shopware\Models\Shop\Shop $shop */
+        $shop = \jtl\Connector\Shopware\Utilities\Shop::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findOneBy(['default' => 1, 'active' => 1]);
+
         $url = 'Hauptshop nicht gefunden';
-        if (is_array($shop) && isset($shop['id'])) {
-            $proto = (bool) $shop['secure'] ? 'https' : 'http';
-            $url = sprintf('%s://%s%s/%s', $proto, $shop['host'], $shop['base_path'], 'jtlconnector/');
+        if (!is_null($shop)) {
+            $proto = $shop->getSecure() ? 'https' : 'http';
+            $url = sprintf('%s://%s%s/%s', $proto, $shop->getHost(), $shop->getBasePath(), 'jtlconnector/');
         }
 
         // Connector URL
