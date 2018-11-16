@@ -19,11 +19,11 @@ final class Shop
     }
 
     /**
-     * @return string
+     * @return \Shopware\Models\Shop\Locale
      */
-    public static function protocol()
+    public static function locale()
     {
-        return ((bool) static::get()->Shop()->getSecure()) ? 'https' : 'http';
+        return static::get()->Shop()->getLocale();
     }
 
     /**
