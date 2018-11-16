@@ -16,6 +16,7 @@ use \jtl\Connector\Model\Statistic;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use jtl\Connector\Shopware\Utilities\Shop;
 use Shopware\Bundle\MediaBundle\MediaService;
 
 /**
@@ -60,7 +61,7 @@ class Image extends DataController
             }
 
             /** @var MediaService $mediaServie */
-            $mediaServie = Shopware()->Container()->get('shopware_media.media_service');
+            $mediaServie = Shop::mediaService();
             
             //$proto = ShopUtil::getProtocol();
             foreach ($modelContainer as $relationType => $models) {
@@ -83,8 +84,8 @@ class Image extends DataController
                             $model->setId(new Identity($id));
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($foreignKey))
-                                ->setFilename($mediaServie->getUrl('media/image/' . $modelSW['path']))
-                                ->setRemoteUrl($mediaServie->getUrl('media/image/' . $modelSW['path']))
+                                ->setFilename($mediaServie->getUrl($modelSW['path']))
+                                ->setRemoteUrl($mediaServie->getUrl($modelSW['path']))
                                 ->setSort((int) $modelSW['position']);
                                 //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
                                 //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
@@ -98,8 +99,8 @@ class Image extends DataController
 
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
-                                ->setFilename($mediaServie->getUrl('media/image/' . $modelSW['path']))
-                                ->setRemoteUrl($mediaServie->getUrl('media/image/' . $modelSW['path']));
+                                ->setFilename($mediaServie->getUrl($modelSW['path']))
+                                ->setRemoteUrl($mediaServie->getUrl($modelSW['path']));
                                 //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
                                 //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
 
@@ -112,8 +113,8 @@ class Image extends DataController
                             
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
-                                ->setFilename($mediaServie->getUrl('media/image/' . $modelSW['path']))
-                                ->setRemoteUrl($mediaServie->getUrl('media/image/' . $modelSW['path']));
+                                ->setFilename($mediaServie->getUrl($modelSW['path']))
+                                ->setRemoteUrl($mediaServie->getUrl($modelSW['path']));
                                 //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
                                 //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
 
@@ -126,8 +127,8 @@ class Image extends DataController
 
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
-                                ->setFilename($mediaServie->getUrl('media/image/' . $modelSW['path']))
-                                ->setRemoteUrl($mediaServie->getUrl('media/image/' . $modelSW['path']));
+                                ->setFilename($mediaServie->getUrl($modelSW['path']))
+                                ->setRemoteUrl($mediaServie->getUrl($modelSW['path']));
                                 //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
                                 //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
 

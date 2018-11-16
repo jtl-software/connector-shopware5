@@ -16,6 +16,7 @@ use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Core\Model\QueryFilter;
 use \jtl\Connector\Model\ConnectorIdentification;
+use jtl\Connector\Shopware\Utilities\Shop;
 use Shopware\Components\ShopwareReleaseStruct;
 
 /**
@@ -34,9 +35,7 @@ class Connector extends DataController
         $action = new Action();
         $action->setHandled(true);
 
-        $plugin_controller = new \Shopware_Plugins_Frontend_Jtlconnector_Bootstrap('JTL Shopware Connector');
-
-        $sw = Shopware();
+        $pluginController = new \Shopware_Plugins_Frontend_Jtlconnector_Bootstrap('JTL Shopware Connector');
 
         $returnMegaBytes = function($value) {
             $value = trim($value);
@@ -60,20 +59,10 @@ class Connector extends DataController
             ->setPostMaxSize($returnMegaBytes(ini_get('post_max_size')))
             ->setUploadMaxFilesize($returnMegaBytes(ini_get('upload_max_filesize')));
 
-        if($sw->Container()->has('shopware.release')) {
-            /** @var ShopwareReleaseStruct $shopwareRelease */
-            $shopwareRelease = $sw->Container()->get('shopware.release');
-            $version = $shopwareRelease->getVersion();
-        } elseif (defined('Shopware::VERSION')) {
-            $version = \Shopware::VERSION;
-        } else {
-            throw new \RuntimeException('Shopware version could not get found!');
-        }
-
         $identification = new ConnectorIdentification();
-        $identification->setEndpointVersion($plugin_controller->getVersion())
+        $identification->setEndpointVersion($pluginController->getVersion())
             ->setPlatformName('Shopware')
-            ->setPlatformVersion($version)
+            ->setPlatformVersion(Shop::version())
             ->setProtocolVersion(Application()->getProtocolVersion())
             ->setServerInfo($serverInfo);
 

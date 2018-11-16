@@ -186,10 +186,10 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     }
                     break;
                 case IdentityLinker::TYPE_CROSSSELLING:
-                    list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
-    
-                    if (is_null($productId)) {
-                        $productId = $endpointId;
+                    $productId = $endpointId;
+                    $splitted = IdConcatenator::unlink($endpointId);
+                    if(count($splitted) == 2) {
+                        $productId = $splitted[1];
                     }
 
                     $sql = '

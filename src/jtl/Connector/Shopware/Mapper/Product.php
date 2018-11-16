@@ -46,25 +46,47 @@ class Product extends DataMapper
 
     protected static $masterProductIds = array();
 
+    /**
+     * @return \Doctrine\ORM\EntityRepository
+     */
     public function getRepository()
     {
         return Shopware()->Models()->getRepository('Shopware\Models\Article\Article');
     }
 
+    /**
+     * @param integer $id
+     * @return null|ArticleSW
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
     public function find($id)
     {
         return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Article', $id);
     }
 
+    /**
+     * @param integer $id
+     * @return null|DetailSW
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
     public function findDetail($id)
     {
         return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Detail', $id);
     }
 
+    /**
+     * @param array $kv
+     * @return null|DetailSW
+     */
     public function findDetailBy(array $kv)
     {
         return $this->Manager()->getRepository('Shopware\Models\Article\Detail')->findOneBy($kv);
     }
+
 
     public function findAll($limit = 100, $count = false)
     {
@@ -227,6 +249,9 @@ class Product extends DataMapper
         return $products;
     }
 
+    /**
+     * @return integer
+     */
     public function fetchCount()
     {
         return (int) Shopware()->Db()->fetchOne(
@@ -238,6 +263,10 @@ class Product extends DataMapper
         );
     }
 
+    /**
+     * @param integer $productId
+     * @return integer
+     */
     public function fetchDetailCount($productId)
     {
         return Shopware()->Db()->fetchOne(
@@ -251,6 +280,10 @@ class Product extends DataMapper
         return Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailId));
     }
 
+    /**
+     * @param integer $productId
+     * @return integer
+     */
     public function getParentDetailId($productId)
     {
         return (int) Shopware()->Db()->fetchOne(

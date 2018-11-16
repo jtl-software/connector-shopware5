@@ -13,6 +13,7 @@ use \jtl\Connector\Model\DeliveryNote as DeliveryNoteModel;
 use \Shopware\Models\Order\Document\Document as DocumentSW;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\Mmc;
+use \jtl\Connector\Shopware\Utilities\Shop;
 
 class DeliveryNote extends DataMapper
 {
@@ -118,13 +119,13 @@ class DeliveryNote extends DataMapper
     
                 $sw = Shopware();
                 $documentPath = '';
-                if (version_compare($sw::VERSION, '5.3.0', '<')) {
-                    $documentPath = Shopware()->DocPath() . 'files/documents' . DIRECTORY_SEPARATOR;
-                } elseif (version_compare($sw::VERSION, '5.4.0', '<')) {
-                    $documentPath = rtrim(Shopware()->DocPath('files_documents'), '/') . DIRECTORY_SEPARATOR;
+                if (version_compare(Shop::version(), '5.3.0', '<')) {
+                    $documentPath = $sw->DocPath() . 'files/documents' . DIRECTORY_SEPARATOR;
+                } elseif (version_compare(Shop::version(), '5.4.0', '<')) {
+                    $documentPath = rtrim($sw->DocPath('files_documents'), '/') . DIRECTORY_SEPARATOR;
                 } else {
                     try {
-                        $documentPath = rtrim(Shopware()->Container()->getParameter('shopware.app.documentsdir'), '/') . DIRECTORY_SEPARATOR;
+                        $documentPath = rtrim($sw->Container()->getParameter('shopware.app.documentsdir'), '/') . DIRECTORY_SEPARATOR;
                     } catch (\Exception $e) {
                         return;
                     }
@@ -209,9 +210,8 @@ class DeliveryNote extends DataMapper
                 Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
             }
         }
-    
-        $sw = Shopware();
-        if (version_compare($sw::VERSION, '5.2.25', '<')) {
+
+        if (version_compare(Shop::version(), '5.2.25', '<')) {
             try {
                 $prop = new \ReflectionProperty(get_class($document), '_documentRowID');
                 $prop->setAccessible(true);
