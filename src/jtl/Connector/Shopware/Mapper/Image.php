@@ -23,7 +23,6 @@ use jtl\Connector\Shopware\Utilities\I18n;
 use jtl\Connector\Shopware\Utilities\Sort;
 use Shopware\Bundle\MediaBundle\MediaReplaceService;
 use Shopware\Components\Api\Manager;
-use Shopware\Components\Api\Resource\Translation;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Article\Article;
 use Shopware\Models\Article\Detail;
@@ -256,20 +255,20 @@ class Image extends DataMapper
 
             switch ($jtlImage->getRelationType()) {
                 case ImageRelationType::TYPE_PRODUCT:
-                    $referencedModel = $this->prepareProductImageAssociateData($jtlImage);
+                    $referencedModel = $this->saveArticleImage($jtlImage);
                     $media = $referencedModel->getMedia();
                     if (!is_null($referencedModel->getParent())) {
                         $media = $referencedModel->getParent()->getMedia();
                     }
                     break;
                 case ImageRelationType::TYPE_CATEGORY:
-                    $referencedModel = $this->prepareCategoryImageAssociateData($foreignId, $media);
+                    $referencedModel = $this->saveCategoryImage($foreignId, $media);
                     break;
                 case ImageRelationType::TYPE_MANUFACTURER:
-                    $referencedModel = $this->prepareManufacturerImageAssociateData($foreignId, $media);
+                    $referencedModel = $this->saveSupplierImage($foreignId, $media);
                     break;
                 case ImageRelationType::TYPE_SPECIFIC_VALUE:
-                    $referencedModel = $this->prepareSpecificValueImageAssociateDate($foreignId, $media);
+                    $referencedModel = $this->savePropertyValueImage($foreignId, $media);
                     break;
             }
 
@@ -342,7 +341,7 @@ class Image extends DataMapper
             case ImageRelationType::TYPE_PRODUCT:
                 $deleteMedia = false;
                 list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
-                $this->deleteProductImage($articleId, $detailId, $imageId);
+                $this->deleteArticleImage($articleId, $detailId, $imageId);
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $categorySW = $this->Manager()->getRepository(Category::class)->find((int)$imageId);
@@ -393,7 +392,7 @@ class Image extends DataMapper
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
      */
-    protected function deleteProductImage($articleId, $detailId, $imageId)
+    protected function deleteArticleImage($articleId, $detailId, $imageId)
     {
         /** @var Article $article */
         $article = Shop::entityManager()->find(Article::class, $articleId);
@@ -453,21 +452,50 @@ class Image extends DataMapper
                 Logger::DEBUG,
                 'image'
             );
+
+            $this->rebuildArticleImagesMappings($swImage->getArticle());
         }
 
-        if ($swImage->getChildren()->count() < 2) {
+        $stmt = Shop::entityManager()->getDBALQueryBuilder()
+            ->select('COUNT(clpi.media_id)')
+            ->from('jtl_connector_link_product_image', 'clpi')
+            ->where('clpi.media_id = :mediaId')
+            ->setParameters(['mediaId' => $swImage->getMedia()->getId()])
+            ->execute()
+        ;
+
+        $mediaCount = 2;
+        if($stmt instanceof \PDOStatement) {
+            $mediaCount = $stmt->fetchColumn();
+        }
+
+        if ($mediaCount < 2) {
             foreach ($swImage->getChildren() as $child) {
                 Shop::entityManager()->remove($child);
             }
-            $this->removeImageMappings($swImage);
             Shop::entityManager()->remove($swImage);
+            $article->getImages()->removeElement($swImage);
             $this->deleteMedia($swImage->getMedia());
+
+            if($swImage->getMain() === 1 && $article->getImages()->count() > 0) {
+                /** @var ArticleImage $newMainImage */
+                $newMainImage = $article->getImages()->first();
+                foreach($article->getImages() as $image) {
+                    if($image->getPosition() < $newMainImage->getPosition()) {
+                        $newMainImage = $image;
+                    }
+                }
+                $newMainImage->setMain(1);
+                Shop::entityManager()->persist($newMainImage);
+                Logger::write(sprintf('Articles (%s) main image (%s) switched', $articleId, $newMainImage->getId()), Logger::DEBUG, 'image');
+            }
 
             Logger::write(
                 sprintf(
-                    'Article (%s) image (%s) deleted',
+                    'Article (%s) image (%s) and media (%s) deleted',
                     $articleId,
-                    $imageId
+                    $imageId,
+                    $swImage->getMedia()->getId()
                 ),
                 Logger::DEBUG,
                 'image'
@@ -594,7 +622,7 @@ class Image extends DataMapper
      * @throws \Doctrine\ORM\TransactionRequiredException
      * @throws \RuntimeException
      */
-    protected function prepareProductImageAssociateData(JtlImage $jtlImage)
+    protected function saveArticleImage(JtlImage $jtlImage)
     {
         list($detailId, $articleId) = IdConcatenator::unlink($jtlImage->getForeignKey()->getEndpoint());
 
@@ -756,7 +784,7 @@ class Image extends DataMapper
      * @param Media $media
      * @return Supplier
      */
-    protected function prepareManufacturerImageAssociateData($supplierId, Media $media)
+    protected function saveSupplierImage($supplierId, Media $media)
     {
         /** @var Supplier $supplier */
         $supplier = Shop::entityManager()->getRepository(Supplier::class)->find((int)$supplierId);
@@ -773,7 +801,7 @@ class Image extends DataMapper
      * @param Media $media
      * @return Category
      */
-    protected function prepareCategoryImageAssociateData($categoryId, Media $media)
+    protected function saveCategoryImage($categoryId, Media $media)
     {
         /** @var Category $category */
         $category = Shop::entityManager()->getRepository(Category::class)->find((int)$categoryId);
@@ -802,7 +830,7 @@ class Image extends DataMapper
      * @param Media $media
      * @return Value
      */
-    protected function prepareSpecificValueImageAssociateDate($propertyValueId, Media $media)
+    protected function savePropertyValueImage($propertyValueId, Media $media)
     {
         /** @var Value $propertyValue */
         $propertyValue = Shop::entityManager()->getRepository(Value::class)->find((int)$propertyValueId);
