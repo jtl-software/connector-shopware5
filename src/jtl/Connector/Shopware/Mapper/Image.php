@@ -225,6 +225,11 @@ class Image extends DataMapper
         try {
             $this->deleteImageData($image);
             Shop::entityManager()->flush();
+            Application()->getConnector()->getPrimaryKeyMapper()->delete(
+                $image->getId()->getEndpoint(),
+                $image->getId()->getHost(),
+                IdentityLinker::TYPE_IMAGE
+            );
         } catch (\Exception $e) {
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
@@ -676,7 +681,6 @@ class Image extends DataMapper
             $media = $this->createMedia($jtlImage);
             $swImage = $articleResource->createNewArticleImage($article, $media);
             $swImage->setPosition((count($article->getImages()) + 1));
-            Sort::reSort($article->getImages()->toArray(), 'position');
 
             Logger::write(
                 sprintf(
@@ -703,20 +707,25 @@ class Image extends DataMapper
             Shop::entityManager()->persist($media);
 
             $swImage = $articleResource->updateArticleImageWithMedia($article, $swImage, $media);
-            $swMain = $jtlImage->getSort() === 1 ? 1 : 2;
+            $swPos = $jtlImage->getSort();
+            $swMain = $swPos === 1 ? 1 : 2;
             if ($swMain === 1) {
                 /** @var ArticleImage $aImage */
                 foreach ($article->getImages() as $aImage) {
                     $aImage->setMain(2);
                 }
             }
-            $swImage->setMain($swMain);
-            $swImage->setPosition($jtlImage->getSort());
-            //Sort::reSort($article->getImages()->toArray(), 'position');
 
+            foreach($article->getImages() as $aImage) {
+                if($aImage->getPosition() >= $swPos) {
+                    $aImage->setPosition($aImage->getPosition() + 1);
+                }
+            }
+
+            $swImage->setMain($swMain);
+            $swImage->setPosition($swPos);
         } else {
             if(!$imageExists) {
-                Sort::reSort($article->getImages()->toArray(), 'position');
                 $swImage->setPosition((count($article->getImages()) + 1));
             }
 
@@ -739,16 +748,25 @@ class Image extends DataMapper
                 $detail->getImages()->add($variantImage);
             }
 
-            $variantMain = $jtlImage->getSort() === 1 ? 1 : 2;
+            $variantPos = $jtlImage->getSort();
+            $variantMain = $variantPos === 1 ? 1 : 2;
             if ($variantMain === 1) {
                 /** @var ArticleImage $image */
                 foreach ($detail->getImages() as $image) {
                     $image->setMain(2);
                 }
             }
+
+            foreach ($detail->getImages() as $image) {
+                if($image->getPosition() >= $variantPos) {
+                    $image->setPosition($image->getPosition() + 1);
+                }
+            }
+
             $variantImage->setMain($variantMain);
             $variantImage->setPosition($jtlImage->getSort());
             Shop::entityManager()->persist($variantImage);
+            Sort::reSort($detail->getImages()->toArray(), 'position');
 
             Logger::write(
                 sprintf(
@@ -763,6 +781,7 @@ class Image extends DataMapper
             );
         }
 
+        Sort::reSort($article->getImages()->toArray(), 'position');
         if ($article->getImages()->count() === 1) {
             $swImage->setMain(1);
             $swImage->setPosition(1);
