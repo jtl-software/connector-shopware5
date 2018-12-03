@@ -541,6 +541,10 @@ class Image extends DataMapper
 
             /** @var ArticleImage $image */
             foreach ($detail->getImages() as $image) {
+                if($this->articleImageMappingExists($image->getParent(), $detailOptions)) {
+                    continue;
+                }
+
                 $mapping = new ArticleImage\Mapping();
                 $mapping->setImage($image->getParent());
                 /** @var Option $option */
@@ -571,6 +575,35 @@ class Image extends DataMapper
                 $image->getMappings()->removeElement($mapping);
             }
         }
+    }
+
+    /**
+     * @param ArticleImage $image
+     * @param array $options
+     * @return boolean
+     */
+    protected function articleImageMappingExists(ArticleImage $image, array $options)
+    {
+        /** @var ArticleImage\Mapping $mapping */
+        foreach($image->getMappings() as $mapping) {
+            if(count($mapping->getRules()) !== count($options)) {
+                continue;
+            }
+
+            $mappingOptions = array_filter($mapping->getOptions, function(ArticleImage\Rule $rule) {
+                return $rule->getOption();
+            });
+
+            $diff = array_udiff($options, $mappingOptions, function(Option $a, Option  $b) {
+                return $a->getId() - $b->getId();
+            });
+
+            if(empty($diff)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
