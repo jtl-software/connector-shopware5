@@ -1,7 +1,8 @@
-2.1.19-dev
+2.1.19
 ------
-
-=======
+- CO-340 Fixed problems with image upload
+- Don't add the same image mapping multiple times
+- Fixed customer import problem when creation date is set to 0000-00-00
 
 2.1.18
 ------
@@ -14,7 +15,6 @@
 ------
 - Fixed main article detail preselection logic
 - Images from not existent products will be removed
-
 
 2.1.16
 ------

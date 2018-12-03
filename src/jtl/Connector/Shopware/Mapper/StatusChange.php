@@ -18,6 +18,7 @@ class StatusChange extends DataMapper
     {
         $customerOrderId = (int) $status->getCustomerOrderId()->getEndpoint();
         if ($customerOrderId > 0) {
+            /** @var CustomerOrder $mapper */
             $mapper = Mmc::getMapper('CustomerOrder');
             $customerOrder = $mapper->find($customerOrderId);
             if (!is_null($customerOrder)) {
