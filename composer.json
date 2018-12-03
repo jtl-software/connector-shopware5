@@ -32,5 +32,8 @@
             "jtl\\Connector\\Shopware\\": "src/",
             "": "plugins/"
         }
+    },
+    "require-dev": {
+        "phing/phing": "^2.16"
     }
 }
