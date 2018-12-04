@@ -396,6 +396,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $loader = require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
             }
         }
+
+        $loader->add('', CONNECTOR_DIR . '/plugins');
     }
 
     private function createGuid()
