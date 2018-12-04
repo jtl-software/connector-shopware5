@@ -1,3 +1,7 @@
+2.1.20
+------
+- Fixed plugin autoloading
+
 2.1.19
 ------
 - CO-340 Fixed problems with image upload
