@@ -371,6 +371,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $dir = CONNECTOR_DIR . DIRECTORY_SEPARATOR . 'tmp';
         }
 
+        $loader = null;
         if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
             if (is_writable($dir)) {
                 if (!extension_loaded('phar')) {
@@ -397,7 +398,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             }
         }
 
-        $loader->add('', CONNECTOR_DIR . '/plugins');
+        if($loader instanceof \Composer\Autoload\ClassLoader) {
+            $loader->add('', CONNECTOR_DIR . '/plugins');
+        }
     }
 
     private function createGuid()
