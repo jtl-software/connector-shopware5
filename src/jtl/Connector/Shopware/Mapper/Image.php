@@ -707,7 +707,7 @@ class Image extends DataMapper
 
             $path = Path::combine(Temp::getDirectory(), $filename);
             if (!copy($jtlImage->getFilename(), $path)) {
-                throw new \RuntimeException('Could not copy file (' . $jtlImage->getId()->getHost() . '!');
+                throw new \RuntimeException(sprintf('Could not copy file from "%s" to "%s"!', $jtlImage->getFilename(), $path));
             }
             $jtlImage->setFilename($path);
 
