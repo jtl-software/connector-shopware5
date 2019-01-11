@@ -7,8 +7,6 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use Doctrine\ORM\ORMException;
-use jtl\Connector\Core\IO\Path;
-use jtl\Connector\Core\IO\Temp;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Seo;
 use jtl\Connector\Core\Utilities;
@@ -33,15 +31,11 @@ use Shopware\Models\Article\Image as ArticleImage;
 use Shopware\Models\Article\Configurator\Option;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\IdConcatenator;
-
-;
-
 use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use jtl\Connector\Shopware\Utilities\Shop;
 use Shopware\Models\Property\Value;
-use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class Image extends DataMapper
@@ -705,13 +699,7 @@ class Image extends DataMapper
                 $filename = substr($filename, strlen($filename) - 100, 100);
             }
 
-            $path = Path::combine(Temp::getDirectory(), $filename);
-            if (!copy($jtlImage->getFilename(), $path)) {
-                throw new \RuntimeException('Could not copy file (' . $jtlImage->getId()->getHost() . '!');
-            }
-            $jtlImage->setFilename($path);
-
-            $media = $this->createMedia($jtlImage);
+            $media = $this->createMedia($jtlImage, $filename);
             $swImage = $articleResource->createNewArticleImage($article, $media);
             $swImage->setPosition((count($article->getImages()) + 1));
 
@@ -922,10 +910,11 @@ class Image extends DataMapper
 
     /**
      * @param JtlImage $jtlImage
+     * @param string|null $originalName
      * @return Media
      * @throws \Exception
      */
-    protected function createMedia(JtlImage $jtlImage)
+    protected function createMedia(JtlImage $jtlImage, $originalName = null)
     {
         $albumId = null;
         switch ($jtlImage->getRelationType()) {
@@ -949,8 +938,12 @@ class Image extends DataMapper
             throw new \RuntimeException(sprintf('Album (%s) not found!', $albumId));
         }
 
+        if(is_null($originalName)) {
+            $originalName = $jtlImage->getFilename();
+        }
+
         $media = (new Media())
-            ->setFile(new File($jtlImage->getFilename()))
+            ->setFile(new UploadedFile($jtlImage->getFilename(), $originalName))
             ->setDescription('')
             ->setCreated(new \DateTime())
             ->setUserId(0)
