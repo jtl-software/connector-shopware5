@@ -74,7 +74,7 @@ class Image extends DataController
                             if(is_null($modelSW['articleID']) || is_null($modelSW['detailId'])) {
                                 $imageSW = Shopware()->Models()->find(\Shopware\Models\Article\Image::class, $modelSW['id']);
                                 Shopware()->Models()->remove($imageSW);
-                                continue;
+                                break;
                             }
 
                             $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int) $modelSW['cId'], (int) $modelSW['media_id']);
