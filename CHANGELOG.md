@@ -1,3 +1,8 @@
+2.1.21
+------
+- Image copy problem fixed
+- Avoid warnings when cleaning unassigned product images
+
 2.1.20
 ------
 - Fixed plugin autoloading
