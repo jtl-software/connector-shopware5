@@ -29,9 +29,9 @@
         "phing/phing": "^2.16"
     },
     "autoload": {
-        "psr-0": {
+        "psr-4": {
             "jtl\\Connector\\Shopware\\": "src/",
-            "": "plugins/"
+            "\\": "plugins/"
         }
     }
 }
