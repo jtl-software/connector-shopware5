@@ -76,6 +76,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 ],
                 'product' => [
                     'push' => [
+                        'enable_custom_properties' => false,
                         'null_undefined_attributes' => true,
                         'article_detail_preselection' => false,
                     ]

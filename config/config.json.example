@@ -8,6 +8,7 @@
     },
     "product": {
         "push": {
+            "enable_custom_properties": false,
             "null_undefined_attributes": true,
             "article_detail_preselection": false
         }
