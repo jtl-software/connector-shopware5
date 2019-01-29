@@ -6,8 +6,6 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use jtl\Connector\Core\Utilities\Money;
-use jtl\Connector\Shopware\Model\ProductSpecific;
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Model\ProductVariation;
@@ -37,6 +35,7 @@ use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use Shopware\Models\Property\Group;
 use Shopware\Models\Property\Option;
 use Shopware\Models\Property\Value;
+use jtl\Connector\Shopware\Utilities\Shop;
 
 class Product extends DataMapper
 {
@@ -381,9 +380,10 @@ class Product extends DataMapper
             }
 
             // Save article and detail
-            $this->Manager()->persist($detailSW);
-            $this->Manager()->persist($productSW);
-            $this->Manager()->flush();
+            Shop::entityManager()->persist($detailSW);
+            Shop::entityManager()->persist($productSW);
+            Shop::entityManager()->refresh($detailSW);
+            Shop::entityManager()->flush();
 
             //Change back to entity manager instead of native queries
             if(!$this->isChild($product)) {
@@ -887,15 +887,15 @@ class Product extends DataMapper
                     // active
                     if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IS_ACTIVE)) {
                         $isActive = (strtolower($attributeI18n->getValue()) === 'false'
-                            || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
-                        if ($isChild || !$this->isParent($product)) {
-                            $detailSW->setActive((int) $isActive);
+                            || strtolower($attributeI18n->getValue()) === '0') ? false : true;
+                        if ($isChild) {
+                            $detailSW->setActive((int)$isActive);
+                        } else {
+                            /** @var DetailSW $detail */
+                            $productSW->getMainDetail()->setActive((int)$isActive);
+                            $productSW->setActive($isActive);
                         }
 
-                        if(!$isChild){
-                            $productSW->setActive((int) $isActive);
-                        }
-        
                         continue;
                     }
     
