@@ -46,6 +46,11 @@ class Product extends DataMapper
     protected static $masterProductIds = array();
 
     /**
+     * @var boolean
+     */
+    protected $setMainDetailActive = false;
+
+    /**
      * @return \Doctrine\ORM\EntityRepository
      */
     public function getRepository()
@@ -380,10 +385,19 @@ class Product extends DataMapper
             }
 
             // Save article and detail
-            Shop::entityManager()->persist($detailSW);
             Shop::entityManager()->persist($productSW);
-            Shop::entityManager()->refresh($detailSW);
+            Shop::entityManager()->persist($detailSW);
+            if(!is_null($detailSW->getId())) {
+                Shop::entityManager()->refresh($detailSW);
+            }
             Shop::entityManager()->flush();
+
+            //Set main detail in-/active hack
+            if($this->setMainDetailActive) {
+                $productSW->getMainDetail()->setActive($productSW->getActive());
+                Shop::entityManager()->persist($productSW->getMainDetail());
+                Shop::entityManager()->flush();
+            }
 
             //Change back to entity manager instead of native queries
             if(!$this->isChild($product)) {
@@ -499,7 +513,13 @@ class Product extends DataMapper
 
         if (!is_null($productId)) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
-            $detailSW = $this->findDetail((int) $detailId);
+            /** @var DetailSW $detail */
+            foreach($productSW->getDetails() as $detail) {
+                if($detail->getId() === (int)$detailId) {
+                    $detailSW = $detail;
+                    break;
+                }
+            }
         }
     
         if (is_null($detailSW) && strlen($product->getSku()) > 0) {
@@ -510,18 +530,23 @@ class Product extends DataMapper
     protected function prepareProductAssociatedData(JtlProduct $product, ArticleSW &$productSW = null, DetailSW &$detailSW = null)
     {
         $productId = (strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
-
         if ($productId !== null) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
-            $detailSW = $this->findDetail((int) $detailId);
-
-            if ($detailSW === null) {
-                throw new \Exception(sprintf('Child product with id (%s) not found', $productId));
+            $productSW = $this->find((int) $id);
+            if($productSW === null) {
+                throw new \Exception(sprintf('Article with id (%s) not found', $productId));
             }
 
-            $productSW = $this->find((int) $id);
-            if ($productSW && $detailSW === null) {
-                $detailSW = $productSW->getMainDetail();
+            /** @var DetailSW $detail */
+            foreach($productSW->getDetails() as $detail) {
+                if($detail->getId() === (int)$detailId) {
+                    $detailSW = $detail;
+                    break;
+                }
+            }
+
+            if ($detailSW === null) {
+                throw new \Exception(sprintf('Detail (%s) from article (%s) not found', $detailId, $id));
             }
         } elseif (strlen($product->getSku()) > 0) {
             $detailSW = Shopware()->Models()->getRepository('Shopware\Models\Article\Detail')->findOneBy(array('number' => $product->getSku()));
@@ -570,8 +595,8 @@ class Product extends DataMapper
         $productSW->setName($helper->getProductName());
 
         if ($isNew) {
-            $this->Manager()->persist($productSW);
-            $this->Manager()->flush();
+            Shop::entityManager()->persist($productSW);
+            Shop::entityManager()->flush();
         }
     }
 
@@ -864,7 +889,7 @@ class Product extends DataMapper
             $attributeSW->setArticle($productSW);
             $attributeSW->setArticleDetail($detailSW);
 
-            $this->Manager()->persist($attributeSW);
+            Shop::entityManager()->persist($attributeSW);
         }
     
         // Image configuration ignores
@@ -883,17 +908,17 @@ class Product extends DataMapper
             
             foreach ($attribute->getI18ns() as $attributeI18n) {
                 if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-    
+
                     // active
                     if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IS_ACTIVE)) {
                         $isActive = (strtolower($attributeI18n->getValue()) === 'false'
-                            || strtolower($attributeI18n->getValue()) === '0') ? false : true;
+                            || strtolower($attributeI18n->getValue()) === '0') ? 0 : 1;
                         if ($isChild) {
-                            $detailSW->setActive((int)$isActive);
+                            $detailSW->setActive($isActive);
                         } else {
                             /** @var DetailSW $detail */
-                            $productSW->getMainDetail()->setActive((int)$isActive);
                             $productSW->setActive($isActive);
+                            $this->setMainDetailActive = true;
                         }
 
                         continue;
@@ -942,7 +967,7 @@ class Product extends DataMapper
 
                     if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IS_MAIN) && $isChild && (bool)$attributeI18n->getValue() === true) {
                         /** @var DetailSW $detail */
-                        $this->Manager()->refresh($productSW);
+                        Shop::entityManager()->refresh($productSW);
                         $details = $productSW->getDetails();
                         foreach($details as $detail) {
                             if($detail->getKind() !== self::KIND_VALUE_PARENT) {
@@ -950,6 +975,7 @@ class Product extends DataMapper
                             }
                         }
                         $productSW->setMainDetail($detailSW);
+                        $this->setMainDetailActive = true;
 
                         continue;
                     }
