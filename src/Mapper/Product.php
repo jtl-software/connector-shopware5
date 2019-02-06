@@ -1806,7 +1806,7 @@ class Product extends DataMapper
 
 
     /**
-     * @param array $data
+     * @param mixed[] $data
      * @return boolean
      */
     public function isDetailData(array $data)
@@ -1817,6 +1817,21 @@ class Product extends DataMapper
             isset($data['article']['configuratorSetId']) &&
             (int) $data['article']['configuratorSetId'] > 0 &&
             isset($data['kind']) &&
-            $data['kind'] != self::KIND_VALUE_PARENT);
+            $data['kind'] != self::KIND_VALUE_PARENT
+        );
+    }
+
+    /**
+     * @param mixed[] $data
+     * @return boolean
+     */
+    public function isParentData(array $data)
+    {
+        return (
+            isset($data['configuratorSetId']) &&
+            (int)$data['configuratorSetId'] > 0 &&
+            isset($data['kind']) &&
+            (int) $data['kind'] == self::KIND_VALUE_PARENT
+        );
     }
 }
