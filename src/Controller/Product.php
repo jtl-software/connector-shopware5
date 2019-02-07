@@ -300,6 +300,10 @@ class Product extends DataController
                 if (in_array($key, $exclusives)) {
                     continue;
                 }
+
+                if($value instanceof \DateTimeInterface) {
+                    $value = $value->format(\DateTime::ISO8601);
+                }
         
                 //if (isset($data['attribute']["attr{$i}"]) && strlen($data['attribute']["attr{$i}"]) > 0) {
                 if (!is_null($value) && !empty($value)) {

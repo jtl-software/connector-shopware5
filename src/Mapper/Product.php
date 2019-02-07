@@ -6,8 +6,6 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use jtl\Connector\Core\Utilities\Money;
-use jtl\Connector\Shopware\Model\ProductSpecific;
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Model\ProductVariation;
@@ -22,6 +20,9 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use Doctrine\Common\Collections\ArrayCollection;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use Shopware\Bundle\AttributeBundle\Service\ConfigurationStruct;
+use Shopware\Bundle\AttributeBundle\Service\CrudService;
+use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
 use Shopware\Models\Article\Detail as DetailSW;
 use Shopware\Models\Article\Article as ArticleSW;
 use Shopware\Models\Article\Download as DownloadSW;
@@ -747,10 +748,6 @@ class Product extends DataMapper
             //$this->Manager()->persist($detailSW);
         }
 
-        // Removed
-        // http://community.shopware.com/Artikel-Varianten_detail_920.html#dynamischer_Variantentext
-        //$helper = ProductNameHelper::build($product);
-        //$detailSW->setAdditionalText($helper->getAdditionalName());
         $detailSW->setAdditionalText('');
         $productSW->setChanged();
 
@@ -974,12 +971,24 @@ class Product extends DataMapper
 
         // Reset
         $used = [];
+
+        /** @var CrudService $sw_attributes */
         $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
+        /** @var ConfigurationStruct $sw_attribute */
         foreach ($sw_attributes as $sw_attribute) {
             if (!$sw_attribute->isIdentifier()) {
                 $setter = sprintf('set%s', ucfirst(Str::camel($sw_attribute->getColumnName())));
                 if (isset($attributes[$sw_attribute->getColumnName()]) && method_exists($attributeSW, $setter)) {
-                    $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
+                    $value = $attributes[$sw_attribute->getColumnName()];
+                    if(in_array($sw_attribute->getColumnType(), [TypeMapping::TYPE_DATE, TypeMapping::TYPE_DATETIME])) {
+                        try {
+                            $value = new \DateTime($value);
+                        } catch (\Throwable $ex) {
+                            $value = null;
+                            Logger::write(ExceptionFormatter::format($ex), Logger::ERROR, 'global');
+                        }
+                    }
+                    $attributeSW->{$setter}($value);
                     $used[] = $sw_attribute->getColumnName();
                     $attrMappings[$sw_attribute->getColumnName()] = $mappings[$sw_attribute->getColumnName()];
                     unset($attributes[$sw_attribute->getColumnName()]);
