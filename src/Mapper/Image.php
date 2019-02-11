@@ -309,8 +309,6 @@ class Image extends DataMapper
         } catch (\Exception $e) {
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'image');
 
-        } finally {
-            @unlink($jtlImage->getFilename());
         }
 
         return $jtlImage;
