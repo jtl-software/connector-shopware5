@@ -360,7 +360,9 @@ class Product extends DataController
             $productAttr->map(true, new \stdClass());
             $productAttr
                 ->setId(new Identity($attrId))
-                ->setProductId($product->getId());
+                ->setProductId($product->getId())
+                ->setIsTranslated(true)
+            ;
 
             /** @var ProductAttrI18n $productAttrI18n */
             $productAttrI18n = Mmc::getModel('ProductAttrI18n');
@@ -384,7 +386,6 @@ class Product extends DataController
                             ->setValue((string)$translation['additionalText']);
 
                         $productAttr->addI18n($productAttrI18n);
-                        $productAttr->setIsTranslated(true);
                     }
                 }
             }
