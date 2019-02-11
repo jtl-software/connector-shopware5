@@ -393,9 +393,6 @@ class Product extends DataMapper
             // Save article and detail
             Shop::entityManager()->persist($productSW);
             Shop::entityManager()->persist($detailSW);
-            if(!is_null($detailSW->getId())) {
-                Shop::entityManager()->refresh($detailSW);
-            }
             Shop::entityManager()->flush();
 
             //Set main detail in-/active hack
@@ -1322,14 +1319,14 @@ class Product extends DataMapper
     }
 
     /**
-     * @param ProductModel $product
+     * @param JtlProduct $product
      * @param ArticleSW $article
      * @param DetailSW $detail
      * @param array $attrMappings
      * @throws \Zend_Db_Adapter_Exception
      * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    protected function saveTranslations(ProductModel $product, ArticleSW $article, DetailSW $detail, array $attrMappings)
+    protected function saveTranslations(JtlProduct $product, ArticleSW $article, DetailSW $detail, array $attrMappings)
     {
         $type = 'article';
         $key = $article->getId();
@@ -1386,12 +1383,12 @@ class Product extends DataMapper
     }
 
     /**
-     * @param ProductModel $product
+     * @param JtlProduct $product
      * @param array $attrMappings
      * @return string[]
      * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    protected function createArticleTranslations(ProductModel $product, array $attrMappings)
+    protected function createArticleTranslations(JtlProduct $product, array $attrMappings)
     {
         $detailTranslations = [];
         if(!$product->getIsMasterProduct()) {
@@ -1430,12 +1427,12 @@ class Product extends DataMapper
     }
 
     /**
-     * @param ProductModel $product
+     * @param JtlProduct $product
      * @param array $attrMappings
      * @return array
      * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    protected function createArticleDetailTranslations(ProductModel $product, array $attrMappings)
+    protected function createArticleDetailTranslations(JtlProduct $product, array $attrMappings)
     {
         $data = [];
         foreach($product->getAttributes() as $attribute) {
