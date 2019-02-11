@@ -1,3 +1,12 @@
+2.2.0
+------
+- CO-286 Custom properties support added
+- CO-310 Additional text support added
+- CO-354 Translations from product variation child attributes will be imported into JTL-Wawi
+- CO-359 Use same de-/activation logic for products as in shopware backend
+- CO-433 Convert Shopware product DateTime attributes to string when importing into JTL-Wawi
+- Convert Shopware product attribute names from camel case to underscore when importing into JTL-Wawi
+
 2.1.21
 ------
 - Image copy problem fixed
