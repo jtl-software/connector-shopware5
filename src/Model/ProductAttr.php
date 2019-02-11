@@ -13,12 +13,13 @@ use \jtl\Connector\Model\ProductAttr as ProductAttrModel;
  */
 class ProductAttr extends ProductAttrModel
 {
-    const IS_ACTIVE = 'isActive';
-    const SHIPPING_FREE = 'ShippingFree';
-    const SEND_NOTIFICATION = 'sw_send_notification';
-    const PSEUDO_SALES = 'sw_pseudo_sales';
+    const ADDITIONAL_TEXT = 'additional_text';
     const IMAGE_CONFIGURATION_IGNORES = 'sw_image_config_ignores';
+    const IS_ACTIVE = 'isActive';
     const IS_MAIN = 'is_main';
+    const PSEUDO_SALES = 'sw_pseudo_sales';
+    const SEND_NOTIFICATION = 'sw_send_notification';
+    const SHIPPING_FREE = 'ShippingFree';
 
     protected $fields = array(
         'id' => 'id',
@@ -26,7 +27,7 @@ class ProductAttr extends ProductAttrModel
         'isTranslated' => '',
         'isCustomProperty' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
@@ -34,5 +35,30 @@ class ProductAttr extends ProductAttrModel
     public function map($toWawi = false, \stdClass $obj = null)
     {
         return DataModel::map($toWawi, $obj, $this);
+    }
+
+    /**
+     * @return string[]
+     */
+    public static function getSpecialAttributes()
+    {
+        return [
+            self::ADDITIONAL_TEXT,
+            self::IMAGE_CONFIGURATION_IGNORES,
+            self::IS_ACTIVE,
+            self::IS_MAIN,
+            self::PSEUDO_SALES,
+            self::SEND_NOTIFICATION,
+            self::SHIPPING_FREE,
+        ];
+    }
+
+    /**
+     * @param $attributeName
+     * @return boolean
+     */
+    public static function isSpecialAttribute($attributeName)
+    {
+        return in_array($attributeName, self::getSpecialAttributes());
     }
 }
