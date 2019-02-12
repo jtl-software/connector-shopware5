@@ -24,6 +24,8 @@ use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Utilities\VariationType;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
+use Shopware\Bundle\AttributeBundle\Service\ConfigurationStruct;
+use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
 
 /**
  * Product Controller
@@ -295,11 +297,31 @@ class Product extends DataController
         if (isset($data['attribute']) && !is_null($data['attribute'])) {
             $exclusives = ['id', 'articleId', 'articleDetailId'];
             $i = 1;
-            
+
+            /** @var ConfigurationStruct[] $attrStructValues */
+            $attrStructValues = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
+            $attrStructKeys = array_map(function(ConfigurationStruct $struct) {
+                return Str::camel($struct->getColumnName());
+            }, $attrStructValues);
+
+            /** @var ConfigurationStruct[] $attrStructs */
+            $attrStructs = array_combine($attrStructKeys, $attrStructValues);
+
+            $translatedByDefaultTypes = [
+                TypeMapping::TYPE_COMBOBOX,
+                TypeMapping::TYPE_HTML,
+                TypeMapping::TYPE_MULTI_SELECTION,
+                TypeMapping::TYPE_SINGLE_SELECTION,
+                TypeMapping::TYPE_STRING,
+                TypeMapping::TYPE_TEXT
+            ];
+
             foreach ($data['attribute'] as $key => $value) {
                 if (in_array($key, $exclusives)) {
                     continue;
                 }
+
+                $isTranslated = (!isset($attrStructs[$key]) || in_array($attrStructs[$key]->getColumnType(), $translatedByDefaultTypes));
 
                 if($value instanceof \DateTimeInterface) {
                     $value = $value->format(\DateTime::ISO8601);
@@ -314,7 +336,9 @@ class Product extends DataController
                     $productAttr = Mmc::getModel('ProductAttr');
                     $productAttr->map(true, DataConverter::toObject($data['attribute']));
                     $productAttr->setId(new Identity($attrId))
-                        ->setProductId($product->getId());
+                        ->setProductId($product->getId())
+                        ->setIsTranslated($isTranslated)
+                    ;
             
                     $productAttrI18n = Mmc::getModel('ProductAttrI18n');
                     $productAttrI18n->map(true, DataConverter::toObject($data['attribute'], true));
@@ -340,8 +364,10 @@ class Product extends DataController
                                 ->setName($attrName)
                                 ->setValue((string) $translation[$index]);
 
-                            $productAttr->addI18n($productAttrI18n);
-                            $productAttr->setIsTranslated(true);
+                            $productAttr
+                                ->addI18n($productAttrI18n)
+                                ->setIsTranslated(true)
+                            ;
                         }
                     }
             

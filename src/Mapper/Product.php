@@ -1001,7 +1001,7 @@ class Product extends DataMapper
         // Reset
         $used = [];
 
-        /** @var CrudService $sw_attributes */
+
         $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
         /** @var ConfigurationStruct $sw_attribute */
         foreach ($sw_attributes as $sw_attribute) {
