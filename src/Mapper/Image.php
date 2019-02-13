@@ -1008,8 +1008,8 @@ class Image extends DataMapper
                     if (md5_file($jtlImage->getFilename()) == md5($swImageContent)) {
                         return $image;
                     }
-                } catch (\Exception $ex) {
-                    Logger::write($ex->getMessage(), Logger::ERROR);
+                } catch (\Throwable $ex) {
+                    Logger::write(ExceptionFormatter::format($ex, 'SW image (id = ' . $image->getId() . ')'), Logger::ERROR);
                 }
             }
         }
