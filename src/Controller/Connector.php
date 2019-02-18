@@ -16,7 +16,7 @@ use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Core\Model\QueryFilter;
 use \jtl\Connector\Model\ConnectorIdentification;
-use jtl\Connector\Shopware\Utilities\Shop;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Shopware\Components\ShopwareReleaseStruct;
 
 /**
@@ -62,7 +62,7 @@ class Connector extends DataController
         $identification = new ConnectorIdentification();
         $identification->setEndpointVersion($pluginController->getVersion())
             ->setPlatformName('Shopware')
-            ->setPlatformVersion(Shop::version())
+            ->setPlatformVersion(ShopUtil::version())
             ->setProtocolVersion(Application()->getProtocolVersion())
             ->setServerInfo($serverInfo);
 

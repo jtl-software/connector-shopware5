@@ -34,7 +34,7 @@ use jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
-use jtl\Connector\Shopware\Utilities\Shop;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Shopware\Models\Property\Value;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -218,7 +218,7 @@ class Image extends DataMapper
 
         try {
             $this->deleteImageData($image);
-            Shop::entityManager()->flush();
+            ShopUtil::entityManager()->flush();
             Application()->getConnector()->getPrimaryKeyMapper()->delete(
                 $image->getId()->getEndpoint(),
                 $image->getId()->getHost(),
@@ -271,9 +271,9 @@ class Image extends DataMapper
                     break;
             }
 
-            Shop::entityManager()->persist($media);
-            Shop::entityManager()->persist($referencedModel);
-            Shop::entityManager()->flush();
+            ShopUtil::entityManager()->persist($media);
+            ShopUtil::entityManager()->persist($referencedModel);
+            ShopUtil::entityManager()->flush();
 
             // Save image title translations
             if ($referencedModel instanceof ArticleImage && is_null($referencedModel->getParent())) {
@@ -301,7 +301,7 @@ class Image extends DataMapper
             $jtlImage->setId(new Identity($endpoint, $jtlImage->getId()->getHost()))
                 ->setForeignKey(new Identity($jtlImage->getForeignKey()->getEndpoint(), $jtlImage->getForeignKey()->getHost()))
                 ->setRelationType($jtlImage->getRelationType())
-                ->setFilename(Shop::mediaService()->getUrl($media->getPath()));;
+                ->setFilename(ShopUtil::mediaService()->getUrl($media->getPath()));;
 
         } catch (ORMException $e) {
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
@@ -346,7 +346,7 @@ class Image extends DataMapper
                     $categorySW->setMedia(null);
 
                     try {
-                        Shop::entityManager()->persist($categorySW);
+                        ShopUtil::entityManager()->persist($categorySW);
                     } catch (\Exception $e) {
                         Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
                     }
@@ -358,7 +358,7 @@ class Image extends DataMapper
                     $supplierSW->setImage('');
 
                     try {
-                        Shop::entityManager()->persist($supplierSW);
+                        ShopUtil::entityManager()->persist($supplierSW);
                     } catch (\Exception $e) {
                         Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
                     }
@@ -367,13 +367,13 @@ class Image extends DataMapper
         }
 
         if ($deleteMedia) {
-            $media = Shop::entityManager()->find(Media::class, $mediaId);
+            $media = ShopUtil::entityManager()->find(Media::class, $mediaId);
             if (!is_null($media)) {
                 $this->deleteMedia($media);
             }
         }
 
-        Shop::entityManager()->flush();
+        ShopUtil::entityManager()->flush();
 
         if ($image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
             $translationUtil = new TranslationUtil();
@@ -392,7 +392,7 @@ class Image extends DataMapper
     protected function deleteArticleImage($articleId, $detailId, $imageId)
     {
         /** @var Article $article */
-        $article = Shop::entityManager()->find(Article::class, $articleId);
+        $article = ShopUtil::entityManager()->find(Article::class, $articleId);
         if (is_null($article)) {
             Logger::write('Article (' . $articleId . ') not found!', Logger::DEBUG, 'image');
             return;
@@ -436,7 +436,7 @@ class Image extends DataMapper
         }
 
         if (!is_null($swImage->getParent())) {
-            Shop::entityManager()->remove($swImage);
+            ShopUtil::entityManager()->remove($swImage);
             $swImage = $swImage->getParent();
 
             Logger::write(
@@ -453,7 +453,7 @@ class Image extends DataMapper
             $this->rebuildArticleImagesMappings($swImage->getArticle());
         }
 
-        $stmt = Shop::entityManager()->getDBALQueryBuilder()
+        $stmt = ShopUtil::entityManager()->getDBALQueryBuilder()
             ->select('COUNT(clpi.media_id)')
             ->from('jtl_connector_link_product_image', 'clpi')
             ->where('clpi.media_id = :mediaId')
@@ -468,9 +468,9 @@ class Image extends DataMapper
 
         if ($mediaCount < 2) {
             foreach ($swImage->getChildren() as $child) {
-                Shop::entityManager()->remove($child);
+                ShopUtil::entityManager()->remove($child);
             }
-            Shop::entityManager()->remove($swImage);
+            ShopUtil::entityManager()->remove($swImage);
             $article->getImages()->removeElement($swImage);
             $this->deleteMedia($swImage->getMedia());
 
@@ -483,7 +483,7 @@ class Image extends DataMapper
                     }
                 }
                 $newMainImage->setMain(1);
-                Shop::entityManager()->persist($newMainImage);
+                ShopUtil::entityManager()->persist($newMainImage);
                 Logger::write(sprintf('Articles (%s) main image (%s) switched', $articleId, $newMainImage->getId()), Logger::DEBUG, 'image');
             }
 
@@ -547,7 +547,7 @@ class Image extends DataMapper
                     $mapping->getRules()->add($rule);
                 }
                 $image->getParent()->getMappings()->add($mapping);
-                Shop::entityManager()->persist($image->getParent());
+                ShopUtil::entityManager()->persist($image->getParent());
             }
         }
     }
@@ -561,7 +561,7 @@ class Image extends DataMapper
         foreach ($article->getImages() as $image) {
             foreach ($image->getMappings() as $mapping) {
                 foreach ($mapping->getRules() as $rule) {
-                    Shop::entityManager()->remove($rule);
+                    ShopUtil::entityManager()->remove($rule);
                 }
                 shop::entityManager()->remove($mapping);
                 $image->getMappings()->removeElement($mapping);
@@ -604,7 +604,7 @@ class Image extends DataMapper
      */
     protected function getIgnoreGroups(Article $article)
     {
-        $qb = Shop::entityManager()->getDBALQueryBuilder()
+        $qb = ShopUtil::entityManager()->getDBALQueryBuilder()
             ->select('cpa.value')
             ->from('jtl_connector_product_attributes', 'cpa')
             ->andWhere('cpa.product_id = :productId')
@@ -628,9 +628,9 @@ class Image extends DataMapper
         /** @var ArticleImage\Mapping $mapping */
         foreach ($swImage->getMappings() as $mapping) {
             foreach ($mapping->getRules() as $rule) {
-                Shop::entityManager()->remove($rule);
+                ShopUtil::entityManager()->remove($rule);
             }
-            Shop::entityManager()->remove($mapping);
+            ShopUtil::entityManager()->remove($mapping);
         }
     }
 
@@ -639,7 +639,7 @@ class Image extends DataMapper
      */
     protected function deleteMedia(Media $media)
     {
-        Shop::thumbnailManager()->removeMediaThumbnails($media);
+        ShopUtil::thumbnailManager()->removeMediaThumbnails($media);
         $this->Manager()->remove($media);
     }
 
@@ -657,7 +657,7 @@ class Image extends DataMapper
         list($detailId, $articleId) = IdConcatenator::unlink($jtlImage->getForeignKey()->getEndpoint());
 
         /** @var Article $article */
-        $article = Shop::entityManager()->find(Article::class, $articleId);
+        $article = ShopUtil::entityManager()->find(Article::class, $articleId);
         if (is_null($article)) {
             throw new \RuntimeException('Article (' . $articleId . ') not found!');
         }
@@ -718,12 +718,12 @@ class Image extends DataMapper
         if (!$productMapper->isChildSW($article, $detail)) {
             $description = '';
             /** @var ImageI18n $i18n */
-            $i18n = I18n::find(Shop::locale()->getLocale(), $jtlImage->getI18ns());
+            $i18n = I18n::find(ShopUtil::locale()->getLocale(), $jtlImage->getI18ns());
             if (!is_null($i18n)) {
                 $description = $i18n->getAltText();
             }
             $media->setDescription($description);
-            Shop::entityManager()->persist($media);
+            ShopUtil::entityManager()->persist($media);
 
             $swImage = $articleResource->updateArticleImageWithMedia($article, $swImage, $media);
             $swPos = $jtlImage->getSort();
@@ -762,7 +762,7 @@ class Image extends DataMapper
                 $variantImage->setArticleDetail($detail);
                 $variantImage->setExtension($swImage->getExtension());
                 $variantImage->setParent($swImage);
-                Shop::entityManager()->persist($variantImage);
+                ShopUtil::entityManager()->persist($variantImage);
                 $swImage->getChildren()->add($variantImage);
                 $detail->getImages()->add($variantImage);
             }
@@ -784,7 +784,7 @@ class Image extends DataMapper
 
             $variantImage->setMain($variantMain);
             $variantImage->setPosition($jtlImage->getSort());
-            Shop::entityManager()->persist($variantImage);
+            ShopUtil::entityManager()->persist($variantImage);
             Sort::reSort($detail->getImages()->toArray(), 'position');
 
             Logger::write(
@@ -806,9 +806,9 @@ class Image extends DataMapper
             $swImage->setPosition(1);
         }
 
-        Shop::entityManager()->persist($swImage);
-        Shop::entityManager()->persist($article);
-        Shop::entityManager()->persist($detail);
+        ShopUtil::entityManager()->persist($swImage);
+        ShopUtil::entityManager()->persist($article);
+        ShopUtil::entityManager()->persist($detail);
 
         if(count($article->getDetails()) > 1) {
             $this->rebuildArticleImagesMappings($article);
@@ -825,7 +825,7 @@ class Image extends DataMapper
     protected function saveSupplierImage($supplierId, Media $media)
     {
         /** @var Supplier $supplier */
-        $supplier = Shop::entityManager()->getRepository(Supplier::class)->find((int)$supplierId);
+        $supplier = ShopUtil::entityManager()->getRepository(Supplier::class)->find((int)$supplierId);
         if ($supplier === null) {
             throw new \RuntimeException(sprintf('Can not find manufacturer (%s)!', $supplierId));
         }
@@ -842,7 +842,7 @@ class Image extends DataMapper
     protected function saveCategoryImage($categoryId, Media $media)
     {
         /** @var Category $category */
-        $category = Shop::entityManager()->getRepository(Category::class)->find((int)$categoryId);
+        $category = ShopUtil::entityManager()->getRepository(Category::class)->find((int)$categoryId);
         if (is_null($category)) {
             throw new \RuntimeException(sprintf('Can not find category (%s)!', $categoryId));
         }
@@ -854,7 +854,7 @@ class Image extends DataMapper
             $categorySWs = CategoryMappingUtil::findAllCategoriesByMappingParent($categoryId);
             foreach ($categorySWs as $categorySW) {
                 $categorySW->setMedia($media);
-                Shop::entityManager()->persist($categorySW);
+                ShopUtil::entityManager()->persist($categorySW);
             }
         }
 
@@ -871,7 +871,7 @@ class Image extends DataMapper
     protected function savePropertyValueImage($propertyValueId, Media $media)
     {
         /** @var Value $propertyValue */
-        $propertyValue = Shop::entityManager()->getRepository(Value::class)->find((int)$propertyValueId);
+        $propertyValue = ShopUtil::entityManager()->getRepository(Value::class)->find((int)$propertyValueId);
         if ($propertyValue === null) {
             throw new \RuntimeException(sprintf('Can not find specific value (%s)!', $propertyValueId));
         }
@@ -897,9 +897,9 @@ class Image extends DataMapper
 
         if(!is_null($media)) {
             /** @var MediaReplaceService $replaceService */
-            $replaceService = Shop::get()->Container()->get('shopware_media.replace_service');
+            $replaceService = ShopUtil::get()->Container()->get('shopware_media.replace_service');
             $replaceService->replace($mediaId, new UploadedFile($jtlImage->getFilename(), $media->getName()));
-            Shop::entityManager()->refresh($media);
+            ShopUtil::entityManager()->refresh($media);
             return $media;
         }
 
@@ -931,7 +931,7 @@ class Image extends DataMapper
                 break;
         }
 
-        $album = Shop::entityManager()->getRepository(Album::class)->find($albumId);
+        $album = ShopUtil::entityManager()->getRepository(Album::class)->find($albumId);
         if (is_null($album)) {
             throw new \RuntimeException(sprintf('Album (%s) not found!', $albumId));
         }
@@ -947,8 +947,8 @@ class Image extends DataMapper
             ->setUserId(0)
             ->setAlbum($album);
 
-        Shop::entityManager()->persist($media);
-        Shop::thumbnailManager()->createMediaThumbnail($media, [], true);
+        ShopUtil::entityManager()->persist($media);
+        ShopUtil::thumbnailManager()->createMediaThumbnail($media, [], true);
 
         return $media;
     }
@@ -1004,7 +1004,7 @@ class Image extends DataMapper
             foreach ($article->getImages() as $image) {
                 try {
                     $media = $image->getMedia();
-                    $swImageContent = Shop::mediaService()->read($media->getPath());
+                    $swImageContent = ShopUtil::mediaService()->read($media->getPath());
                     if (md5_file($jtlImage->getFilename()) == md5($swImageContent)) {
                         return $image;
                     }
@@ -1035,7 +1035,7 @@ class Image extends DataMapper
                 continue;
             }
 
-            $shopLanguageIso = Utilities\Language::map(Shop::locale()->getLocale());
+            $shopLanguageIso = Utilities\Language::map(ShopUtil::locale()->getLocale());
             if ($i18n->getLanguageISO() !== $shopLanguageIso) {
                 $locale = LocaleUtil::getByKey(Utilities\Language::map(null, null, $i18n->getLanguageISO()));
                 $shops = $shopMapper->findByLocale($locale->getLocale());

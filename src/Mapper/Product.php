@@ -20,7 +20,6 @@ use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use Doctrine\Common\Collections\ArrayCollection;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use Shopware\Bundle\AttributeBundle\Service\ConfigurationStruct;
-use Shopware\Bundle\AttributeBundle\Service\CrudService;
 use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
 use Shopware\Models\Article\Detail as DetailSW;
 use Shopware\Models\Article\Article as ArticleSW;
@@ -37,7 +36,7 @@ use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use Shopware\Models\Property\Group;
 use Shopware\Models\Property\Option;
 use Shopware\Models\Property\Value;
-use jtl\Connector\Shopware\Utilities\Shop;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class Product extends DataMapper
 {
@@ -391,15 +390,15 @@ class Product extends DataMapper
             }
 
             // Save article and detail
-            Shop::entityManager()->persist($productSW);
-            Shop::entityManager()->persist($detailSW);
-            Shop::entityManager()->flush();
+            ShopUtil::entityManager()->persist($productSW);
+            ShopUtil::entityManager()->persist($detailSW);
+            ShopUtil::entityManager()->flush();
 
             //Set main detail in-/active hack
             if($this->setMainDetailActive) {
                 $productSW->getMainDetail()->setActive($productSW->getActive());
-                Shop::entityManager()->persist($productSW->getMainDetail());
-                Shop::entityManager()->flush();
+                ShopUtil::entityManager()->persist($productSW->getMainDetail());
+                ShopUtil::entityManager()->flush();
             }
 
             //Change back to entity manager instead of native queries
@@ -600,8 +599,8 @@ class Product extends DataMapper
         $productSW->setName($helper->getProductName());
 
         if ($isNew) {
-            Shop::entityManager()->persist($productSW);
-            Shop::entityManager()->flush();
+            ShopUtil::entityManager()->persist($productSW);
+            ShopUtil::entityManager()->flush();
         }
     }
 
@@ -890,7 +889,7 @@ class Product extends DataMapper
             $attributeSW->setArticle($productSW);
             $attributeSW->setArticleDetail($detailSW);
 
-            Shop::entityManager()->persist($attributeSW);
+            ShopUtil::entityManager()->persist($attributeSW);
         }
 
         // Image configuration ignores
@@ -970,7 +969,7 @@ class Product extends DataMapper
 
                     if (strtolower($attributeI18n->getName()) === strtolower(ProductAttr::IS_MAIN) && $isChild && (bool)$attributeI18n->getValue() === true) {
                         /** @var DetailSW $detail */
-                        Shop::entityManager()->refresh($productSW);
+                        ShopUtil::entityManager()->refresh($productSW);
                         $details = $productSW->getDetails();
                         foreach ($details as $detail) {
                             if ($detail->getKind() !== self::KIND_VALUE_PARENT) {
@@ -1251,7 +1250,7 @@ class Product extends DataMapper
                             ->setSortMode(0)
                             ->setOptions($options);
 
-                        Shop::entityManager()->persist($group);
+                        ShopUtil::entityManager()->persist($group);
                     }
                 }
 
@@ -1398,7 +1397,7 @@ class Product extends DataMapper
         $data = [];
         foreach($product->getI18ns() as $i18n) {
             $langIso = $i18n->getLanguageISO();
-            if ($langIso === LanguageUtil::map(Shop::locale()->getLocale())) {
+            if ($langIso === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
                 continue;
             }
 
@@ -1438,7 +1437,7 @@ class Product extends DataMapper
         foreach($product->getAttributes() as $attribute) {
             foreach ($attribute->getI18ns() as $attrI18n) {
                 $langIso = $attrI18n->getLanguageISO();
-                if ($langIso === LanguageUtil::map(Shop::locale()->getLocale())) {
+                if ($langIso === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
                     continue;
                 }
 
@@ -1463,7 +1462,7 @@ class Product extends DataMapper
             if (!is_null($unitSW)) {
                 foreach ($unitSW->getI18ns() as $unitI18n) {
                     $langIso = $unitI18n->getLanguageIso();
-                    if ($langIso === LanguageUtil::map(Shop::locale()->getLocale())) {
+                    if ($langIso === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
                         continue;
                     }
                 }

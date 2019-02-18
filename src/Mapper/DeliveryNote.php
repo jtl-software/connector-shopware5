@@ -13,7 +13,7 @@ use \jtl\Connector\Model\DeliveryNote as DeliveryNoteModel;
 use \Shopware\Models\Order\Document\Document as DocumentSW;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Shopware\Utilities\Shop;
+use \jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class DeliveryNote extends DataMapper
 {
@@ -119,9 +119,9 @@ class DeliveryNote extends DataMapper
     
                 $sw = Shopware();
                 $documentPath = '';
-                if (version_compare(Shop::version(), '5.3.0', '<')) {
+                if (version_compare(ShopUtil::version(), '5.3.0', '<')) {
                     $documentPath = $sw->DocPath() . 'files/documents' . DIRECTORY_SEPARATOR;
-                } elseif (version_compare(Shop::version(), '5.4.0', '<')) {
+                } elseif (version_compare(ShopUtil::version(), '5.4.0', '<')) {
                     $documentPath = rtrim($sw->DocPath('files_documents'), '/') . DIRECTORY_SEPARATOR;
                 } else {
                     try {
@@ -211,7 +211,7 @@ class DeliveryNote extends DataMapper
             }
         }
 
-        if (version_compare(Shop::version(), '5.2.25', '<')) {
+        if (version_compare(ShopUtil::version(), '5.2.25', '<')) {
             try {
                 $prop = new \ReflectionProperty(get_class($document), '_documentRowID');
                 $prop->setAccessible(true);

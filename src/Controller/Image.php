@@ -16,7 +16,6 @@ use \jtl\Connector\Model\Statistic;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
-use jtl\Connector\Shopware\Utilities\Shop;
 use Shopware\Bundle\MediaBundle\MediaService;
 
 /**
@@ -61,7 +60,7 @@ class Image extends DataController
             }
 
             /** @var MediaService $mediaServie */
-            $mediaServie = Shop::mediaService();
+            $mediaServie = ShopUtil::mediaService();
             
             //$proto = ShopUtil::getProtocol();
             foreach ($modelContainer as $relationType => $models) {
