@@ -1,3 +1,7 @@
+2.2.0.1
+------
+- Hotfix for backward compatiblity with namespace aliases
+
 2.2.0
 ------
 - CO-286 Custom properties support added
