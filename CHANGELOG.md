@@ -1,6 +1,7 @@
 2.2.0.2
 ------
-- Typo in class alias corrected
+- Set configuratorOptions on article details fix
+- Class alias typo corrected
 
 2.2.0.1
 ------
