@@ -563,7 +563,7 @@ class Image extends DataMapper
                 foreach ($mapping->getRules() as $rule) {
                     ShopUtil::entityManager()->remove($rule);
                 }
-                shop::entityManager()->remove($mapping);
+                ShopUtil::entityManager()->remove($mapping);
                 $image->getMappings()->removeElement($mapping);
             }
         }
