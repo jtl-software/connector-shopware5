@@ -1,3 +1,7 @@
+2.2.0.2
+------
+- Typo in class alias corrected
+
 2.2.0.1
 ------
 - Hotfix for backward compatiblity with namespace aliases
