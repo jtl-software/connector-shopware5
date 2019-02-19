@@ -389,17 +389,16 @@ class Product extends DataMapper
                 }
             }
 
+            //Set main detail in-/active hack
+            if($this->setMainDetailActive) {
+                $productSW->getMainDetail()->setActive($productSW->getActive());
+                $this->setMainDetailActive = false;
+            }
+
             // Save article and detail
             ShopUtil::entityManager()->persist($productSW);
             ShopUtil::entityManager()->persist($detailSW);
             ShopUtil::entityManager()->flush();
-
-            //Set main detail in-/active hack
-            if($this->setMainDetailActive) {
-                $productSW->getMainDetail()->setActive($productSW->getActive());
-                ShopUtil::entityManager()->persist($productSW->getMainDetail());
-                ShopUtil::entityManager()->flush();
-            }
 
             //Change back to entity manager instead of native queries
             if (!$this->isChild($product)) {
@@ -845,7 +844,7 @@ class Product extends DataMapper
     {
         $groupMapper = Mmc::getMapper('ConfiguratorGroup');
         $optionMapper = Mmc::getMapper('ConfiguratorOption');
-        $options = [];
+        $detailSW->getConfiguratorOptions()->clear();
         foreach ($product->getVariations() as $variation) {
             $variationName = null;
             foreach ($variation->getI18ns() as $variationI18n) {
@@ -873,11 +872,10 @@ class Product extends DataMapper
                         continue;
                     }
 
-                    $options[] = $optionSW;
+                    $detailSW->getConfiguratorOptions()->add($optionSW);
                 }
             }
         }
-        $detailSW->setConfiguratorOptions(new ArrayCollection($options));
     }
 
     protected function prepareAttributeAssociatedData(JtlProduct $product, ArticleSW &$productSW, DetailSW &$detailSW, array &$attrMappings, $isChild = false)
