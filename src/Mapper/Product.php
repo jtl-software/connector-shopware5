@@ -392,7 +392,7 @@ class Product extends DataMapper
             //Set main detail in-/active hack
             if($this->setMainDetailActive) {
                 $productSW->getMainDetail()->setActive($productSW->getActive());
-                $this->setMainDetailActive = false;
+                ShopUtil::entityManager()->persist($productSW->getMainDetail());
             }
 
             // Save article and detail
