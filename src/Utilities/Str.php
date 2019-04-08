@@ -40,8 +40,25 @@ class Str
         if (isset(static::$camelCache[$value])) {
             return static::$camelCache[$value];
         }
-        
-        return static::$camelCache[$value] = lcfirst(static::studly($value));
+
+        $parts = explode('_', $value);
+
+        $lastEmpty = false;
+        $toCamelcase = '';
+        foreach($parts as $part) {
+            if(empty($part)) {
+                $toCamelcase .= '_';
+                $lastEmpty = true;
+            }
+            elseif (is_numeric($part[0])) {
+                $toCamelcase .= '_' . $part;
+                $lastEmpty = false;
+            } else {
+                $toCamelcase .= $lastEmpty ? $part : ucfirst($part);
+                $lastEmpty = false;
+            }
+        }
+        return static::$camelCache[$value] = lcfirst($toCamelcase);
     }
     
     /**
