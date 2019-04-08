@@ -1,5 +1,5 @@
 #!/bin/bash
 ulimit -n 100000;
 composer update --no-dev;
-php ./phing.phar release;
+php ./vendor/bin/phing release;
 composer update;
