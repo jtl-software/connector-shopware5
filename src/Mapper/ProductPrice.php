@@ -3,7 +3,6 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
-
 namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
@@ -28,7 +27,7 @@ class ProductPrice extends DataMapper
         foreach ($prices as $i => $price) {
             $productSW = null;
             $detailSW = null;
-            self::buildCollection([$price], $productSW, $detailSW);
+            self::buildCollection([$price]);
 
             if(($i % 50) === 49) {
                 ShopUtil::entityManager()->flush();
@@ -42,16 +41,13 @@ class ProductPrice extends DataMapper
 
     /**
      * @param array \jtl\Connector\Model\ProductPrice $productPrices
-     * @param \Shopware\Models\Article\Article $productSW
-     * @param \Shopware\Models\Article\Detail $detailSW
      * @param float $recommendedRetailPrice
      */
-    public static function buildCollection(
-        array $productPrices,
-        ArticleSW &$productSW = null,
-        DetailSW &$detailSW = null,
-        $recommendedRetailPrice = null
-    ) {
+    public static function buildCollection(array $productPrices)
+    {
+        $article = null;
+        $detail = null;
+
         // Price
         $collection = [];
         $pricesPerGroup = [];
@@ -117,20 +113,20 @@ class ProductPrice extends DataMapper
         }
 
         // find sw product and detail
-        if (is_null($productSW) || is_null($detailSW)) {
+        if (is_null($article) || is_null($detail)) {
             if (strlen($defaultPrice->getProductId()->getEndpoint()) > 0) {
                 list ($detailId, $productId) = IdConcatenator::unlink($defaultPrice->getProductId()->getEndpoint());
 
                 $productMapper = Mmc::getMapper('Product');
-                $productSW = $productMapper->find($productId);
-                if (is_null($productSW)) {
+                $article = $productMapper->find($productId);
+                if (is_null($article)) {
                     Logger::write(sprintf('Could not find any product for endpoint (%s)', $defaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
 
                     return $collection;
                 }
 
-                $detailSW = $productMapper->findDetail($detailId);
-                if (is_null($detailSW)) {
+                $detail = $productMapper->findDetail($detailId);
+                if (is_null($detail)) {
                     Logger::write(sprintf('Could not find any detail for endpoint (%s)', $defaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
 
                     return $collection;
@@ -143,15 +139,15 @@ class ProductPrice extends DataMapper
         }
 
         // Find pseudoprice
-        if ($productSW->getId() > 0 && $detailSW->getId() > 0 && is_null($recommendedRetailPrice)) {
+        if ($article->getId() > 0 && $detail->getId() > 0 && is_null($recommendedRetailPrice)) {
             $recommendedRetailPrice = ShopUtil::get()->Db()->fetchOne(
                 'SELECT if(pseudoprice, pseudoprice, 0.0) FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
-                array($productSW->getId(), $detailSW->getId())
+                array($article->getId(), $detail->getId())
             );
         }
 
         $sql = "DELETE FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ?";
-        ShopUtil::get()->Db()->query($sql, array($productSW->getId(), $detailSW->getId()));
+        ShopUtil::get()->Db()->query($sql, array($article->getId(), $detail->getId()));
 
         foreach ($pricesPerGroup as $groupId => $price) {
         //foreach ($pricesPerGroup as $groupId => $prices) {
@@ -199,12 +195,12 @@ class ProductPrice extends DataMapper
                         $priceSW = new \Shopware\Models\Article\Price;
                     }
 
-                    $priceSW->setArticle($productSW)
+                    $priceSW->setArticle($article)
                         ->setCustomerGroup($customerGroupSW)
                         ->setFrom($quantity)
                         ->setPrice($priceItem->getNetPrice())
                         ->setPseudoPrice($recommendedRetailPrice)
-                        ->setDetail($detailSW);
+                        ->setDetail($detail);
 
                     if ($quantity == 1) {
                         //$priceSW->setPseudoPrice($recommendedRetailPrice);
@@ -225,8 +221,8 @@ class ProductPrice extends DataMapper
                         $customerGroupSW->getKey(),
                         $quantity,
                         $priceItem->getNetPrice(),
-                        $productSW->getId(),
-                        $detailSW->getId()
+                        $article->getId(),
+                        $detail->getId()
                     ), Logger::DEBUG, 'prices');
 
                     ShopUtil::entityManager()->persist($priceSW);
