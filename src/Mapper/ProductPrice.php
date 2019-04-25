@@ -3,6 +3,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
@@ -19,7 +20,7 @@ class ProductPrice extends DataMapper
 {
     public function find($id)
     {
-        return ((int) $id == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Price', $id);
+        return ((int)$id == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Price', $id);
     }
 
     public function save(array $prices)
@@ -29,7 +30,7 @@ class ProductPrice extends DataMapper
             $detailSW = null;
             self::buildCollection([$price]);
 
-            if(($i % 50) === 49) {
+            if (($i % 50) === 49) {
                 ShopUtil::entityManager()->flush();
             }
         }
@@ -41,20 +42,24 @@ class ProductPrice extends DataMapper
 
     /**
      * @param array \jtl\Connector\Model\ProductPrice $productPrices
+     * @param \Shopware\Models\Article\Article $productSW
+     * @param \Shopware\Models\Article\Detail $detailSW
      * @param float $recommendedRetailPrice
      */
-    public static function buildCollection(array $productPrices)
+    public static function buildCollection(
+        array $productPrices,
+        ArticleSW &$productSW = null,
+        DetailSW &$detailSW = null,
+        $recommendedRetailPrice = null
+    )
     {
-        $article = null;
-        $detail = null;
-
         // Price
         $collection = [];
         $pricesPerGroup = [];
 
         // build prices per customer group
         foreach ($productPrices as $productPrice) {
-            $groupId = (int) $productPrice->getCustomerGroupId()->getEndpoint();
+            $groupId = (int)$productPrice->getCustomerGroupId()->getEndpoint();
 
             Logger::write(sprintf('prices (group id: %s): %s', $groupId, $productPrice->toJson()), Logger::DEBUG, 'prices');
 
@@ -103,7 +108,7 @@ class ProductPrice extends DataMapper
         if (count($pricesPerGroup) == 1 && isset($pricesPerGroup[0])) {
             $pricesPerGroup[$defaultCGId] = $pricesPerGroup[0];
         }
-    
+
         // Work Around thx @Frank
         // Customer Group 1 (default) is missing
         // Customer Group 2 is present
@@ -150,84 +155,84 @@ class ProductPrice extends DataMapper
         ShopUtil::get()->Db()->query($sql, array($article->getId(), $detail->getId()));
 
         foreach ($pricesPerGroup as $groupId => $price) {
-        //foreach ($pricesPerGroup as $groupId => $prices) {
+            //foreach ($pricesPerGroup as $groupId => $prices) {
             if ($groupId == 0) {
                 continue;
             }
 
             //foreach ($prices as $price) {
-                $customerGroupSW = CustomerGroupUtil::get((int) $groupId);
+            $customerGroupSW = CustomerGroupUtil::get((int)$groupId);
 
-                if (is_null($customerGroupSW)) {
-                    Logger::write(sprintf('Could not find any customer group with id (%s)', $groupId), Logger::WARNING, 'database');
+            if (is_null($customerGroupSW)) {
+                Logger::write(sprintf('Could not find any customer group with id (%s)', $groupId), Logger::WARNING, 'database');
 
-                    continue;
+                continue;
+            }
+
+            $priceItems = $price->getItems();
+
+            // Check if at least one element with quantity 1 is present
+            $isPresent = ProductPriceController::isDefaultQuantityPresent($priceItems);
+
+            // If not, insert default Vk
+            if (!$isPresent) {
+                $defaultPriceItems = $defaultPrice->getItems();
+                array_unshift($priceItems, $defaultPriceItems[0]);
+            }
+
+            $itemCount = count($priceItems);
+            $firstPrice = null;
+            foreach ($priceItems as $i => $priceItem) {
+                $priceSW = null;
+                $firstPriceItem = null;
+                $quantity = ($priceItem->getQuantity() > 0) ? $priceItem->getQuantity() : 1;
+                if (strlen($price->getProductId()->getEndpoint()) > 0) {
+                    list ($detailId, $productId) = IdConcatenator::unlink($price->getProductId()->getEndpoint());
+
+                    $priceSW = ShopUtil::entityManager()->getRepository(Price::class)->findOneBy(array(
+                        'articleId' => (int)$productId,
+                        'articleDetailsId' => (int)$detailId,
+                        'from' => $quantity
+                    ));
                 }
 
-                $priceItems = $price->getItems();
-
-                // Check if at least one element with quantity 1 is present
-                $isPresent = ProductPriceController::isDefaultQuantityPresent($priceItems);
-
-                // If not, insert default Vk
-                if (!$isPresent) {
-                    $defaultPriceItems = $defaultPrice->getItems();
-                    array_unshift($priceItems, $defaultPriceItems[0]);
+                if (is_null($priceSW)) {
+                    $priceSW = new \Shopware\Models\Article\Price;
                 }
 
-                $itemCount = count($priceItems);
-                $firstPrice = null;
-                foreach ($priceItems as $i => $priceItem) {
-                    $priceSW = null;
-                    $firstPriceItem = null;
-                    $quantity = ($priceItem->getQuantity() > 0) ? $priceItem->getQuantity() : 1;
-                    if (strlen($price->getProductId()->getEndpoint()) > 0) {
-                        list ($detailId, $productId) = IdConcatenator::unlink($price->getProductId()->getEndpoint());
+                $priceSW->setArticle($article)
+                    ->setCustomerGroup($customerGroupSW)
+                    ->setFrom($quantity)
+                    ->setPrice($priceItem->getNetPrice())
+                    ->setPseudoPrice($recommendedRetailPrice)
+                    ->setDetail($detail);
 
-                        $priceSW = ShopUtil::entityManager()->getRepository(Price::class)->findOneBy(array(
-                            'articleId' => (int) $productId,
-                            'articleDetailsId' => (int) $detailId,
-                            'from' => $quantity
-                        ));
-                    }
-
-                    if (is_null($priceSW)) {
-                        $priceSW = new \Shopware\Models\Article\Price;
-                    }
-
-                    $priceSW->setArticle($article)
-                        ->setCustomerGroup($customerGroupSW)
-                        ->setFrom($quantity)
-                        ->setPrice($priceItem->getNetPrice())
-                        ->setPseudoPrice($recommendedRetailPrice)
-                        ->setDetail($detail);
-
-                    if ($quantity == 1) {
-                        //$priceSW->setPseudoPrice($recommendedRetailPrice);
-                        $firstPriceItem = clone $priceItem;
-                    }
-
-                    // percent
-                    if ($i > 0 && !is_null($firstPriceItem)) {
-                        $priceSW->setPercent(number_format(abs((1 - $priceItem->getNetPrice() / $firstPriceItem->getNetPrice()) * 100), 2));
-                    }
-
-                    if ($itemCount > 0 && ($i + 1) < $itemCount && $priceItems[($i + 1)]->getQuantity() > 0) {
-                        $priceSW->setTo($priceItems[($i + 1)]->getQuantity() - 1);
-                    }
-
-                    Logger::write(sprintf(
-                        'group: %s - quantity: %s, net price: %s, (a %s/d %s)',
-                        $customerGroupSW->getKey(),
-                        $quantity,
-                        $priceItem->getNetPrice(),
-                        $article->getId(),
-                        $detail->getId()
-                    ), Logger::DEBUG, 'prices');
-
-                    ShopUtil::entityManager()->persist($priceSW);
-                    $collection[] = $priceSW;
+                if ($quantity == 1) {
+                    //$priceSW->setPseudoPrice($recommendedRetailPrice);
+                    $firstPriceItem = clone $priceItem;
                 }
+
+                // percent
+                if ($i > 0 && !is_null($firstPriceItem)) {
+                    $priceSW->setPercent(number_format(abs((1 - $priceItem->getNetPrice() / $firstPriceItem->getNetPrice()) * 100), 2));
+                }
+
+                if ($itemCount > 0 && ($i + 1) < $itemCount && $priceItems[($i + 1)]->getQuantity() > 0) {
+                    $priceSW->setTo($priceItems[($i + 1)]->getQuantity() - 1);
+                }
+
+                Logger::write(sprintf(
+                    'group: %s - quantity: %s, net price: %s, (a %s/d %s)',
+                    $customerGroupSW->getKey(),
+                    $quantity,
+                    $priceItem->getNetPrice(),
+                    $article->getId(),
+                    $detail->getId()
+                ), Logger::DEBUG, 'prices');
+
+                ShopUtil::entityManager()->persist($priceSW);
+                $collection[] = $priceSW;
+            }
             //}
         }
 

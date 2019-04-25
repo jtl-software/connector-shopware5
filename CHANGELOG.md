@@ -1,3 +1,7 @@
+2.2.1.1
+------
+- Problems with product price during push fixed
+
 2.2.1
 ------
 - CO-447 Lower case to camel case transformation on product attributes during push fixed
