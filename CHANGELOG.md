@@ -1,4 +1,4 @@
-2.2.1.1
+2.2.1.2
 ------
 - Problems with product price during push fixed
 
