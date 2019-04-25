@@ -42,14 +42,14 @@ class ProductPrice extends DataMapper
 
     /**
      * @param array \jtl\Connector\Model\ProductPrice $productPrices
-     * @param \Shopware\Models\Article\Article $productSW
-     * @param \Shopware\Models\Article\Detail $detailSW
+     * @param \Shopware\Models\Article\Article $article
+     * @param \Shopware\Models\Article\Detail $detail
      * @param float $recommendedRetailPrice
      */
     public static function buildCollection(
         array $productPrices,
-        ArticleSW &$productSW = null,
-        DetailSW &$detailSW = null,
+        ArticleSW &$article = null,
+        DetailSW &$detail = null,
         $recommendedRetailPrice = null
     )
     {
