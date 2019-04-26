@@ -23,13 +23,19 @@ class ProductPrice extends DataMapper
         return ((int)$id == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Price', $id);
     }
 
+    /**
+     * @param \jtl\Connector\Model\ProductPrice[] $prices
+     * @return array
+     */
     public function save(array $prices)
     {
+        $sortedPrices = [];
         foreach ($prices as $i => $price) {
-            $productSW = null;
-            $detailSW = null;
-            self::buildCollection([$price]);
+            $sortedPrices[$price->getProductId()->getHost()][] = $price;
+        }
 
+        foreach(array_values($sortedPrices) as $i => $productPrices) {
+            self::buildCollection($productPrices);
             if (($i % 50) === 49) {
                 ShopUtil::entityManager()->flush();
             }

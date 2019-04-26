@@ -1,3 +1,7 @@
+2.2.1.4
+------
+- Problems with group based product prices during quicksync fixed
+
 2.2.1.3
 ------
 - Problems with product price during push fixed
