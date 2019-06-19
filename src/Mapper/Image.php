@@ -340,14 +340,14 @@ class Image extends DataMapper
                 $this->deleteArticleImage($articleId, $detailId, $imageId);
                 $stmt = ShopUtil::entityManager()->getDBALQueryBuilder()
                     ->select('COUNT(clpi.media_id)')
-                    ->from('jtl_connector_link_product_image', 'clpi')
+                    ->from('s_articles_img', 'clpi')
                     ->where('clpi.media_id = :mediaId')
                     ->setParameters(['mediaId' => $mediaId])
                     ->execute();
 
                 $mediaCount = 2;
                 if ($stmt instanceof \PDOStatement) {
-                    $mediaCount = $stmt->fetchColumn();
+                    $mediaCount = (int)$stmt->fetchColumn();
                 }
 
                 $deleteMedia = ($mediaCount < 2);
