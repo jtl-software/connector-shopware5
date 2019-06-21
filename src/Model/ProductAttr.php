@@ -15,11 +15,12 @@ class ProductAttr extends ProductAttrModel
 {
     const ADDITIONAL_TEXT = 'additional_text';
     const IMAGE_CONFIGURATION_IGNORES = 'sw_image_config_ignores';
-    const IS_ACTIVE = 'isActive';
+    const IS_ACTIVE = 'active';
     const IS_MAIN = 'is_main';
     const PSEUDO_SALES = 'sw_pseudo_sales';
     const SEND_NOTIFICATION = 'sw_send_notification';
-    const SHIPPING_FREE = 'ShippingFree';
+    const SHIPPING_FREE = 'shipping_free';
+    const CUSTOM_PRODUCTS_TEMPLATE = 'custom_products_template';
 
     protected $fields = array(
         'id' => 'id',
@@ -46,10 +47,12 @@ class ProductAttr extends ProductAttrModel
             self::ADDITIONAL_TEXT,
             self::IMAGE_CONFIGURATION_IGNORES,
             self::IS_ACTIVE,
+            'isActive',
             self::IS_MAIN,
             self::PSEUDO_SALES,
             self::SEND_NOTIFICATION,
             self::SHIPPING_FREE,
+            'ShippingFree',
         ];
     }
 
