@@ -35,7 +35,14 @@ class ProductPrice extends DataMapper
         }
 
         foreach(array_values($sortedPrices) as $i => $productPrices) {
-            self::buildCollection($productPrices);
+            $collection = self::buildCollection($productPrices);
+            if(count($collection) > 0) {
+                /** @var ArticleSW $article */
+                $article = $collection[0]->getArticle();
+                $article->setChanged();
+                ShopUtil::entityManager()->persist($article);
+            }
+
             if (($i % 50) === 49) {
                 ShopUtil::entityManager()->flush();
             }
