@@ -1,3 +1,12 @@
+2.2.2
+------
+- CO-363 Save categories translations in shop (without category mappings)
+- CO-430 Set articles changed date during product price quicksync
+- CO-446 Attribute names normalised
+- CO-502 Save category attribute translations in shop
+- CO-526 Set bulk prices correctly
+- CO-514 Delete article related image data when media image is linked to more than one article
+
 2.2.1.4
 ------
 - Problems with group based product prices during quicksync fixed
