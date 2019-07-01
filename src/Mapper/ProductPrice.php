@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Model\ProductPriceItem;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
@@ -74,8 +75,13 @@ class ProductPrice extends DataMapper
         foreach ($productPrices as $productPrice) {
             $groupId = (int)$productPrice->getCustomerGroupId()->getEndpoint();
 
-            Logger::write(sprintf('prices (group id: %s): %s', $groupId, $productPrice->toJson()), Logger::DEBUG, 'prices');
+            $priceItems = $productPrice->getItems();
+            usort($priceItems, function(ProductPriceItem $a, ProductPriceItem $b) {
+                return $a->getQuantity() - $b->getQuantity();
+            });
 
+            $productPrice->setItems($priceItems);
+            Logger::write(sprintf('prices (group id: %s): %s', $groupId, $productPrice->toJson()), Logger::DEBUG, 'prices');
             if (!array_key_exists($groupId, $pricesPerGroup)) {
                 $pricesPerGroup[$groupId] = null;
             }
