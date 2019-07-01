@@ -68,7 +68,7 @@ class Product extends DataMapper
      */
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Article', $id);
+        return (intval($id) == 0) ? null : ShopUtil::entityManager()->find('Shopware\Models\Article\Article', $id);
     }
 
     /**
@@ -80,7 +80,7 @@ class Product extends DataMapper
      */
     public function findDetail($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Detail', $id);
+        return (intval($id) == 0) ? null : ShopUtil::entityManager()->find('Shopware\Models\Article\Detail', $id);
     }
 
     /**
@@ -89,14 +89,14 @@ class Product extends DataMapper
      */
     public function findDetailBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Article\Detail')->findOneBy($kv);
+        return ShopUtil::entityManager()->getRepository('Shopware\Models\Article\Detail')->findOneBy($kv);
     }
 
 
     public function findAll($limit = 100, $count = false)
     {
         if ($count) {
-            $query = $this->Manager()->createQueryBuilder()->select('detail')
+            $query = ShopUtil::entityManager()->createQueryBuilder()->select('detail')
                 ->from('jtl\Connector\Shopware\Model\Linker\Detail', 'detail')
                 ->leftJoin('detail.linker', 'linker')
                 ->where('linker.hostId IS NULL')
@@ -123,7 +123,7 @@ class Product extends DataMapper
                 $ids[] = $detail['id'];
             }
 
-            $qb = $this->Manager()->createQueryBuilder()->select(
+            $qb = ShopUtil::entityManager()->createQueryBuilder()->select(
                 'detail',
                 'article.id',
                 'unit',
@@ -188,7 +188,7 @@ class Product extends DataMapper
         */
 
         /** @var \Doctrine\ORM\Query $query */
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = ShopUtil::entityManager()->createQueryBuilder()->select(
             'detail',
             'article',
             'unit',
@@ -491,7 +491,7 @@ class Product extends DataMapper
                 }
 
                 if (!$options->contains($option)) {
-                    $this->Manager()->remove($option);
+                    ShopUtil::entityManager()->remove($option);
                 }
             }
         }
@@ -684,7 +684,7 @@ class Product extends DataMapper
                 $manufacturerSW->setMetaDescription('');
                 $manufacturerSW->setMetaKeywords('');
 
-                $this->Manager()->persist($manufacturerSW);
+                ShopUtil::entityManager()->persist($manufacturerSW);
             }
 
             $productSW->setSupplier($manufacturerSW);
@@ -704,7 +704,7 @@ class Product extends DataMapper
                 $priceGroupSW = Shopware()->Models()->getRepository('Shopware\Models\Price\Group')->find(intval($productSpecialPrice->getId()->getEndpoint()));
                 if ($priceGroupSW === null) {
                     $priceGroupSW = new \Shopware\Models\Price\Group();
-                    $this->Manager()->persist($priceGroupSW);
+                    ShopUtil::entityManager()->persist($priceGroupSW);
                 }
 
                 // SpecialPrice
@@ -737,7 +737,7 @@ class Product extends DataMapper
                     $priceDiscountSW = Shopware()->Models()->getRepository('Shopware\Models\Price\Discount')->findOneBy(array('groupId' => $specialPrice->getProductSpecialPriceId()->getEndpoint()));
                     if ($priceDiscountSW === null) {
                         $priceDiscountSW = new \Shopware\Models\Price\Discount();
-                        $this->Manager()->persist($priceDiscountSW);
+                        ShopUtil::entityManager()->persist($priceDiscountSW);
                     }
 
                     $discountValue = 100 - (($specialPrice->getPriceNet() / $price) * 100);
@@ -746,12 +746,12 @@ class Product extends DataMapper
                         ->setDiscount($discountValue)
                         ->setStart(1);
 
-                    $this->Manager()->persist($priceDiscountSW);
+                    ShopUtil::entityManager()->persist($priceDiscountSW);
 
                     $collection[] = $priceDiscountSW;
                 }
 
-                $this->Manager()->persist($priceGroupSW);
+                ShopUtil::entityManager()->persist($priceGroupSW);
 
                 $priceGroupSW->setName("Standard_{$i}")
                     ->setDiscounts($collection);
@@ -767,7 +767,7 @@ class Product extends DataMapper
         // Detail
         if ($detailSW === null) {
             $detailSW = new DetailSW();
-            //$this->Manager()->persist($detailSW);
+            //ShopUtil::entityManager()->persist($detailSW);
         }
 
         $detailSW->setAdditionalText('');
@@ -998,7 +998,6 @@ class Product extends DataMapper
         // Reset
         $used = [];
 
-
         $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
         /** @var ConfigurationStruct $sw_attribute */
         foreach ($sw_attributes as $sw_attribute) {
@@ -1048,7 +1047,7 @@ class Product extends DataMapper
             }
         }
 
-        $this->Manager()->persist($attributeSW);
+        ShopUtil::entityManager()->persist($attributeSW);
 
         $detailSW->setAttribute($attributeSW);
         $productSW->setAttribute($attributeSW);
@@ -1084,7 +1083,7 @@ class Product extends DataMapper
             if (!$confiSet) {
                 $confiSet = new \Shopware\Models\Article\Configurator\Set();
                 $confiSet->setName('Set-' . $product->getSku());
-                $this->Manager()->persist($confiSet);
+                ShopUtil::entityManager()->persist($confiSet);
             }
 
             $groupMapper = Mmc::getMapper('ConfiguratorGroup');
@@ -1116,7 +1115,7 @@ class Product extends DataMapper
                 }
 
                 $groupSW->setPosition($variation->getSort());
-                $this->Manager()->persist($groupSW);
+                ShopUtil::entityManager()->persist($groupSW);
 
                 //$groups->add($groupSW);
                 $groups[] = $groupSW;
@@ -1142,7 +1141,7 @@ class Product extends DataMapper
                     $optionSW->setPosition($variationValue->getSort());
                     $optionSW->setGroup($groupSW);
 
-                    $this->Manager()->persist($optionSW);
+                    ShopUtil::entityManager()->persist($optionSW);
 
                     //$options->add($optionSW);
                     $options[] = $optionSW;
@@ -1154,7 +1153,7 @@ class Product extends DataMapper
                 ->setGroups($groups)
                 ->setType($this->calcVariationType($types));
 
-            $this->Manager()->persist($confiSet);
+            ShopUtil::entityManager()->persist($confiSet);
 
             $productSW->setConfiguratorSet($confiSet);
         }
@@ -1644,7 +1643,7 @@ class Product extends DataMapper
                 $linkSW->setLink($mediaFile->getUrl())
                     ->setName($name);
 
-                $this->Manager()->persist($linkSW);
+                ShopUtil::entityManager()->persist($linkSW);
                 $linkCollection[] = $linkSW;
             } else {
                 $downloadSW = new DownloadSW();
@@ -1652,7 +1651,7 @@ class Product extends DataMapper
                     ->setSize(0)
                     ->setName($name);
 
-                $this->Manager()->persist($downloadSW);
+                ShopUtil::entityManager()->persist($downloadSW);
                 $downloadCollection[] = $downloadSW;
             }
         }
@@ -1745,9 +1744,9 @@ class Product extends DataMapper
                     }
 
                     /*
-                    $this->Manager()->remove($detailSW->getAttribute());
-                    $this->Manager()->remove($detailSW);
-                    $this->Manager()->flush();
+                    ShopUtil::entityManager()->remove($detailSW->getAttribute());
+                    ShopUtil::entityManager()->remove($detailSW);
+                    ShopUtil::entityManager()->flush();
                     */
 
                     /*
@@ -1768,15 +1767,15 @@ class Product extends DataMapper
                                 $attributeSW->setArticle($productSW);
                                 $attributeSW->setArticleDetail($mainDetailSW);
 
-                                $this->Manager()->persist($attributeSW);
+                                ShopUtil::entityManager()->persist($attributeSW);
                             }
 
                             $productSW->setAttribute($attributeSW);
                             $mainDetailSW->setAttribute($attributeSW);
                             $productSW->setMainDetail($mainDetailSW);
 
-                            $this->Manager()->persist($productSW);
-                            $this->Manager()->flush();
+                            ShopUtil::entityManager()->persist($productSW);
+                            ShopUtil::entityManager()->flush();
                         }
                     }
                     */
@@ -1789,7 +1788,7 @@ class Product extends DataMapper
 
                     $set = $productSW->getConfiguratorSet();
                     if ($set !== null) {
-                        $this->Manager()->remove($set);
+                        ShopUtil::entityManager()->remove($set);
                     }
 
                     Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
@@ -1804,8 +1803,8 @@ class Product extends DataMapper
                     );
                     Shopware()->Db()->delete('s_filter_articles', array('articleID = ?' => $productSW->getId()));
 
-                    $this->Manager()->remove($productSW);
-                    $this->Manager()->flush($productSW);
+                    ShopUtil::entityManager()->remove($productSW);
+                    ShopUtil::entityManager()->flush($productSW);
 
                     /*
                     Logger::write(sprintf('>>>> DELETING PARENT with id (%s, %s)',

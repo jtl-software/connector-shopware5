@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
+use jtl\Connector\Model\CategoryI18n;
 use jtl\Connector\Result\Action;
 use jtl\Connector\Core\Rpc\Error;
 use jtl\Connector\Shopware\Model\CategoryAttr;
@@ -78,6 +79,13 @@ class Category extends DataController
                     /** @var \jtl\Connector\Shopware\Model\Category $category */
                     $category = Mmc::getModel('Category');
                     $category->map(true, DataConverter::toObject($categorySW, true));
+
+                    // Attribute Translation
+                    if (isset($categorySW['translations'])) {
+                        foreach ($categorySW['translations'] as $localeName => $translation) {
+                            $category->addI18n($this->createI18nFromTranslation($translation, LanguageUtil::map($localeName)));
+                        }
+                    }
 
                     /** @var \Shopware\Models\Category\Category $categoryObj */
                     $categoryObj = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
@@ -210,6 +218,33 @@ class Category extends DataController
         }
 
         return $action;
+    }
+
+    /**
+     * @param string $data
+     * @param $langIso
+     * @return CategoryI18n
+     */
+    protected function createI18nFromTranslation(array $data, $langIso)
+    {
+        $propertyMappings = [
+            'description' => 'name',
+            //'cmsheadline' => $i18n->get,
+            'cmstext' => 'description',
+            'metatitle' => 'titleTag',
+            'metakeywords' => 'metaKeywords',
+            'metadescription' => 'metaDescription'
+        ];
+
+        $i18n = (new CategoryI18n())->setLanguageISO($langIso);
+        foreach($propertyMappings as $swProp => $jtlProp) {
+            if(isset($data[$swProp])) {
+                $setter = 'set' . ucfirst($jtlProp);
+                $i18n->{$setter}($data[$swProp]);
+            }
+        }
+
+        return $i18n;
     }
 
     protected function isChildOf(CategoryShopware $category, CategoryShopware $parent)

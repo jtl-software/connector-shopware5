@@ -6,16 +6,18 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Shopware\Model\CategoryAttr;
+use jtl\Connector\Shopware\Utilities\I18n;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
-use jtl\Connector\Model\Category as CategoryModel;
+use jtl\Connector\Model\Category as JtlCategory;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\Str;
-use Shopware\Models\Category\Category as CategorySW;
+use Shopware\Models\Category\Category as SwCategory;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class Category extends DataMapper
 {
@@ -23,12 +25,12 @@ class Category extends DataMapper
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Category\Category')->findOneBy($kv);
+        return ShopUtil::entityManager()->getRepository('Shopware\Models\Category\Category')->findOneBy($kv);
     }
 
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Category\Category', $id);
+        return (intval($id) == 0) ? null : ShopUtil::entityManager()->find('Shopware\Models\Category\Category', $id);
     }
 
     public function findByNameAndLevel($name, $level, $parentId = null)
@@ -44,7 +46,7 @@ class Category extends DataMapper
                 'SELECT c.id FROM s_categories c WHERE c.parent IS NULL', []
             );
 
-            if ((int) $id > 0) {
+            if ((int)$id > 0) {
                 $sql = ' AND c.parent = ' . intval($id);
             }
         }
@@ -56,7 +58,7 @@ class Category extends DataMapper
             $params
         );
 
-        if ($id !== null && (int) $id > 0) {
+        if ($id !== null && (int)$id > 0) {
             return $this->find($id);
         }
 
@@ -65,7 +67,7 @@ class Category extends DataMapper
 
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = ShopUtil::entityManager()->createQueryBuilder()->select(
             'category',
             'categoryLevel',
             'attribute',
@@ -89,7 +91,7 @@ class Category extends DataMapper
         //$res = $query->getResult(\Doctrine\ORM\Query::HYDRATE_ARRAY);
 
         //return $count ? count($res) : $res;
-        if($count) {
+        if ($count) {
             return ($paginator->count() - 1);
         }
 
@@ -101,7 +103,9 @@ class Category extends DataMapper
         $translationUtil = new TranslationUtil();
         for ($i = 0; $i < count($categories); $i++) {
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['id'], 's_categories_attributes', $categories[$i]['id']);
+                $translation = $translationUtil->read($shop['id'], 'category', $categories[$i]['id']);
+                $translation = array_merge($translation, $translationUtil->read($shop['id'], 's_categories_attributes', $categories[$i]['id']));
+
                 if (!empty($translation)) {
                     $translation['shopId'] = $shop['id'];
                     $categories[$i]['translations'][$shop['locale']['locale']] = $translation;
@@ -119,12 +123,12 @@ class Category extends DataMapper
 
     public function fetchCountForLevel($level)
     {
-        return (int) Shopware()->Db()->fetchOne('SELECT count(*) FROM jtl_connector_category_level WHERE level = ?', array($level));
+        return (int)Shopware()->Db()->fetchOne('SELECT count(*) FROM jtl_connector_category_level WHERE level = ?', array($level));
     }
 
-    public function delete(CategoryModel $category)
+    public function delete(JtlCategory $category)
     {
-        $result = new CategoryModel;
+        $result = new JtlCategory;
 
         /** @deprecated Will be removed in a future connector release  $mappingOld */
         $mappingOld = Application()->getConfig()->get('category_mapping', false);
@@ -140,54 +144,57 @@ class Category extends DataMapper
         return $result;
     }
 
-    public function save(CategoryModel $category)
+    public function save(JtlCategory $jtlCategory)
     {
-        $categorySW = null;
-        $result = $category;
+        $swCategory = null;
+        $result = $jtlCategory;
+        $translations = [];
 
-        if ($category->getParentCategoryId() !== null && isset(self::$parentCategoryIds[$category->getParentCategoryId()->getHost()])) {
-            $category->getParentCategoryId()->setEndpoint(self::$parentCategoryIds[$category->getParentCategoryId()->getHost()]);
+        if ($jtlCategory->getParentCategoryId() !== null && isset(self::$parentCategoryIds[$jtlCategory->getParentCategoryId()->getHost()])) {
+            $jtlCategory->getParentCategoryId()->setEndpoint(self::$parentCategoryIds[$jtlCategory->getParentCategoryId()->getHost()]);
         }
 
-        $this->prepareCategoryAssociatedData($category, $categorySW);
-        $this->prepareI18nAssociatedData($category, $categorySW);
-        $this->prepareAttributeAssociatedData($category, $categorySW);
-        $this->prepareInvisibilityAssociatedData($category, $categorySW);
+        $this->prepareCategoryAssociatedData($jtlCategory, $swCategory);
+        $this->prepareI18nAssociatedData($jtlCategory, $swCategory);
+        $this->prepareAttributeAssociatedData($jtlCategory, $swCategory, $translations);
+        $this->prepareInvisibilityAssociatedData($jtlCategory, $swCategory);
 
         // Save Category
-        $this->Manager()->persist($categorySW);
-        $this->flush();
+        ShopUtil::entityManager()->persist($swCategory);
+        ShopUtil::entityManager()->flush();
+
+        $this->saveTranslations($jtlCategory, $swCategory->getId(), $translations);
 
         $this->updateCategoryLevelTable();
 
         /** @deprecated Will be removed in a future connector release  $mappingOld */
         $mappingOld = Application()->getConfig()->get('category_mapping', false);
         if (Application()->getConfig()->get('category.mapping', $mappingOld)) {
-            $this->prepareCategoryMapping($category, $categorySW);
+            $this->prepareCategoryMapping($jtlCategory, $swCategory);
         }
 
-        if ($categorySW !== null && $categorySW->getId() > 0) {
-            self::$parentCategoryIds[$category->getId()->getHost()] = $categorySW->getId();
+        if ($swCategory !== null && $swCategory->getId() > 0) {
+            self::$parentCategoryIds[$jtlCategory->getId()->getHost()] = $swCategory->getId();
         }
 
         // Result
-        $result->setId(new Identity($categorySW->getId(), $category->getId()->getHost()));
+        $result->setId(new Identity($swCategory->getId(), $jtlCategory->getId()->getHost()));
 
-        $categoryI18n = Mmc::getModel('CategoryI18n');
-        $categoryI18n->setCategoryId($result->getId())
-            ->setLanguageISO(LanguageUtil::map(null, null, Shopware()->Shop()->getLocale()->getLocale()));
+//        $jtlCategoryI18n = Mmc::getModel('CategoryI18n');
+//        $jtlCategoryI18n->setCategoryId($result->getId())
+//            ->setLanguageISO(LanguageUtil::map(null, null, Shopware()->Shop()->getLocale()->getLocale()));
 
-        $result->addI18n($categoryI18n);
+//        $result->addI18n($jtlCategoryI18n);
 
         return $result;
     }
 
-    protected function deleteCategoryData(CategoryModel $category)
+    protected function deleteCategoryData(JtlCategory $category)
     {
         $categoryId = (strlen($category->getId()->getEndpoint()) > 0) ? (int)$category->getId()->getEndpoint() : null;
 
         if ($categoryId !== null && $categoryId > 0) {
-            $categorySW = $this->find((int) $categoryId);
+            $categorySW = $this->find((int)$categoryId);
 
             if ($categorySW !== null && Shopware()->Shop() !== null && Shopware()->Shop()->getCategory() !== null) {
                 // if category is a main subshop root category
@@ -195,21 +202,21 @@ class Category extends DataMapper
                     Shopware()->Db()->query('UPDATE s_core_shops SET category_id = NULL WHERE id = ?', array(Shopware()->Shop()->getId()));
                 }
 
-                $this->Manager()->remove($categorySW);
-                $this->Manager()->flush($categorySW);
+                ShopUtil::entityManager()->remove($categorySW);
+                ShopUtil::entityManager()->flush($categorySW);
             }
         }
     }
 
-    protected function deleteCategoryMappingData(CategoryModel $category)
+    protected function deleteCategoryMappingData(JtlCategory $category)
     {
         foreach (CategoryMappingUtil::findAllCategoriesByMappingParent($category->getId()->getEndpoint()) as $categorySW) {
-            $this->Manager()->remove($categorySW);
-            $this->Manager()->flush($categorySW);
+            ShopUtil::entityManager()->remove($categorySW);
+            ShopUtil::entityManager()->flush($categorySW);
         }
     }
 
-    protected function prepareCategoryAssociatedData(CategoryModel $category, CategorySW &$categorySW = null)
+    protected function prepareCategoryAssociatedData(JtlCategory $category, SwCategory &$categorySW = null)
     {
         $categoryId = (strlen($category->getId()->getEndpoint()) > 0) ? (int)$category->getId()->getEndpoint() : null;
         $parentId = (strlen($category->getParentCategoryId()->getEndpoint()) > 0) ? $category->getParentCategoryId()->getEndpoint() : null;
@@ -220,7 +227,7 @@ class Category extends DataMapper
                 $parentId = $categorySW->getParent()->getId();
             }
         }
-        
+
         // Try via name
         if (is_null($categorySW)) {
             $name = null;
@@ -235,14 +242,14 @@ class Category extends DataMapper
                 $categorySW = $this->findByNameAndLevel($name, ($category->getLevel() + 1), $parentId);
             }
         }
-    
+
         if (is_null($categorySW)) {
-            $categorySW = new CategorySW;
+            $categorySW = new SwCategory;
         }
 
         $parentSW = null;
         if (!is_null($parentId)) {
-            $parentSW = $this->find((int) $parentId);
+            $parentSW = $this->find((int)$parentId);
         } else {
             $parentSW = $this->findOneBy(array('parent' => null));
         }
@@ -255,7 +262,7 @@ class Category extends DataMapper
         $categorySW->setPosition($category->getSort());
     }
 
-    protected function prepareI18nAssociatedData(CategoryModel $category, CategorySW &$categorySW)
+    protected function prepareI18nAssociatedData(JtlCategory $category, SwCategory &$categorySW)
     {
         // I18n
         $exists = false;
@@ -269,8 +276,8 @@ class Category extends DataMapper
                 $categorySW->setMetaTitle($i18n->getTitleTag());
                 $categorySW->setCmsText($i18n->getDescription());
 
-                $this->Manager()->persist($categorySW);
-                $this->Manager()->flush();
+                ShopUtil::entityManager()->persist($categorySW);
+                ShopUtil::entityManager()->flush();
             }
         }
 
@@ -278,50 +285,64 @@ class Category extends DataMapper
             throw new \Exception(sprintf('Main Shop locale (%s) does not exists in category languages', Shopware()->Shop()->getLocale()->getLocale()));
         }
     }
-    
-    protected function prepareAttributeAssociatedData(CategoryModel $category, CategorySW &$categorySW, $iso = null)
+
+    /**
+     * @param JtlCategory $jtlCategory
+     * @param SwCategory $swCategory
+     * @param string[] $translations
+     * @param string|null $langIso
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    protected function prepareAttributeAssociatedData(JtlCategory $jtlCategory, SwCategory &$swCategory, array &$translations, $langIso = null)
     {
-        if (is_null($iso)) {
-            $iso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+        if (is_null($langIso)) {
+            $langIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
         }
-        
+
         // Attribute
-        $attributeSW = $categorySW->getAttribute();
-        if ($attributeSW === null) {
-            $attributeSW = new \Shopware\Models\Attribute\Category();
-            $attributeSW->setCategory($categorySW);
-        
-            $this->Manager()->persist($attributeSW);
+        $swAttribute = $swCategory->getAttribute();
+        if ($swAttribute === null) {
+            $swAttribute = new \Shopware\Models\Attribute\Category();
+            $swAttribute->setCategory($swCategory);
+
+            ShopUtil::entityManager()->persist($swAttribute);
         }
-        
+
         $attributes = [];
         $mappings = [];
-        foreach ($category->getAttributes() as $attribute) {
-            if ($attribute->getIsCustomProperty()) {
+        foreach ($jtlCategory->getAttributes() as $jtlAttribute) {
+            if ($jtlAttribute->getIsCustomProperty()) {
                 continue;
             }
-            
-            foreach ($attribute->getI18ns() as $attributeI18n) {
-                if ($attributeI18n->getLanguageISO() === $iso) {
-    
+
+            foreach ($jtlAttribute->getI18ns() as $attributeI18n) {
+                if ($attributeI18n->getLanguageISO() === $langIso) {
+
                     // Active fix
                     $allowedActiveValues = array('0', '1', 0, 1, false, true);
-                    if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::IS_ACTIVE)
+                    if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::IS_ACTIVE, 'isactive'])
                         && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                        $categorySW->setActive((bool) $attributeI18n->getValue());
-                        
+                        $swCategory->setActive((bool)$attributeI18n->getValue());
+
                         continue;
                     }
-    
+
                     // Cms Headline
-                    if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::CMS_HEADLINE)) {
-                        $categorySW->setCmsHeadline($attributeI18n->getValue());
-    
+                    if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::CMS_HEADLINE, 'cmsheadline'])) {
+                        $swCategory->setCmsHeadline($attributeI18n->getValue());
+
+                        foreach ($jtlAttribute->getI18ns() as $i18n) {
+                            if ($i18n->getLanguageISO() === $langIso) {
+                                continue;
+                            }
+                            $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
+                        }
+
                         continue;
                     }
-                    
-                    $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
-                    $attributes[$attributeI18n->getName()] = $attributeI18n->getValue();
+
+                    $mappings[$attributeI18n->getName()] = $jtlAttribute->getId()->getHost();
+                    $attributes[$attributeI18n->getName()] = $jtlAttribute;
                 }
             }
         }
@@ -332,118 +353,54 @@ class Category extends DataMapper
 
         // Reset
         $used = [];
-        $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_categories_attributes');
-        foreach ($sw_attributes as $sw_attribute) {
-            if (!$sw_attribute->isIdentifier()) {
-                $setter = sprintf('set%s', ucfirst(Str::camel($sw_attribute->getColumnName())));
-                if (isset($attributes[$sw_attribute->getColumnName()]) && method_exists($attributeSW, $setter)) {
-                    $attributeSW->{$setter}($attributes[$sw_attribute->getColumnName()]);
-                    $used[] = $sw_attribute->getColumnName();
-                    unset($attributes[$sw_attribute->getColumnName()]);
-                } else if ($nullUndefinedAttributes && method_exists($attributeSW, $setter)) {
-                    $attributeSW->{$setter}(null);
+        $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_categories_attributes');
+        foreach ($swAttributesList as $tSwAttribute) {
+            if (!$tSwAttribute->isIdentifier()) {
+                $setter = sprintf('set%s', ucfirst(Str::camel($tSwAttribute->getColumnName())));
+                if (isset($attributes[$tSwAttribute->getColumnName()]) && method_exists($swAttribute, $setter)) {
+                    //$swAttribute->{$setter}($attributes[$tSwAttribute->getColumnName()]);
+                    $jtlAttrI18n = I18n::find(ShopUtil::locale()->getLocale(), $attributes[$tSwAttribute->getColumnName()]->getI18ns());
+                    $swAttribute->{$setter}($jtlAttrI18n->getValue());
+                    $used[] = $tSwAttribute->getColumnName();
+                    $translations = self::createAttributeTranslations($attributes[$tSwAttribute->getColumnName()], $tSwAttribute->getColumnName(), $translations, [$langIso]);
+                    unset($attributes[$tSwAttribute->getColumnName()]);
+                } elseif ($nullUndefinedAttributes && method_exists($swAttribute, $setter)) {
+                    $swAttribute->{$setter}(null);
                 }
             }
         }
-        
+
         for ($i = 4; $i <= 20; $i++) {
             $attr = "attr{$i}";
             if (in_array($attr, $used) || $i == 17) {
                 continue;
             }
-            
+
             $setter = "setAttribute{$i}";
-            if (!method_exists($attributeSW, $setter)) {
+            if (!method_exists($swAttribute, $setter)) {
                 continue;
             }
-            
+
             $index = null;
-            foreach ($attributes as $key => $value) {
-                $attributeSW->{$setter}($value);
+            foreach ($attributes as $key => $jtlAttribute) {
+                $jtlAttrI18n = I18n::find(ShopUtil::locale()->getLocale(), $jtlAttribute->getI18ns());
+                $swAttribute->{$setter}($jtlAttrI18n->getValue());
+                $translations = self::createAttributeTranslations($jtlAttribute, 'attribute' . $i, $translations, [$langIso]);
                 unset($attributes[$key]);
                 break;
             }
-            
+
             if (count($attributes) == 0) {
                 break;
             }
         }
-        
-        $this->Manager()->persist($attributeSW);
-    
-        $categorySW->setAttribute($attributeSW);
+
+        ShopUtil::entityManager()->persist($swAttribute);
+
+        $swCategory->setAttribute($swAttribute);
     }
 
-    /*
-    protected function prepareAttributeAssociatedData(CategoryModel $category, CategorySW &$categorySW)
-    {
-        $attributeSW = $categorySW->getAttribute();
-        if ($attributeSW === null) {
-            $attributeSW = new \Shopware\Models\Attribute\Category();
-            $attributeSW->setCategory($categorySW);
-
-            $this->Manager()->persist($attributeSW);
-        }
-
-        $i = 0;
-        $attrMappings = [];
-        foreach ($category->getAttributes() as $attribute) {
-            if (!$attribute->getIsCustomProperty()) {
-                $i++;
-                foreach ($attribute->getI18ns() as $attributeI18n) {
-
-                    // Active fix
-                    $allowedActiveValues = array('0', '1', 0, 1, false, true);
-                    if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::IS_ACTIVE)
-                        && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                        $categorySW->setActive((bool) $attributeI18n->getValue());
-                    }
-
-                    if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                        $setter = "setAttribute{$i}";
-
-                        if (preg_match('/attr(20|1[0-9]{1}|[1-9]{1})/', $attributeI18n->getName(), $matches)) {
-                            if (strlen($matches[0]) == strlen($attributeI18n->getName())) {
-                                $number = str_replace('attr', '', $attributeI18n->getName());
-                                $s_setter = "setAttribute{$number}";
-                                $s_getter = "getAttribute{$number}";
-                                if (method_exists($attributeSW, $s_setter)) {
-                                    $oldValue = $attributeSW->{$s_getter}();
-                                    $attributeSW->{$s_setter}($attributeI18n->getValue());
-
-                                    if ($oldValue !== null && $number != $i && method_exists($attributeSW, $setter)) {
-                                        $attributeSW->{$setter}($oldValue);
-                                        $hostId = $attrMappings[$number];
-                                        $attrMappings[$i] = $hostId;
-                                    } elseif ($number < $i && $i > 1) {
-                                        $i--;
-                                    }
-
-                                    $attrMappings[$number] = $attribute->getId()->getHost();
-
-                                    continue;
-                                }
-                            }
-                        }
-
-                        if (method_exists($attributeSW, $setter)) {
-                            $attributeSW->{$setter}($attributeI18n->getValue());
-                        }
-
-                        // Cms Headline
-                        if (strtolower($attributeI18n->getName()) === strtolower(CategoryAttr::CMS_HEADLINE)) {
-                            $categorySW->setCmsHeadline($attributeI18n->getValue());
-                        }
-                    }
-                }
-            }
-        }
-
-        $categorySW->setAttribute($attributeSW);
-    }
-    */
-
-    protected function prepareInvisibilityAssociatedData(CategoryModel $category, CategorySW &$categorySW)
+    protected function prepareInvisibilityAssociatedData(JtlCategory $category, SwCategory &$categorySW)
     {
         // Invisibility
         $customerGroupsSW = new \Doctrine\Common\Collections\ArrayCollection;
@@ -479,7 +436,7 @@ class Category extends DataMapper
 
         if (count($categories) > 0) {
             foreach ($categories as $category) {
-                $parentIds[] = (int) $category['id'];
+                $parentIds[] = (int)$category['id'];
 
                 $sql = '
                     INSERT IGNORE INTO jtl_connector_category_level
@@ -489,55 +446,133 @@ class Category extends DataMapper
                     VALUES (?,?)
                 ';
 
-                Shopware()->Db()->query($sql, array((int) $category['id'], $level));
+                Shopware()->Db()->query($sql, array((int)$category['id'], $level));
             }
 
             $this->updateCategoryLevelTable($parentIds, $level + 1);
         }
     }
 
-    public function prepareCategoryMapping(CategoryModel $category, CategorySW $categorySW)
+    public function prepareCategoryMapping(JtlCategory $jtlCategory, SwCategory $swCategory)
     {
-        foreach ($category->getI18ns() as $i18n) {
+        foreach ($jtlCategory->getI18ns() as $i18n) {
             if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) !== Shopware()->Shop()->getLocale()->getLocale()) {
-                $categoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
-                
+                $categoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($swCategory->getId(), $i18n->getLanguageISO());
+
                 if (is_null($categoryMappingSW)) {
-                    $categoryMappingSW = new CategorySW();
+                    $categoryMappingSW = new SwCategory();
                 }
-    
+
                 $parentCategorySW = null;
-                $parentCategoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getParent()->getId(), $i18n->getLanguageISO());
+                $parentCategoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($swCategory->getParent()->getId(), $i18n->getLanguageISO());
                 if (!is_null($parentCategoryMappingSW)) {
                     $parentCategorySW = $parentCategoryMappingSW;
                 } else {
                     $rootCategorySW = $this->findOneBy(array('parent' => null));
-                    $parentCategorySW = $this->find($categorySW->getParent()->getId());
+                    $parentCategorySW = $this->find($swCategory->getParent()->getId());
                     if (is_null($parentCategorySW) || $rootCategorySW->getId() != $parentCategorySW->getId()) {
                         continue;
                     }
                 }
 
                 $categoryMappingSW->setParent($parentCategorySW);
-                $categoryMappingSW->setPosition($category->getSort());
+                $categoryMappingSW->setPosition($jtlCategory->getSort());
 
                 $categoryMappingSW->setName($i18n->getName());
-                $categoryMappingSW->setPosition($category->getSort());
+                $categoryMappingSW->setPosition($jtlCategory->getSort());
                 $categoryMappingSW->setMetaDescription($i18n->getMetaDescription());
                 $categoryMappingSW->setMetaKeywords($i18n->getMetaKeywords());
                 $categoryMappingSW->setMetaTitle($i18n->getTitleTag());
                 //$categoryMappingSW->setCmsHeadline($i18n->getMetaKeywords());
                 $categoryMappingSW->setCmsText($i18n->getDescription());
 
-                $this->prepareAttributeAssociatedData($category, $categoryMappingSW, $i18n->getLanguageISO());
-                
-                $categoryMappingSW->setCustomerGroups($categorySW->getCustomerGroups());
+                $translations = [];
+                $this->prepareAttributeAssociatedData($jtlCategory, $categoryMappingSW, $translations, $i18n->getLanguageISO());
 
-                $this->Manager()->persist($categoryMappingSW);
-                $this->Manager()->flush($categoryMappingSW);
+                $categoryMappingSW->setCustomerGroups($swCategory->getCustomerGroups());
 
-                CategoryMappingUtil::saveCategoryMapping($categorySW->getId(), $i18n->getLanguageISO(), $categoryMappingSW->getId());
+                ShopUtil::entityManager()->persist($categoryMappingSW);
+                ShopUtil::entityManager()->flush($categoryMappingSW);
+
+                CategoryMappingUtil::saveCategoryMapping($swCategory->getId(), $i18n->getLanguageISO(), $categoryMappingSW->getId());
             }
         }
+    }
+
+    /**
+     * @param JtlCategory $jtlCategory
+     * @param int $swCategoryId
+     * @param string[] $translations
+     * @throws \Zend_Db_Adapter_Exception
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    protected function saveTranslations(JtlCategory $jtlCategory, int $swCategoryId, array $translations)
+    {
+        $transUtil = new \Shopware_Components_Translation();
+
+        foreach ($jtlCategory->getI18ns() as $i18n) {
+            $langIso2B = $i18n->getLanguageISO();
+            $langIso1 = LanguageUtil::convert(null, $langIso2B);
+            if ($langIso2B === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
+                continue;
+            }
+
+            /** @var \Shopware\Models\Shop\Shop[] $shops */
+            $shops = ShopUtil::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findAll();
+            foreach ($shops as $shop) {
+                if (strpos($shop->getLocale()->getLocale(), $langIso1) === false) {
+                    continue;
+                }
+
+                $categoryTranslation = array_filter([
+                    'description' => $i18n->getName(),
+                    //'cmsheadline' => $i18n->get,
+                    'cmstext' => $i18n->getDescription(),
+                    'metatitle' => $i18n->getTitleTag(),
+                    'metakeywords' => $i18n->getMetaKeywords(),
+                    'metadescription' => $i18n->getMetaDescription()
+                ], function ($value) {
+                    return !empty($value);
+                });
+
+                if (isset($translations[$langIso2B]['category'])) {
+                    $categoryTranslation = array_merge($categoryTranslation, $translations[$langIso2B]['category']);
+                }
+
+                $transUtil->write($shop->getId(), 'category', $swCategoryId, $categoryTranslation);
+                if (isset($translations[$langIso2B]['attributes'])) {
+                    $attributeTranslations = $translations[$langIso2B]['attributes'];
+                    /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
+                    $nullUndefinedAttributesOld = (bool)Application()->getConfig()->get('null_undefined_category_attributes_during_push', true);
+                    $nullUndefinedAttributes = (bool)Application()->getConfig()->get('category.push.null_undefined_attributes', $nullUndefinedAttributesOld);
+
+                    $merge = !$nullUndefinedAttributes;
+                    if ($merge) {
+                        $attributeTranslations = array_merge($transUtil->read($shop->getId(), 's_categories_attributes', $swCategoryId), $attributeTranslations);
+                    }
+                    $transUtil->write($shop->getId(), 's_categories_attributes', $swCategoryId, $attributeTranslations);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param CategoryAttr $jtlAttribute
+     * @param $swAttributeName
+     * @param array $data
+     * @param array $ignoreLanguages
+     * @return array
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    public static function createAttributeTranslations(\jtl\Connector\Model\CategoryAttr $jtlAttribute, $swAttributeName, array $data = [], array $ignoreLanguages = [])
+    {
+        foreach ($jtlAttribute->getI18ns() as $i18n) {
+            if (in_array($i18n->getLanguageISO(), $ignoreLanguages)) {
+                continue;
+            }
+            $data[$i18n->getLanguageISO()]['attributes']['__attribute_' . $swAttributeName] = $i18n->getValue();
+        }
+
+        return $data;
     }
 }
