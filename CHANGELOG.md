@@ -6,6 +6,7 @@
 - CO-502 Save category attribute translations in shop
 - CO-526 Set bulk prices correctly
 - CO-514 Delete article related image data when media image is linked to more than one article
+- Add custom products plugin template by using "custom_products_template" attribute (internal template name)
 
 2.2.1.4
 ------
