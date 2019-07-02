@@ -849,7 +849,7 @@ class Product extends DataMapper
                     }
 
                     // Notification
-                    if ($lcAttributeName === strtolower(ProductAttr::SEND_NOTIFICATION)) {
+                    if (in_array($lcAttributeName, [ProductAttr::SEND_NOTIFICATION, 'sw_send_notification'])) {
                         $notification = (strtolower($attributeValue) === 'false'
                             || strtolower($attributeValue) === '0') ? 0 : 1;
 
@@ -869,7 +869,7 @@ class Product extends DataMapper
                     }
 
                     // Pseudo sales
-                    if ($lcAttributeName === strtolower(ProductAttr::PSEUDO_SALES)) {
+                    if (in_array($lcAttributeName, [ProductAttr::PSEUDO_SALES, 'sw_pseudo_sales'])) {
                         $article->setPseudoSales((int)$attributeValue);
 
                         continue;
@@ -889,7 +889,7 @@ class Product extends DataMapper
                         continue;
                     }
 
-                    if ($lcAttributeName === strtolower(ProductAttr::IS_MAIN) && $isChild && (bool)$attributeValue === true) {
+                    if (in_array($lcAttributeName, [ProductAttr::IS_MAIN, 'is_main']) && $isChild && (bool)$attributeValue === true) {
                         /** @var DetailSW $detail */
                         ShopUtil::entityManager()->refresh($article);
                         $details = $article->getDetails();

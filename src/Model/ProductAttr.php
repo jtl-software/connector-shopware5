@@ -16,9 +16,9 @@ class ProductAttr extends ProductAttrModel
     const ADDITIONAL_TEXT = 'additional_text';
     const IMAGE_CONFIGURATION_IGNORES = 'sw_image_config_ignores';
     const IS_ACTIVE = 'active';
-    const IS_MAIN = 'is_main';
-    const PSEUDO_SALES = 'sw_pseudo_sales';
-    const SEND_NOTIFICATION = 'sw_send_notification';
+    const IS_MAIN = 'main';
+    const PSEUDO_SALES = 'pseudo_sales';
+    const SEND_NOTIFICATION = 'send_notification';
     const SHIPPING_FREE = 'shipping_free';
     const CUSTOM_PRODUCTS_TEMPLATE = 'custom_products_template';
 
@@ -47,12 +47,16 @@ class ProductAttr extends ProductAttrModel
             self::ADDITIONAL_TEXT,
             self::IMAGE_CONFIGURATION_IGNORES,
             self::IS_ACTIVE,
-            'isActive',
+            'isactive',
             self::IS_MAIN,
+            'is_main',
             self::PSEUDO_SALES,
+            'sw_pseudo_sales',
             self::SEND_NOTIFICATION,
+            'sw_send_notification',
             self::SHIPPING_FREE,
-            'ShippingFree',
+            'shippingfree',
+            self::CUSTOM_PRODUCTS_TEMPLATE,
         ];
     }
 
@@ -62,6 +66,6 @@ class ProductAttr extends ProductAttrModel
      */
     public static function isSpecialAttribute($attributeName)
     {
-        return in_array($attributeName, self::getSpecialAttributes());
+        return in_array(strtolower($attributeName), self::getSpecialAttributes());
     }
 }

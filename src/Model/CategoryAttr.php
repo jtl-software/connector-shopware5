@@ -32,4 +32,26 @@ class CategoryAttr extends CategoryAttrModel
     {
         return DataModel::map($toWawi, $obj, $this);
     }
+
+    /**
+     * @return string[]
+     */
+    public static function getSpecialAttributes()
+    {
+        return [
+            self::IS_ACTIVE,
+            'isactive',
+            self::CMS_HEADLINE,
+            'cmsheadline',
+        ];
+    }
+
+    /**
+     * @param $attributeName
+     * @return boolean
+     */
+    public static function isSpecialAttribute($attributeName)
+    {
+        return in_array(strtolower($attributeName), self::getSpecialAttributes());
+    }
 }
