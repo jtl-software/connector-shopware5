@@ -1,5 +1,6 @@
 <?php
 use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use jtl\Connector\Core\System\Check as CheckUtil;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Core\Config\Config;
@@ -8,6 +9,8 @@ use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
+use Shopware\Models\Shop\Shop;
+use Shopware\Models\Category\Category;
 use Symfony\Component\Yaml\Yaml;
 
 define('CONNECTOR_DIR', __DIR__);
@@ -134,7 +137,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         );
 
         /** @var \Shopware\Models\Shop\Shop $shop */
-        $shop = \jtl\Connector\Shopware\Utilities\Shop::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findOneBy(['default' => 1, 'active' => 1]);
+        $shop = ShopUtil::entityManager()->getRepository(Shop::class)->findOneBy(['default' => 1, 'active' => 1]);
 
         $url = 'Hauptshop nicht gefunden';
         if (!is_null($shop)) {
@@ -152,9 +155,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         );
 
         $this->createProductChecksumTable();
-        $this->createCategoryLevelTable();
         $this->createMappingTables();
-        $this->fillCategoryLevelTable();
         $this->fillCategoryTable();
         $this->fillPaymentTable();
         $this->fillCrossSellingGroupTable();
@@ -295,6 +296,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.1.3':
             case '2.2.1.4':
             case '2.2.2':
+                Shopware()->Db()->query("DROP TABLE IF EXISTS `jtl_connector_category_level`");
                 break;
             default:
                 return false;
@@ -329,7 +331,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     private function dropMappingTable()
     {
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_product_checksum`');
-        Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_category_level`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_category`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_detail`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_customer`');
@@ -512,54 +513,28 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Shopware()->Models()->flush();
     }
 
-    private function fillCategoryLevelTable(array $parentIds = null, $level = 0)
-    {
-        $ids = !is_null($parentIds) ? implode(', ', $parentIds) : '';
-        Logger::write(sprintf('fill cross selling group table for level (%s) and ids (%s)', $level, $ids), Logger::INFO, 'install');
-
-        $where = 'WHERE parent IS NULL';
-        if ($parentIds === null) {
-            $parentIds = array();
-            Shopware()->Db()->query('TRUNCATE TABLE jtl_connector_category_level');
-        } else {
-            $where = 'WHERE parent IN (' . implode(',', $parentIds) . ')';
-            $parentIds = array();
-        }
-
-        $categories = Shopware()->Db()->fetchAssoc('SELECT id FROM s_categories ' . $where);
-
-        if (count($categories) > 0) {
-            foreach ($categories as $category) {
-                $parentIds[] = (int) $category['id'];
-
-                $sql = '
-                    INSERT IGNORE INTO jtl_connector_category_level
-                    (
-                        category_id, level
-                    )
-                    VALUES (?,?)
-                ';
-
-                Shopware()->Db()->query($sql, array((int) $category['id'], $level));
-            }
-
-            $this->fillCategoryLevelTable($parentIds, $level + 1);
-        }
-    }
-
     private function fillCategoryTable()
     {
         Logger::write('fill category table...', Logger::INFO, 'install');
 
         // Check Mapping activation
-        /** @var \jtl\Connector\Shopware\Mapper\Category $categoryMapper */
-        $categoryMapper = Mmc::getMapper('Category');
         $shopMapper = Mmc::getMapper('Shop');
-        $categoryCount = $categoryMapper->fetchCountForLevel(2);
-        
-        if ($categoryCount > 0 || $shopMapper->duplicateLocalizationsExist()) {
-            $this->config->save('category.mapping', false);
 
+        /** @var Category $rootCategory */
+        $rootCategory = ShopUtil::entityManager()->getRepository(Category::class)->findOneBy(['parentId' => null]);
+        $l2cExists = false;
+        if($rootCategory instanceof Category) {
+            /** @var Category $cat */
+            foreach ($rootCategory->getChildren()->toArray() as $cat) {
+                if (!$cat->isLeaf()) {
+                    $l2cExists = true;
+                    break;
+                }
+            }
+        }
+        
+        if ($l2cExists || $shopMapper->duplicateLocalizationsExist()) {
+            $this->config->save('category.mapping', false);
             return;
         } else {
             $this->config->save('category.mapping', true);
@@ -597,7 +572,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 ';
 
                 Shopware()->Db()->query($sql, array($parentCategoryId, LanguageUtil::map($shopCategory['locale']), $categoryId));
-                Shopware()->Db()->delete('jtl_connector_category_level', array('category_id = ?' => $categoryId));
             }
         }
     }
@@ -743,23 +717,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ADD CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_product_checksum`
             ADD CONSTRAINT `jtl_connector_product_checksum2` FOREIGN KEY (`detail_id`) REFERENCES `s_articles_details` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
-        ';
-
-        Shopware()->Db()->query($sql);
-    }
-
-    private function createCategoryLevelTable()
-    {
-        Logger::write('Create category level table...', Logger::INFO, 'install');
-
-        $sql = '
-            CREATE TABLE IF NOT EXISTS `jtl_connector_category_level` (
-              `category_id` int(11) unsigned NOT NULL,
-              `level` int(10) unsigned NOT NULL,
-              PRIMARY KEY (`category_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-            ALTER TABLE `jtl_connector_category_level`
-            ADD CONSTRAINT `jtl_connector_category_level` FOREIGN KEY (`category_id`) REFERENCES `s_categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
         ';
 
         Shopware()->Db()->query($sql);

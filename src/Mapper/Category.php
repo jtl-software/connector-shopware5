@@ -121,11 +121,6 @@ class Category extends DataMapper
         return $this->findAll($limit, true);
     }
 
-    public function fetchCountForLevel($level)
-    {
-        return (int)Shopware()->Db()->fetchOne('SELECT count(*) FROM jtl_connector_category_level WHERE level = ?', array($level));
-    }
-
     public function delete(JtlCategory $category)
     {
         $result = new JtlCategory;
@@ -165,8 +160,6 @@ class Category extends DataMapper
 
         $this->saveTranslations($jtlCategory, $swCategory->getId(), $translations);
 
-        $this->updateCategoryLevelTable();
-
         /** @deprecated Will be removed in a future connector release  $mappingOld */
         $mappingOld = Application()->getConfig()->get('category_mapping', false);
         if (Application()->getConfig()->get('category.mapping', $mappingOld)) {
@@ -179,12 +172,6 @@ class Category extends DataMapper
 
         // Result
         $result->setId(new Identity($swCategory->getId(), $jtlCategory->getId()->getHost()));
-
-//        $jtlCategoryI18n = Mmc::getModel('CategoryI18n');
-//        $jtlCategoryI18n->setCategoryId($result->getId())
-//            ->setLanguageISO(LanguageUtil::map(null, null, Shopware()->Shop()->getLocale()->getLocale()));
-
-//        $result->addI18n($jtlCategoryI18n);
 
         return $result;
     }
@@ -413,44 +400,6 @@ class Category extends DataMapper
         }
 
         $categorySW->setCustomerGroups($customerGroupsSW);
-    }
-
-    public function updateCategoryLevelTable(array $parentIds = null, $level = 0)
-    {
-        $where = 'WHERE s.parent IS NULL';
-        if ($parentIds === null) {
-            $parentIds = array();
-            Shopware()->Db()->query('TRUNCATE TABLE jtl_connector_category_level');
-        } else {
-            $where = 'WHERE s.parent IN (' . implode(',', $parentIds) . ')';
-            $parentIds = array();
-        }
-
-        $categories = Shopware()->Db()->fetchAssoc(
-            "SELECT s.id
-             FROM s_categories s
-             LEFT JOIN jtl_connector_category m ON m.category_id = s.id
-             {$where}
-                AND m.category_id IS NULL"
-        );
-
-        if (count($categories) > 0) {
-            foreach ($categories as $category) {
-                $parentIds[] = (int)$category['id'];
-
-                $sql = '
-                    INSERT IGNORE INTO jtl_connector_category_level
-                    (
-                        category_id, level
-                    )
-                    VALUES (?,?)
-                ';
-
-                Shopware()->Db()->query($sql, array((int)$category['id'], $level));
-            }
-
-            $this->updateCategoryLevelTable($parentIds, $level + 1);
-        }
     }
 
     public function prepareCategoryMapping(JtlCategory $jtlCategory, SwCategory $swCategory)
