@@ -144,10 +144,10 @@ class Product extends DataController
                 $productI18n = Mmc::getModel('ProductI18n');
                 $productI18n->setLanguageISO(LanguageUtil::map($localeName))
                     ->setProductId($product->getId())
-                    ->setName($translation['name'])
-                    ->setDescription($translation['descriptionLong']);
+                    ->setName(isset($translation['name']) ? $translation['name'] : '')
+                    ->setDescription(isset($translation['descriptionLong']) ? $translation['descriptionLong'] : '');
 
-                $productI18n->setUnitName($translation['packUnit']);
+                $productI18n->setUnitName(isset($translation['packUnit']) ? $translation['packUnit'] : '');
 
                 $product->addI18n($productI18n);
             }

@@ -911,7 +911,6 @@ class Product extends DataMapper
                     if (!$isChild && $lcAttributeName === ProductAttr::CUSTOM_PRODUCTS_TEMPLATE) {
                         $pluginName = "SwagCustomProducts";
                         /** @var Plugin $plugin */
-                        //$plugin = $pluginManager->getPluginByName($pluginName);
                         $plugin = ShopUtil::entityManager()->getRepository(Plugin::class)->findOneByName($pluginName);
                         if ($plugin instanceof Plugin && $plugin->getActive()) {
                             $result = ShopUtil::entityManager()->getConnection()->createQueryBuilder()
