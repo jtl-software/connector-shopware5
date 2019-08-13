@@ -26,6 +26,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->runAutoload();
 
         parent::__construct($name, $info);
+
+        /** @var Enlight_Event_EventManager $eventManager */
+        $eventManager = Shopware()->Container()->get('events');
+        $eventManager->addSubscriber(new \jtl\Connector\Shopware\Subscriber\Translation());
     }
     
     public function getCapabilities()
@@ -294,6 +298,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.1.2':
             case '2.2.1.3':
             case '2.2.1.4':
+            case '2.2.2':
                 break;
             default:
                 return false;
@@ -373,7 +378,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         return dirname(__FILE__) . '/Connector.php';
     }
-    
+
     private function runAutoload()
     {
         // Tmp directory fallback

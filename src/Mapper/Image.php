@@ -31,7 +31,6 @@ use Shopware\Models\Article\Image as ArticleImage;
 use Shopware\Models\Article\Configurator\Option;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\IdConcatenator;
-use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
@@ -387,8 +386,7 @@ class Image extends DataMapper
 
         ShopUtil::entityManager()->flush();
         if ($image->getRelationType() === ImageRelationType::TYPE_PRODUCT) {
-            $translationUtil = new TranslationUtil();
-            $translationUtil->delete('articleimage', $imageId);
+            ShopUtil::translationService()->deleteAll('articleimage', $imageId);
         }
     }
 
@@ -396,9 +394,7 @@ class Image extends DataMapper
      * @param integer $articleId
      * @param integer $detailId
      * @param integer $imageId
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws \Exception
      */
     protected function deleteArticleImage($articleId, $detailId, $imageId)
     {
@@ -1000,8 +996,8 @@ class Image extends DataMapper
      */
     private function saveAltText(JtlImage $jtlImage, ArticleImage $swImage)
     {
-        $translationUtil = new TranslationUtil();
-        $translationUtil->delete('articleimage', $swImage->getId());
+        $translationService = ShopUtil::translationService();
+        $translationService->deleteAll('articleimage', $swImage->getId());
 
         /** @var \jtl\Connector\Shopware\Mapper\Shop $shopMapper */
         $shopMapper = Mmc::getMapper('Shop');
@@ -1017,7 +1013,7 @@ class Image extends DataMapper
 
                 if ($shops !== null && is_array($shops) && count($shops) > 0) {
                     foreach ($shops as $shop) {
-                        $translationUtil->write(
+                        $translationService->write(
                             $shop->getId(),
                             'articleimage',
                             $swImage->getId(),

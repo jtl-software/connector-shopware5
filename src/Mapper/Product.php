@@ -13,7 +13,6 @@ use jtl\Connector\Model\Product as JtlProduct;
 use jtl\Connector\Model\ProductChecksum;
 use jtl\Connector\Shopware\Utilities\VariationType;
 use jtl\Connector\Core\Exception\DatabaseException;
-use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
@@ -162,12 +161,12 @@ class Product extends DataMapper
         $shopMapper = Mmc::getMapper('Shop');
         $shops = $shopMapper->findAll(null, null);
 
-        $translationUtil = new TranslationUtil();
+        $translationService = ShopUtil::translationService();
         for ($i = 0; $i < count($products); $i++) {
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['id'], 'article', $products[$i]['articleId']);
+                $translation = $translationService->read($shop['id'], 'article', $products[$i]['articleId']);
                 if ($this->isDetailData($products[$i]) && $products[$i]['kind'] === self::KIND_VALUE_DEFAULT) {
-                    $translation = array_merge($translation, $translationUtil->read($shop['id'], 'variant', $products[$i]['id']));
+                    $translation = array_merge($translation, $translationService->read($shop['id'], 'variant', $products[$i]['id']));
                 }
 
                 if (!empty($translation)) {
@@ -1605,8 +1604,7 @@ class Product extends DataMapper
 
     protected function deleteTranslationData(ArticleSW $productSW)
     {
-        $translationUtil = new TranslationUtil();
-        $translationUtil->delete('article', $productSW->getId());
+        ShopUtil::translationService()->delete('article', $productSW->getId());
     }
 
     protected function deleteProductData(JtlProduct $product)

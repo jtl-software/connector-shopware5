@@ -3,12 +3,10 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
-
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Shopware\Model\CategoryAttr;
 use jtl\Connector\Shopware\Utilities\I18n;
-use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Model\Category as JtlCategory;
 use jtl\Connector\Model\Identity;
@@ -16,7 +14,6 @@ use jtl\Connector\Shopware\Utilities\Str;
 use Shopware\Models\Category\Category as SwCategory;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
-use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class Category extends DataMapper
@@ -100,11 +97,11 @@ class Category extends DataMapper
         $shopMapper = Mmc::getMapper('Shop');
         $shops = $shopMapper->findAll(null, null);
 
-        $translationUtil = new TranslationUtil();
+        $translationService = ShopUtil::translationService();
         for ($i = 0; $i < count($categories); $i++) {
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['id'], 'category', $categories[$i]['id']);
-                $translation = array_merge($translation, $translationUtil->read($shop['id'], 's_categories_attributes', $categories[$i]['id']));
+                $translation = $translationService->read($shop['id'], 'category', $categories[$i]['id']);
+                $translation = array_merge($translation, $translationService->read($shop['id'], 's_categories_attributes', $categories[$i]['id']));
 
                 if (!empty($translation)) {
                     $translation['shopId'] = $shop['id'];

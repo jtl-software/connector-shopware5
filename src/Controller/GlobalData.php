@@ -3,21 +3,19 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
-
 namespace jtl\Connector\Shopware\Controller;
 
-use jtl\Connector\Model\Identity;
 use \jtl\Connector\Result\Action;
 use \jtl\Connector\Core\Rpc\Error;
 use \jtl\Connector\Core\Utilities\DataInjector;
-use jtl\Connector\Shopware\Model\ShippingClass;
+
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Core\Utilities\DataConverter;
 use \jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Core\Model\QueryFilter;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 /**
  * GlobalData Controller
@@ -181,10 +179,11 @@ class GlobalData extends DataController
             $shopMapper = Mmc::getMapper('Shop');
             $shops = $shopMapper->findAll(null, null);
 
-            $translationUtil = new TranslationUtil();
+            $translationService = ShopUtil::translationService();
+
             $translations = array();
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['id'], 'config_units');
+                $translation = $translationService->read($shop['id'], 'config_units');
                 if (!empty($translation)) {
                     $translations[$shop['locale']['locale']] = $translation;
                 }
