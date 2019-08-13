@@ -505,7 +505,7 @@ class Category extends DataMapper
      */
     protected function saveTranslations(JtlCategory $jtlCategory, int $swCategoryId, array $translations)
     {
-        $transUtil = new \Shopware_Components_Translation();
+        $translationService = ShopUtil::translationService();
 
         foreach ($jtlCategory->getI18ns() as $i18n) {
             $langIso2B = $i18n->getLanguageISO();
@@ -536,7 +536,7 @@ class Category extends DataMapper
                     $categoryTranslation = array_merge($categoryTranslation, $translations[$langIso2B]['category']);
                 }
 
-                $transUtil->write($shop->getId(), 'category', $swCategoryId, $categoryTranslation);
+                $translationService->write($shop->getId(), 'category', $swCategoryId, $categoryTranslation);
                 if (isset($translations[$langIso2B]['attributes'])) {
                     $attributeTranslations = $translations[$langIso2B]['attributes'];
                     /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
@@ -545,9 +545,9 @@ class Category extends DataMapper
 
                     $merge = !$nullUndefinedAttributes;
                     if ($merge) {
-                        $attributeTranslations = array_merge($transUtil->read($shop->getId(), 's_categories_attributes', $swCategoryId), $attributeTranslations);
+                        $attributeTranslations = array_merge($translationService->read($shop->getId(), 's_categories_attributes', $swCategoryId), $attributeTranslations);
                     }
-                    $transUtil->write($shop->getId(), 's_categories_attributes', $swCategoryId, $attributeTranslations);
+                    $translationService->write($shop->getId(), 's_categories_attributes', $swCategoryId, $attributeTranslations);
                 }
             }
         }

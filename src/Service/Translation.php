@@ -6,7 +6,10 @@
 
 namespace jtl\Connector\Shopware\Service;
 
-use Doctrine\DBAL\Connection;;
+use Doctrine\DBAL\Connection;
+use Shopware\Components\DependencyInjection\Container;
+
+;
 
 class Translation extends \Shopware_Components_Translation
 {
@@ -15,6 +18,13 @@ class Translation extends \Shopware_Components_Translation
      */
     protected $connection;
 
+    public function __construct(Connection $connection, Container $container)
+    {
+        parent::__construct($connection, $container);
+        $this->connection = $connection;
+    }
+
+
     /**
      * @param string $type
      * @param integer $key
@@ -22,14 +32,12 @@ class Translation extends \Shopware_Components_Translation
     public function deleteAll($type, $key)
     {
         $queryBuilder = $this->connection->createQueryBuilder()
-            ->delete('s_core_translations');
-
-        $queryBuilder
+            ->delete('s_core_translations')
             ->andWhere('objecttype = :objectType')
             ->setParameter('objectType', $type)
             ->andWhere('objectkey = :objectKey')
             ->setParameter('objectKey', $key);
 
-        $queryBuilder->execute();
+        $result = $queryBuilder->execute();
     }
 }

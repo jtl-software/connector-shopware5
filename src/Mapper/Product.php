@@ -935,6 +935,11 @@ class Product extends DataMapper
             }
         }
 
+        /* Save shopware attributes only from jtl products which are not a varvcombi parent */
+        if($this->isParent($product)) {
+            return;
+        }
+
         /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
         $nullUndefinedAttributesOld = (bool)Application()->getConfig()->get('null_undefined_product_attributes_during_push', true);
         $nullUndefinedAttributes = (bool)Application()->getConfig()->get('product.push.null_undefined_attributes', $nullUndefinedAttributesOld);
@@ -992,9 +997,7 @@ class Product extends DataMapper
         }
 
         ShopUtil::entityManager()->persist($attributeSW);
-
         $detailSW->setAttribute($attributeSW);
-        $article->setAttribute($attributeSW);
     }
 
     protected function hasVariationChanges(JtlProduct &$product)
@@ -1288,7 +1291,7 @@ class Product extends DataMapper
 
         /** @var \jtl\Connector\Shopware\Mapper\Shop $shopMapper */
         $shopMapper = Mmc::getMapper('Shop');
-        $transUtil = new \Shopware_Components_Translation();
+        $translationService = ShopUtil::translationService();
 
         foreach ($translations as $langIso => $translation) {
             /** @var \Shopware\Models\Shop\Locale $locale */
@@ -1312,10 +1315,10 @@ class Product extends DataMapper
             /** @var \Shopware\Models\Shop\Shop $shop */
             foreach ($shops as $shop) {
                 if ($merge) {
-                    $savedTranslation = $transUtil->read($shop->getId(), $type, $key);
+                    $savedTranslation = $translationService->read($shop->getId(), $type, $key);
                     $translation = array_merge($savedTranslation, $translation);
                 }
-                $transUtil->write($shop->getId(), $type, $key, $translation);
+                $translationService->write($shop->getId(), $type, $key, $translation);
             }
         }
 
