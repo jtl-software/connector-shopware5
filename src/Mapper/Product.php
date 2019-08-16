@@ -3,6 +3,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
@@ -935,7 +936,7 @@ class Product extends DataMapper
         }
 
         /* Save shopware attributes only from jtl products which are not a varvcombi parent */
-        if($this->isParent($product)) {
+        if ($this->isParent($product)) {
             return;
         }
 
@@ -1288,31 +1289,22 @@ class Product extends DataMapper
             $translations = $this->createArticleTranslations($product, $attrMappings);
         }
 
-        /** @var \jtl\Connector\Shopware\Mapper\Shop $shopMapper */
-        $shopMapper = Mmc::getMapper('Shop');
         $translationService = ShopUtil::translationService();
+        /** @var \Shopware\Models\Shop\Shop[] $shops */
+        $shops = ShopUtil::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findAll();
 
-        foreach ($translations as $langIso => $translation) {
+        foreach ($translations as $langIso2B => $translation) {
             /** @var \Shopware\Models\Shop\Locale $locale */
-            $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $langIso));
-            if (is_null($locale)) {
-                Logger::write(sprintf('Could not find any locale for (%s)', $langIso), Logger::WARNING, 'database');
+            if ($langIso2B === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
                 continue;
             }
 
-            $shops = $shopMapper->findByLocale($locale->getLocale());
-            if (is_null($shops) || !is_array($shops) || count($shops) == 0) {
-                Logger::write(
-                    sprintf('Could not find any shop with locale (%s) and iso (%s)',
-                        $locale->getLocale(),
-                        $langIso
-                    ), Logger::WARNING, 'database');
-
-                continue;
-            }
-
-            /** @var \Shopware\Models\Shop\Shop $shop */
+            $langIso1 = LanguageUtil::convert(null, $langIso2B);
             foreach ($shops as $shop) {
+                if (strpos($shop->getLocale()->getLocale(), $langIso1) !== 0) {
+                    continue;
+                }
+
                 if ($merge) {
                     $savedTranslation = $translationService->read($shop->getId(), $type, $key);
                     $translation = array_merge($savedTranslation, $translation);

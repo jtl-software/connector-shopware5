@@ -517,7 +517,7 @@ class Category extends DataMapper
             /** @var \Shopware\Models\Shop\Shop[] $shops */
             $shops = ShopUtil::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findAll();
             foreach ($shops as $shop) {
-                if (strpos($shop->getLocale()->getLocale(), $langIso1) === false) {
+                if (strpos($shop->getLocale()->getLocale(), $langIso1) !== 0) {
                     continue;
                 }
 
