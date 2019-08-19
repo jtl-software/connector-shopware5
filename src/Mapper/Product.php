@@ -806,9 +806,7 @@ class Product extends DataMapper
         $attributeSW = $detailSW->getAttribute();
         if ($attributeSW === null) {
             $attributeSW = new \Shopware\Models\Attribute\Article();
-            $attributeSW->setArticle($article);
             $attributeSW->setArticleDetail($detailSW);
-
             ShopUtil::entityManager()->persist($attributeSW);
         }
 
