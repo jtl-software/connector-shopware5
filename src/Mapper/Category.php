@@ -3,12 +3,10 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
-
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Shopware\Model\CategoryAttr;
 use jtl\Connector\Shopware\Utilities\I18n;
-use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Model\Category as JtlCategory;
 use jtl\Connector\Model\Identity;
@@ -16,7 +14,6 @@ use jtl\Connector\Shopware\Utilities\Str;
 use Shopware\Models\Category\Category as SwCategory;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
-use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class Category extends DataMapper
@@ -100,11 +97,11 @@ class Category extends DataMapper
         $shopMapper = Mmc::getMapper('Shop');
         $shops = $shopMapper->findAll(null, null);
 
-        $translationUtil = new TranslationUtil();
+        $translationService = ShopUtil::translationService();
         for ($i = 0; $i < count($categories); $i++) {
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['id'], 'category', $categories[$i]['id']);
-                $translation = array_merge($translation, $translationUtil->read($shop['id'], 's_categories_attributes', $categories[$i]['id']));
+                $translation = $translationService->read($shop['id'], 'category', $categories[$i]['id']);
+                $translation = array_merge($translation, $translationService->read($shop['id'], 's_categories_attributes', $categories[$i]['id']));
 
                 if (!empty($translation)) {
                     $translation['shopId'] = $shop['id'];
@@ -508,7 +505,7 @@ class Category extends DataMapper
      */
     protected function saveTranslations(JtlCategory $jtlCategory, int $swCategoryId, array $translations)
     {
-        $transUtil = new \Shopware_Components_Translation();
+        $translationService = ShopUtil::translationService();
 
         foreach ($jtlCategory->getI18ns() as $i18n) {
             $langIso2B = $i18n->getLanguageISO();
@@ -520,7 +517,7 @@ class Category extends DataMapper
             /** @var \Shopware\Models\Shop\Shop[] $shops */
             $shops = ShopUtil::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findAll();
             foreach ($shops as $shop) {
-                if (strpos($shop->getLocale()->getLocale(), $langIso1) === false) {
+                if (strpos($shop->getLocale()->getLocale(), $langIso1) !== 0) {
                     continue;
                 }
 
@@ -539,7 +536,7 @@ class Category extends DataMapper
                     $categoryTranslation = array_merge($categoryTranslation, $translations[$langIso2B]['category']);
                 }
 
-                $transUtil->write($shop->getId(), 'category', $swCategoryId, $categoryTranslation);
+                $translationService->write($shop->getId(), 'category', $swCategoryId, $categoryTranslation);
                 if (isset($translations[$langIso2B]['attributes'])) {
                     $attributeTranslations = $translations[$langIso2B]['attributes'];
                     /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
@@ -548,9 +545,9 @@ class Category extends DataMapper
 
                     $merge = !$nullUndefinedAttributes;
                     if ($merge) {
-                        $attributeTranslations = array_merge($transUtil->read($shop->getId(), 's_categories_attributes', $swCategoryId), $attributeTranslations);
+                        $attributeTranslations = array_merge($translationService->read($shop->getId(), 's_categories_attributes', $swCategoryId), $attributeTranslations);
                     }
-                    $transUtil->write($shop->getId(), 's_categories_attributes', $swCategoryId, $attributeTranslations);
+                    $translationService->write($shop->getId(), 's_categories_attributes', $swCategoryId, $attributeTranslations);
                 }
             }
         }

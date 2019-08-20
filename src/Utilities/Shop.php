@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Utilities;
 
+use jtl\Connector\Shopware\Service\Translation;
 use Shopware\Components\Thumbnail\Manager;
 
 final class Shop
@@ -56,6 +57,22 @@ final class Shop
     public static function thumbnailManager()
     {
         return static::get()->Container()->get('thumbnail_manager');
+    }
+
+    /**
+     * @return Translation
+     */
+    public static function translationService()
+    {
+        return static::get()->Container()->get('translation');
+    }
+
+    /**
+     * @return \Doctrine\DBAL\Connection
+     */
+    public static function connection()
+    {
+        return static::entityManager()->getConnection();
     }
 
     /**

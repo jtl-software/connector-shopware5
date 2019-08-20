@@ -15,7 +15,7 @@ use \jtl\Connector\Core\Utilities\DataConverter;
 use \jtl\Connector\Shopware\Model\DataModel;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
-use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class ConfiguratorGroup extends DataMapper
 {
@@ -153,11 +153,11 @@ class ConfiguratorGroup extends DataMapper
             throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
         }
 
-        $translationUtil = new TranslationUtil();
+        $translationService = ShopUtil::translationService();
 
         foreach ($shops as $shop) {
-            $translationUtil->delete('configuratorgroup', $id, $shop->getId());
-            $translationUtil->write(
+            $translationService->delete($shop->getId(), 'configuratorgroup', $id);
+            $translationService->write(
                 $shop->getId(),
                 'configuratorgroup',
                 $configuratorGroup->getId(),

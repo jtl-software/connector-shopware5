@@ -11,9 +11,9 @@ use \jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use \Shopware\Models\Article\Unit as UnitSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class MeasurementUnit extends DataMapper
 {
@@ -117,8 +117,8 @@ class MeasurementUnit extends DataMapper
 
     protected function saveTranslationData(MeasurementUnitModel $unit, UnitSW $unitSW)
     {
-        $translationUtil = new TranslationUtil();
-        $translationUtil->delete('config_units', $unitSW->getId());
+        $translationService = ShopUtil::translationService();
+        $translationService->deleteAll('config_units', $unitSW->getId());
         $defaultIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
         foreach ($unit->getI18ns() as $i18n) {
             $iso = $i18n->getLanguageISO();
@@ -141,7 +141,7 @@ class MeasurementUnit extends DataMapper
                 }
 
                 foreach ($shops as $shop) {
-                    $translationUtil->write(
+                    $translationService->write(
                         $shop->getId(),
                         'config_units',
                         $unitSW->getId(),
