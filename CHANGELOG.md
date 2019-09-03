@@ -1,3 +1,11 @@
+2.2.3.1
+------
+- Save product translations by language and not by locale
+
+2.2.3
+------
+- Added compatiblity to Shopware 5.6
+
 2.2.2
 ------
 - CO-363 Save categories translations in shop (without category mappings)

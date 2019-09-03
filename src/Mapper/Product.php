@@ -3,6 +3,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
@@ -13,7 +14,6 @@ use jtl\Connector\Model\Product as JtlProduct;
 use jtl\Connector\Model\ProductChecksum;
 use jtl\Connector\Shopware\Utilities\VariationType;
 use jtl\Connector\Core\Exception\DatabaseException;
-use jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
@@ -162,12 +162,12 @@ class Product extends DataMapper
         $shopMapper = Mmc::getMapper('Shop');
         $shops = $shopMapper->findAll(null, null);
 
-        $translationUtil = new TranslationUtil();
+        $translationService = ShopUtil::translationService();
         for ($i = 0; $i < count($products); $i++) {
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['id'], 'article', $products[$i]['articleId']);
+                $translation = $translationService->read($shop['id'], 'article', $products[$i]['articleId']);
                 if ($this->isDetailData($products[$i]) && $products[$i]['kind'] === self::KIND_VALUE_DEFAULT) {
-                    $translation = array_merge($translation, $translationUtil->read($shop['id'], 'variant', $products[$i]['id']));
+                    $translation = array_merge($translation, $translationService->read($shop['id'], 'variant', $products[$i]['id']));
                 }
 
                 if (!empty($translation)) {
@@ -806,9 +806,7 @@ class Product extends DataMapper
         $attributeSW = $detailSW->getAttribute();
         if ($attributeSW === null) {
             $attributeSW = new \Shopware\Models\Attribute\Article();
-            $attributeSW->setArticle($article);
             $attributeSW->setArticleDetail($detailSW);
-
             ShopUtil::entityManager()->persist($attributeSW);
         }
 
@@ -912,7 +910,6 @@ class Product extends DataMapper
                     if (!$isChild && $lcAttributeName === ProductAttr::CUSTOM_PRODUCTS_TEMPLATE) {
                         $pluginName = "SwagCustomProducts";
                         /** @var Plugin $plugin */
-                        //$plugin = $pluginManager->getPluginByName($pluginName);
                         $plugin = ShopUtil::entityManager()->getRepository(Plugin::class)->findOneByName($pluginName);
                         if ($plugin instanceof Plugin && $plugin->getActive()) {
                             $result = ShopUtil::entityManager()->getConnection()->createQueryBuilder()
@@ -934,6 +931,11 @@ class Product extends DataMapper
                     $attributes[$attributeI18n->getName()] = $attributeValue;
                 }
             }
+        }
+
+        /* Save shopware attributes only from jtl products which are not a varvcombi parent */
+        if ($this->isParent($product)) {
+            return;
         }
 
         /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
@@ -993,9 +995,7 @@ class Product extends DataMapper
         }
 
         ShopUtil::entityManager()->persist($attributeSW);
-
         $detailSW->setAttribute($attributeSW);
-        $article->setAttribute($attributeSW);
     }
 
     protected function hasVariationChanges(JtlProduct &$product)
@@ -1287,36 +1287,27 @@ class Product extends DataMapper
             $translations = $this->createArticleTranslations($product, $attrMappings);
         }
 
-        /** @var \jtl\Connector\Shopware\Mapper\Shop $shopMapper */
-        $shopMapper = Mmc::getMapper('Shop');
-        $transUtil = new \Shopware_Components_Translation();
+        $translationService = ShopUtil::translationService();
+        /** @var \Shopware\Models\Shop\Shop[] $shops */
+        $shops = ShopUtil::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findAll();
 
-        foreach ($translations as $langIso => $translation) {
+        foreach ($translations as $langIso2B => $translation) {
             /** @var \Shopware\Models\Shop\Locale $locale */
-            $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $langIso));
-            if (is_null($locale)) {
-                Logger::write(sprintf('Could not find any locale for (%s)', $langIso), Logger::WARNING, 'database');
+            if ($langIso2B === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
                 continue;
             }
 
-            $shops = $shopMapper->findByLocale($locale->getLocale());
-            if (is_null($shops) || !is_array($shops) || count($shops) == 0) {
-                Logger::write(
-                    sprintf('Could not find any shop with locale (%s) and iso (%s)',
-                        $locale->getLocale(),
-                        $langIso
-                    ), Logger::WARNING, 'database');
-
-                continue;
-            }
-
-            /** @var \Shopware\Models\Shop\Shop $shop */
+            $langIso1 = LanguageUtil::convert(null, $langIso2B);
             foreach ($shops as $shop) {
+                if (strpos($shop->getLocale()->getLocale(), $langIso1) !== 0) {
+                    continue;
+                }
+
                 if ($merge) {
-                    $savedTranslation = $transUtil->read($shop->getId(), $type, $key);
+                    $savedTranslation = $translationService->read($shop->getId(), $type, $key);
                     $translation = array_merge($savedTranslation, $translation);
                 }
-                $transUtil->write($shop->getId(), $type, $key, $translation);
+                $translationService->write($shop->getId(), $type, $key, $translation);
             }
         }
 
@@ -1605,8 +1596,7 @@ class Product extends DataMapper
 
     protected function deleteTranslationData(ArticleSW $productSW)
     {
-        $translationUtil = new TranslationUtil();
-        $translationUtil->delete('article', $productSW->getId());
+        ShopUtil::translationService()->delete('article', $productSW->getId());
     }
 
     protected function deleteProductData(JtlProduct $product)

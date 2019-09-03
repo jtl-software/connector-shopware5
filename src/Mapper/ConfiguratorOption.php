@@ -8,15 +8,12 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use \Shopware\Components\Api\Exception as ApiException;
 use \Shopware\Models\Article\Configurator\Option as ConfiguratorOptionModel;
 use \jtl\Connector\ModelContainer\ProductContainer;
-use \jtl\Connector\Shopware\Model\ProductVariation;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Shopware\Model\DataModel;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
-use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
 
 class ConfiguratorOption extends DataMapper
 {
@@ -143,11 +140,11 @@ class ConfiguratorOption extends DataMapper
             throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
         }
 
-        $translationUtil = new TranslationUtil();
+        $translationService = ShopUtil::translationService();
 
         foreach ($shops as $shop) {
-            $translationUtil->delete('configuratoroption', $id, $shop->getId());
-            $translationUtil->write(
+            $translationService->delete($shop->getId(), 'configuratoroption', $id);
+            $translationService->write(
                 $shop->getId(),
                 'configuratoroption',
                 $configuratorGroup->getId(),

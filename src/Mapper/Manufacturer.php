@@ -3,18 +3,16 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
-
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Model\Manufacturer as ManufacturerModel;
-use \Shopware\Components\Api\Exception as ApiException;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Model\Identity;
-use \Shopware\Models\Article\Supplier as ManufacturerSW;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
-use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
-use \jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Model\Manufacturer as ManufacturerModel;
+use Shopware\Components\Api\Exception as ApiException;
+use jtl\Connector\Model\Identity;
+use Shopware\Models\Article\Supplier as ManufacturerSW;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class Manufacturer extends DataMapper
 {
@@ -58,10 +56,10 @@ class Manufacturer extends DataMapper
         $shopMapper = Mmc::getMapper('Shop');
         $shops = $shopMapper->findAll(null, null);
 
-        $translationUtil = new TranslationUtil();
+        $translationService = ShopUtil::translationService();
         for ($i = 0; $i < count($manufacturers); $i++) {
             foreach ($shops as $shop) {
-                $translation = $translationUtil->read($shop['id'], 'supplier', $manufacturers[$i]['id']);
+                $translation = $translationService->read($shop['id'], 'supplier', $manufacturers[$i]['id']);
                 if (!empty($translation)) {
                     $translation['shopId'] = $shop['id'];
                     $manufacturers[$i]['translations'][$shop['locale']['locale']] = $translation;
@@ -140,11 +138,11 @@ class Manufacturer extends DataMapper
                     throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
                 }
 
-                $translationUtil = new TranslationUtil();
+                $translationService = ShopUtil::translationService();
 
                 foreach ($shops as $shop) {
-                    $translationUtil->delete('supplier', $manufacturerSW->getId(), $shop->getId());
-                    $translationUtil->write(
+                    $translationService->delete($shop->getId(), 'supplier', $manufacturerSW->getId());
+                    $translationService->write(
                         $shop->getId(),
                         'supplier',
                         $manufacturerSW->getId(),
@@ -162,8 +160,7 @@ class Manufacturer extends DataMapper
 
     public function deleteTranslation(ManufacturerSW $manufacturerSW)
     {
-        $translationUtil = new TranslationUtil();
-        $translationUtil->delete('supplier', $manufacturerSW->getId());
+        ShopUtil::translationService()->deleteAll('supplier', $manufacturerSW->getId());
     }
 
     protected function deleteManufacturerData(ManufacturerModel $manufacturer)

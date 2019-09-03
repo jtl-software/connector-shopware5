@@ -6,16 +6,16 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Seo;
-use \jtl\Connector\Model\Specific as SpecificModel;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Shopware\Utilities\Translation as TranslationUtil;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
-use \Shopware\Models\Property\Option as OptionSW;
-use \Shopware\Models\Property\Value as ValueSW;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Model\Specific as SpecificModel;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use Shopware\Models\Property\Option as OptionSW;
+use Shopware\Models\Property\Value as ValueSW;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class Specific extends DataMapper
 {
@@ -69,10 +69,10 @@ class Specific extends DataMapper
             $shopMapper = Mmc::getMapper('Shop');
             $shops = $shopMapper->findAll(null, null);
 
-            $translation = new TranslationUtil;
+            $translationService = ShopUtil::translationService();
             for ($i = 0; $i < count($options); $i++) {
                 foreach ($shops as $shop) {
-                    $translationOption = $translation->read($shop['locale']['id'], 'propertyoption', $options[$i]['id']);
+                    $translationOption = $translationService->read($shop['locale']['id'], 'propertyoption', $options[$i]['id']);
                     if (!empty($translationOption)) {
                         $translationOption['shopId'] = $shop['id'];
                         $translationOption['name'] = $translationOption['optionName'];
@@ -81,7 +81,7 @@ class Specific extends DataMapper
 
                     for ($j = 0; $j < count($options[$i]['values']); $j++) {
                         foreach ($shops as $shop) {
-                            $translationValue = $translation->read($shop['locale']['id'], 'propertyvalue', $options[$i]['values'][$j]['id']);
+                            $translationValue = $translationService->read($shop['locale']['id'], 'propertyvalue', $options[$i]['values'][$j]['id']);
                             if (!empty($translationValue)) {
                                 $translationValue['shopId'] = $shop['id'];
                                 $translationValue['name'] = $translationValue['optionValue'];
@@ -266,7 +266,7 @@ class Specific extends DataMapper
     protected function saveTranslationData(SpecificModel $specific, OptionSW &$optionSW)
     {
         // SpecificI18n
-        $translation = new TranslationUtil;
+        $translationService = ShopUtil::translationService();
         $shopMapper = Mmc::getMapper('Shop');
         foreach ($specific->getI18ns() as $i18n) {
             $locale = LocaleUtil::getByKey(LanguageUtil::map(null,null, $i18n->getLanguageISO()));
@@ -286,7 +286,7 @@ class Specific extends DataMapper
 
             if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                 foreach ($shops as $shop) {
-                    $translation->write(
+                    $translationService->write(
                         $shop->getId(),
                         'propertyoption',
                         $optionSW->getId(),
@@ -320,7 +320,7 @@ class Specific extends DataMapper
                             }
 
                             foreach ($shops as $shop) {
-                                $translation->write(
+                                $translationService->write(
                                     $shop->getId(),
                                     'propertyvalue',
                                     $valueId,
@@ -336,19 +336,24 @@ class Specific extends DataMapper
         }
     }
 
+    /**
+     * @param OptionSW $optionSW
+     */
     protected function deleteTranslationData(OptionSW &$optionSW)
     {
-        $translation = new TranslationUtil;
-        $translation->delete('propertyoption', $optionSW->getId());
+        $translationService = ShopUtil::translationService();
+        $translationService->deleteAll('propertyoption', $optionSW->getId());
 
         foreach ($optionSW->getValues() as $valueSW) {
-            $translation->delete('propertyvalue', $valueSW->getId());
+            $translationService->deleteAll('propertyvalue', $valueSW->getId());
         }
     }
 
+    /**
+     * @param ValueSW $valueSW
+     */
     protected function deleteValueTranslationData(ValueSW &$valueSW)
     {
-        $translation = new TranslationUtil;
-        $translation->delete('propertyvalue', $valueSW->getId());
+        ShopUtil::translationService()->deleteAll('propertyvalue', $valueSW->getId());
     }
 }
