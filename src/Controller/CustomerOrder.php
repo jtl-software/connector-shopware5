@@ -13,7 +13,6 @@ use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Result\Action;
 use jtl\Connector\Shopware\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Shopware\Model\CustomerOrderItem;
-use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Payment as PaymentUtil;
 use jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
@@ -262,7 +261,7 @@ class CustomerOrder extends DataController
                             $order->addAttribute($customerOrderAttr);
                         }
                     }
-                    
+
                     /*
                     for ($i = 1; $i <= 6; $i++) {
                         if (isset($orderSW['attribute']["attribute{$i}"]) && strlen($orderSW['attribute']["attribute{$i}"]) > 0) {
