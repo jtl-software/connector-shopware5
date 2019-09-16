@@ -8,12 +8,16 @@ use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
+use Shopware\Components\Plugin\CachedConfigReader;
+use Shopware\Models\Config\Form;
 use Symfony\Component\Yaml\Yaml;
 
 define('CONNECTOR_DIR', __DIR__);
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
+    const KEEP_DATA = 'keep_data';
+
     /**
      * @var Config
      */
@@ -155,6 +159,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             )
         );
 
+        $this->extendConfigFormWithKeepUserDataField($form);
+
         $this->createProductChecksumTable();
         $this->createCategoryLevelTable();
         $this->createMappingTables();
@@ -167,6 +173,19 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'success' => true,
             'invalidateCache' => array('backend', 'proxy')
         );
+    }
+
+
+    /**
+     * @param Form $form
+     */
+    protected function extendConfigFormWithKeepUserDataField(Form $form)
+    {
+        $form->setElement('boolean', self::KEEP_DATA, [
+            'label' => 'Tabellen nach Deinstallation nicht löschen',
+            'required' => true,
+            'value' => false
+        ]);
     }
 
     public function update($oldVersion)
@@ -301,6 +320,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.2':
             case '2.2.3':
             case '2.2.3.1':
+                $this->extendConfigFormWithKeepUserDataField($this->Form());
                 break;
             default:
                 return false;
@@ -370,7 +390,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function uninstall()
     {
-        $this->dropMappingTable();
+        /** @var CachedConfigReader $configReader */
+        $configReader = Shopware()->Container()->get('shopware.plugin.cached_config_reader');
+        $pluginConfig = $configReader->getByPluginName('jtlconnector');
+
+        if(!isset($pluginConfig[self::KEEP_DATA]) || $pluginConfig[self::KEEP_DATA] === false) {
+            $this->dropMappingTable();
+        }
         Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
 
         return true;
