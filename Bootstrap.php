@@ -1043,18 +1043,21 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         Logger::write('Create payment trigger...', Logger::INFO, 'install');
 
-        $sql = "
-            DROP TRIGGER IF EXISTS `jtl_connector_payment`;
-            CREATE TRIGGER `jtl_connector_payment` AFTER UPDATE ON `s_order`
-            FOR EACH ROW
+        $sql = '
+            DELIMITER $$
+            DROP TRIGGER IF EXISTS `jtl_connector_payment`$$
+            CREATE TRIGGER `jtl_connector_payment` 
+                AFTER UPDATE ON `s_order` FOR EACH ROW
             BEGIN
-            IF LENGTH(NEW.transactionID) > 0 AND NEW.cleared = 12 THEN
-                    SET @paymentId = (SELECT id FROM jtl_connector_payment WHERE customerOrderId = NEW.id);
+                SET @paymentId = NULL, @transactionId = NULL;
+                SELECT id, transactionID INTO @paymentId, @transactionId FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
+                IF LENGTH(NEW.transactionID) > 0 AND NEW.cleared = 12 AND (@paymentId IS NULL OR (@transactionId IS NOT NULL AND @transactionId != new.transactionID)) THEN
                     DELETE FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
-                    INSERT IGNORE INTO jtl_connector_payment VALUES (if(@paymentId > 0, @paymentId, null), NEW.id, '', now(), '', NEW.invoice_amount, NEW.transactionID);
+                    INSERT IGNORE INTO jtl_connector_payment VALUES (IF(@paymentId IS NOT NULL, @paymentId, NULL), NEW.id, \'\', now(), \'\', NEW.invoice_amount, NEW.transactionID);
                 END IF;
-            END;
-        ";
+            END$$
+            DELIMITER ;
+        ';
 
         Shopware()->Db()->query($sql);
     }
