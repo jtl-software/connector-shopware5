@@ -44,114 +44,117 @@ class CustomerOrder extends DataController
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = [];
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
-            
+
             $shopMapper = Mmc::getMapper('Shop');
             $mapper = Mmc::getMapper('CustomerOrder');
             $productMapper = Mmc::getMapper('Product');
-            $orders = $mapper->findAll($limit);
-            
+            $swOrders = $mapper->findAll($limit);
+
             // Check if PayPal Plus invoice is installed
             $usePPPInvoice = PaymentUtil::usePPPInvoice();
-            
+
             // Check if PayPal Plus installment is installed
             $usePPPInstallment = PaymentUtil::usePPPInstallment();
-            
+
             // Check if Heidelpay invoice is installed
             $useHeidelpayInvoice = PaymentUtil::useHeidelpayInvoice();
-            
+
             // Check if PayPal Unified is installed
             $usePaypalUnified = PaymentUtil::usePaypalUnified();
-            
-            foreach ($orders as $orderSW) {
+
+            foreach ($swOrders as $swOrder) {
                 try {
 
                     // CustomerOrders
-                    /** @var \jtl\Connector\Shopware\Model\CustomerOrder $order */
-                    $order = Mmc::getModel('CustomerOrder');
-                    $order->map(true, DataConverter::toObject($orderSW, true));
+                    /** @var CustomerOrderModel $jtlOrder */
+                    $jtlOrder = Mmc::getModel('CustomerOrder');
+                    $jtlOrder->map(true, DataConverter::toObject($swOrder, true));
 
                     /** @var Order $swOrderObj */
                     $swOrderObj = Shopware()->Models()->getRepository('Shopware\Models\Order\Order')
-                        ->findOneById($order->getId()->getEndpoint());
+                        ->findOneById($jtlOrder->getId()->getEndpoint());
 
                     // PaymentModuleCode
-                    $paymentModuleCode = PaymentUtil::map(null, $orderSW['payment']['name']);
-                    $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $orderSW['payment']['name'];
-                    $order->setPaymentModuleCode($paymentModuleCode);
-                    
+                    $paymentModuleCode = PaymentUtil::map(null, $swOrder['payment']['name']);
+                    $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $swOrder['payment']['name'];
+                    $jtlOrder->setPaymentModuleCode($paymentModuleCode);
+
                     // Billsafe
-                    $this->addBillsafe($paymentModuleCode, $orderSW, $order);
-                    
+                    $this->addBillsafe($paymentModuleCode, $swOrder, $jtlOrder);
+
                     // Paypal Plus invoice
                     if ($usePPPInvoice) {
-                        $this->addPayPalPlusInvoice($paymentModuleCode, $orderSW, $order);
+                        $this->addPayPalPlusInvoice($paymentModuleCode, $swOrder, $jtlOrder);
                     }
-                    
+
                     // Paypal Plus installment
                     if ($usePPPInstallment) {
-                        $this->addPayPalPlusInstallment($paymentModuleCode, $orderSW, $order);
+                        $this->addPayPalPlusInstallment($paymentModuleCode, $swOrder, $jtlOrder);
                     }
-                    
+
                     // Paypal Unified
                     if ($usePaypalUnified) {
-                        $this->addPayPalUnified($paymentModuleCode, $orderSW, $order);
+                        $this->addPayPalUnified($paymentModuleCode, $swOrder, $jtlOrder);
                     }
-                    
+
                     // Heidelpay invoice
                     if ($useHeidelpayInvoice) {
-                        $this->addHeidelpayInvoice($paymentModuleCode, $orderSW, $order);
+                        $this->addHeidelpayInvoice($paymentModuleCode, $swOrder, $jtlOrder);
                     }
-                    
+
                     // CustomerOrderStatus
-                    $customerOrderStatus = StatusUtil::map(null, $orderSW['status']);
+                    $customerOrderStatus = StatusUtil::map(null, $swOrder['status']);
                     if ($customerOrderStatus !== null) {
-                        $order->setStatus($customerOrderStatus);
+                        $jtlOrder->setStatus($customerOrderStatus);
                     }
-                    
+
                     // PaymentStatus
-                    $paymentStatus = PaymentStatusUtil::map(null, $orderSW['cleared']);
+                    $paymentStatus = PaymentStatusUtil::map(null, $swOrder['cleared']);
                     if ($paymentStatus !== null) {
-                        $order->setPaymentStatus($paymentStatus);
+                        $jtlOrder->setPaymentStatus($paymentStatus);
                     }
-                    
+
                     // Locale
-                    $shop = $shopMapper->find((int)$orderSW['languageIso']);
+                    $swShop = $shopMapper->find((int)$swOrder['languageIso']);
                     //$localeSW = LocaleUtil::get((int) $orderSW['languageIso']);
                     //if ($localeSW !== null) {
-                    if ($shop !== null) {
+                    if ($swShop !== null) {
                         //$order->setLanguageISO(LanguageUtil::map($localeSW->getLocale()));
-                        $order->setLanguageISO(LanguageUtil::map($shop->getLocale()->getLocale()));
+                        $jtlOrder->setLanguageISO(LanguageUtil::map($swShop->getLocale()->getLocale()));
                     }
-                    
-                    foreach ($orderSW['details'] as $detailSW) {
-                        
+
+                    foreach ($swOrder['details'] as $swDetail) {
+
                         // Tax Free
-                        if ((int)$orderSW['taxFree'] == 1) {
-                            $detailSW['taxRate'] = 0.0;
+                        if ((int)$swOrder['taxFree'] == 1) {
+                            $swDetail['taxRate'] = 0.0;
                         }
-                        
-                        switch ((int)$orderSW['net']) {
+
+                        switch ((int)$swOrder['net']) {
                             case 0: // price is gross
-                                $detailSW['priceGross'] = $detailSW['price'];
-                                $detailSW['price'] = Money::AsNet($detailSW['price'], $detailSW['taxRate']);
+                                $swDetail['priceGross'] = $swDetail['price'];
+                                $swDetail['price'] = Money::AsNet($swDetail['price'], $swDetail['taxRate']);
                                 break;
                             case 1: // price is net
-                                $detailSW['priceGross'] = round(Money::AsGross($detailSW['price'],
-                                    $detailSW['taxRate']), 4);
+                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'],
+                                    $swDetail['taxRate']), 4);
                                 break;
                         }
-                        
+
                         // Type (mode)
-                        switch ((int)$detailSW['mode']) {
+                        switch ((int)$swDetail['mode']) {
+                            /*
+                             * Not needed, because it's default
                             case 0:
                                 $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
                                 break;
+                            */
                             case 2:
-                                $detailSW['type'] = CustomerOrderItem::TYPE_COUPON;
+                                $swDetail['type'] = CustomerOrderItem::TYPE_COUPON;
                                 break;
                             /*
                             case 3:
@@ -159,106 +162,111 @@ class CustomerOrder extends DataController
                                 break;
                             */
                             case 4:
-                                $detailSW['type'] = CustomerOrderItem::TYPE_SURCHARGE;
+                                $swDetail['type'] = CustomerOrderItem::TYPE_SURCHARGE;
                                 break;
                             default:
-                                $detailSW['type'] = CustomerOrderItem::TYPE_PRODUCT;
+                                $swDetail['type'] = CustomerOrderItem::TYPE_PRODUCT;
                                 break;
                         }
-                        
-                        $orderItem = Mmc::getModel('CustomerOrderItem');
-                        $orderItem->map(true, DataConverter::toObject($detailSW, true));
-                        
-                        $detail = $productMapper->findDetailBy(['number' => $detailSW['articleNumber']]);
+
+                        $jtlOrderItem = Mmc::getModel('CustomerOrderItem');
+                        $jtlOrderItem->map(true, DataConverter::toObject($swDetail, true));
+
+                        $detail = $productMapper->findDetailBy(['number' => $swDetail['articleNumber']]);
                         if ($detail !== null) {
                             //throw new \Exception(sprintf('Cannot find detail with number (%s)', $detailSW['articleNumber']));
-                            $orderItem->setProductId(new Identity(IdConcatenator::link([
+                            $jtlOrderItem->setProductId(new Identity(IdConcatenator::link([
                                 $detail->getId(),
-                                $detailSW['articleId'],
+                                $swDetail['articleId'],
                             ])));
                         }
-                        
+
                         /*
                         if ($detail->getKind() == 2) {    // is Child
                             $orderItem->setProductId(new Identity(sprintf('%s_%s', $detail->getId(), $detailSW['articleId'])));
                         }
                         */
-                        
-                        $order->addItem($orderItem);
-                    }
-                    
-                    $this->addPos($order, 'setBillingAddress', 'CustomerOrderBillingAddress', $orderSW['billing']);
-                    $this->addPos($order, 'setShippingAddress', 'CustomerOrderShippingAddress', $orderSW['shipping']);
-                    
-                    // Salutation and Email
-                    if ($order->getBillingAddress() !== null) {
-                        $order->getBillingAddress()->setSalutation(Salutation::toConnector($orderSW['billing']['salutation']))
-                            ->setEmail($orderSW['customer']['email']);
 
-                        $vatNumber = $order->getBillingAddress()->getVatNumber();
-                        if(strlen($vatNumber) > 20) {
-                            $order->getBillingAddress()->setVatNumber(substr($vatNumber, 0, 20));
+                        $jtlOrder->addItem($jtlOrderItem);
+                    }
+
+                    $this->addPos($jtlOrder, 'setBillingAddress', 'CustomerOrderBillingAddress', $swOrder['billing']);
+                    $this->addPos($jtlOrder, 'setShippingAddress', 'CustomerOrderShippingAddress', $swOrder['shipping']);
+
+                    // Salutation and Email
+                    if ($jtlOrder->getBillingAddress() !== null) {
+                        $jtlOrder->getBillingAddress()->setSalutation(Salutation::toConnector($swOrder['billing']['salutation']))
+                            ->setEmail($swOrder['customer']['email']);
+
+                        $vatNumber = $jtlOrder->getBillingAddress()->getVatNumber();
+                        if (strlen($vatNumber) > 20) {
+                            $jtlOrder->getBillingAddress()->setVatNumber(substr($vatNumber, 0, 20));
                         }
                     }
-                    
-                    if ($order->getShippingAddress() !== null) {
-                        
+
+                    if ($jtlOrder->getShippingAddress() !== null) {
+
                         // DHL Packstation
                         $dhlPropertyInfos = [
                             ['name' => 'Postnummer', 'prop' => 'swagDhlPostnumber', 'serialized' => false],
                             ['name' => 'Packstation', 'prop' => 'swagDhlPackstation', 'serialized' => true],
                             ['name' => 'Postoffice', 'prop' => 'swagDhlPostoffice', 'serialized' => true],
                         ];
-                        
+
                         $dhlInfos = [];
                         foreach ($dhlPropertyInfos as $dhlPropertyInfo) {
-                            $this->addDHLInfo($orderSW, $dhlInfos, $dhlPropertyInfo);
+                            $this->addDHLInfo($swOrder, $dhlInfos, $dhlPropertyInfo);
                         }
-                        
-                        $extraAddressLine = $order->getShippingAddress()->getExtraAddressLine();
+
+                        $extraAddressLine = $jtlOrder->getShippingAddress()->getExtraAddressLine();
                         if (count($dhlInfos) > 0) {
                             $extraAddressLine .= sprintf(' (%s)', implode(' - ', $dhlInfos));
                         }
-                        
-                        $order->getShippingAddress()->setExtraAddressLine($extraAddressLine)
-                            ->setSalutation(Salutation::toConnector($orderSW['shipping']['salutation']))
-                            ->setEmail($orderSW['customer']['email']);
+
+                        $jtlOrder->getShippingAddress()->setExtraAddressLine($extraAddressLine)
+                            ->setSalutation(Salutation::toConnector($swOrder['shipping']['salutation']))
+                            ->setEmail($swOrder['customer']['email']);
                     }
-                    
+
                     // Adding shipping item
-                    $shippingPrice = (isset($orderSW['invoiceShippingNet'])) ? (float)$orderSW['invoiceShippingNet'] : 0.0;
-                    $shippingPriceGross = (isset($orderSW['invoiceShipping'])) ? (float)$orderSW['invoiceShipping'] : 0.0;
+                    $shippingPrice = (isset($swOrder['invoiceShippingNet'])) ? (float)$swOrder['invoiceShippingNet'] : 0.0;
+                    $shippingPriceGross = (isset($swOrder['invoiceShipping'])) ? (float)$swOrder['invoiceShipping'] : 0.0;
+                    $shippingVat = isset($swOrder['invoiceShippingTaxRate']) ? (float)$swOrder['invoiceShippingTaxRate'] : 0.0;
+                    if ($shippingVat === 0.0 && $shippingPrice > 0. && $shippingPrice !== $shippingPriceGross) {
+                        $shippingVat = self::calcShippingVat($jtlOrder);
+                    }
+
                     $item = Mmc::getModel('CustomerOrderItem');
                     $item->setType(CustomerOrderItem::TYPE_SHIPPING)
-                        ->setId(new Identity(sprintf('%s_ship', $orderSW['id'])))
-                        ->setCustomerOrderId($order->getId())
+                        ->setId(new Identity(sprintf('%s_ship', $swOrder['id'])))
+                        ->setCustomerOrderId($jtlOrder->getId())
                         ->setName('Shipping')
                         ->setPrice($shippingPrice)
                         ->setPriceGross($shippingPriceGross)
                         ->setQuantity(1)
-                        ->setVat(self::calcShippingVat($order));
-                    
-                    $order->addItem($item);
-                    
+                        ->setVat($shippingVat);
+
+                    $jtlOrder->addItem($item);
+
                     // Attributes
-                    if (isset($orderSW['attribute']) && !is_null($orderSW['attribute'])) {
+                    if (isset($swOrder['attribute']) && !is_null($swOrder['attribute'])) {
                         $excludes = ['id', 'orderId'];
-                        
-                        foreach ($orderSW['attribute'] as $key => $value) {
+
+                        foreach ($swOrder['attribute'] as $key => $value) {
                             if (in_array($key, $excludes)) {
                                 continue;
                             }
-                            
+
                             if (is_null($value) || empty($value)) {
                                 continue;
                             }
-                            
+
                             $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
-                            $customerOrderAttr->map(true, DataConverter::toObject($orderSW['attribute']));
+                            $customerOrderAttr->map(true, DataConverter::toObject($swOrder['attribute']));
                             $customerOrderAttr->setKey($key)
                                 ->setValue((string)$value);
-                            
-                            $order->addAttribute($customerOrderAttr);
+
+                            $jtlOrder->addAttribute($customerOrderAttr);
                         }
                     }
 
@@ -274,21 +282,21 @@ class CustomerOrder extends DataController
                         }
                     }
                     */
-                    
+
                     // Payment Data
-                    if (isset($orderSW['customer']['paymentData']) && is_array($orderSW['customer']['paymentData'])) {
-                        $customerOrderPaymentInfo = $order->getPaymentInfo();
+                    if (isset($swOrder['customer']['paymentData']) && is_array($swOrder['customer']['paymentData'])) {
+                        $customerOrderPaymentInfo = $jtlOrder->getPaymentInfo();
                         if ($customerOrderPaymentInfo === null) {
                             $customerOrderPaymentInfo = Mmc::getModel('CustomerOrderPaymentInfo');
-                            $customerOrderPaymentInfo->setCustomerOrderId($order->getId())
+                            $customerOrderPaymentInfo->setCustomerOrderId($jtlOrder->getId())
                                 ->setAccountHolder(sprintf(
                                     '%s %s',
-                                    $orderSW['billing']['firstName'],
-                                    $orderSW['billing']['lastName']
+                                    $swOrder['billing']['firstName'],
+                                    $swOrder['billing']['lastName']
                                 ));
                         }
-                        
-                        foreach ($orderSW['customer']['paymentData'] as $dataSW) {
+
+                        foreach ($swOrder['customer']['paymentData'] as $dataSW) {
                             if (isset($dataSW['bic']) && strlen($dataSW['bic']) > 0
                                 && isset($dataSW['iban']) && strlen($dataSW['iban']) > 0) {
                                 $customerOrderPaymentInfo->setBic($dataSW['bic'])
@@ -296,8 +304,8 @@ class CustomerOrder extends DataController
                                 break;
                             }
                         }
-                        
-                        $order->setPaymentInfo($customerOrderPaymentInfo);
+
+                        $jtlOrder->setPaymentInfo($customerOrderPaymentInfo);
                     }
 
                     // Update order status
@@ -312,13 +320,13 @@ class CustomerOrder extends DataController
                         Shopware()->Models()->persist($swOrderObj);
                         Shopware()->Models()->flush();
                     }
-                    
-                    $result[] = $order;
+
+                    $result[] = $jtlOrder;
                 } catch (\Exception $exc) {
                     Logger::write(ExceptionFormatter::format($exc), Logger::WARNING, 'controller');
                 }
             }
-            
+
             $action->setResult($result);
         } catch (\Exception $exc) {
             $err = new Error();
@@ -326,10 +334,10 @@ class CustomerOrder extends DataController
             $err->setMessage($exc->getMessage());
             $action->setError($err);
         }
-        
+
         return $action;
     }
-    
+
     /**
      * Check if dhl postnumber, postoffice or packstation is available
      * Add it or our street information
@@ -342,11 +350,11 @@ class CustomerOrder extends DataController
     {
         $property = $dhlInfoPropertyInfo['prop'];
         $name = $dhlInfoPropertyInfo['name'];
-        
+
         if (isset($orderSW['customer']['defaultShippingAddress']['attribute'][$property])
             && $orderSW['customer']['defaultShippingAddress']['attribute'][$property] !== null
             && strlen($orderSW['customer']['defaultShippingAddress']['attribute'][$property]) > 0) {
-            
+
             if ($dhlInfoPropertyInfo['serialized']) {
                 $obj = @unserialize($orderSW['customer']['defaultShippingAddress']['attribute'][$property]);
                 if ($obj !== false) {
@@ -362,7 +370,7 @@ class CustomerOrder extends DataController
             }
         }
     }
-    
+
     /**
      * @param $paymentModuleCode
      * @param array $orderSW
@@ -383,7 +391,7 @@ class CustomerOrder extends DataController
             ));
         }
     }
-    
+
     /**
      * @param $paymentModuleCode
      * @param array $orderSW
@@ -392,13 +400,13 @@ class CustomerOrder extends DataController
     protected function addPayPalPlusInvoice($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
         if ($paymentModuleCode === PaymentTypes::TYPE_PAYPAL_EXPRESS) {
-            
+
             // Invoice
             $result = Shopware()->Db()->fetchAll('SELECT * FROM s_payment_paypal_plus_payment_instruction WHERE ordernumber = ?',
                 [
                     $orderSW['number'],
                 ]);
-            
+
             if (is_array($result) && count($result) > 0) {
                 $order->setPui(sprintf(
                     'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
@@ -418,7 +426,7 @@ class CustomerOrder extends DataController
             }
         }
     }
-    
+
     /**
      * @param $paymentModuleCode
      * @param array $orderSW
@@ -427,13 +435,13 @@ class CustomerOrder extends DataController
     protected function addPayPalPlusInstallment($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
         if ($paymentModuleCode === PaymentTypes::TYPE_PAYPAL_EXPRESS) {
-            
+
             // Installment
             $result = Shopware()->Db()->fetchAll('SELECT * FROM s_plugin_paypal_installments_financing WHERE orderNumber = ?',
                 [
                     $orderSW['number'],
                 ]);
-            
+
             if (is_array($result) && count($result) > 0) {
                 $order->setPui(sprintf(
                     'Vielen Dank das Sie sich für die Zahlungsart Ratenzahlung powered by PayPal entschieden haben. Sie Zahlen Ihre Bestellung in %s Monatsraten je %s %s ab. Die zusätzlichen Kosten für diesen Service belaufen sich auf %s %s (Umsatzsteuerfrei).',
@@ -447,7 +455,7 @@ class CustomerOrder extends DataController
             }
         }
     }
-    
+
     /**
      * @param $paymentModuleCode
      * @param array $orderSW
@@ -457,7 +465,7 @@ class CustomerOrder extends DataController
     {
         if ($paymentModuleCode === 'SwagPaymentPayPalUnified' || $paymentModuleCode === 'SwagPaymentPayPalUnifiedInstallments'
             && isset($orderSW['attribute']['swagPaypalUnifiedPaymentType'])) {
-            
+
             switch ($orderSW['attribute']['swagPaypalUnifiedPaymentType']) {
                 case 'PayPalExpress':
                     $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_EXPRESS;
@@ -470,7 +478,7 @@ class CustomerOrder extends DataController
                     break;
                 case 'PayPalPlusInvoice':
                     $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_PLUS;
-                    
+
                     // Invoice
                     $result = Shopware()->Db()
                         ->fetchAll('SELECT *
@@ -479,7 +487,7 @@ class CustomerOrder extends DataController
                             [
                                 $orderSW['number'],
                             ]);
-                    
+
                     if (is_array($result) && count($result) > 0) {
                         $order->setPui(sprintf(
                             'Bitte überweisen Sie %s %s bis %s an folgendes Konto: %s Verwendungszweck: %s',
@@ -496,11 +504,11 @@ class CustomerOrder extends DataController
                             $result[0]['reference']
                         ));
                     }
-                    
+
                     break;
                 case 'PayPalInstallments':
                     $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_PLUS;
-                    
+
                     // Installment
                     $result = Shopware()->Db()
                         ->fetchAll('SELECT *
@@ -509,7 +517,7 @@ class CustomerOrder extends DataController
                             [
                                 $orderSW['temporaryId'],
                             ]);
-                    
+
                     if (is_array($result) && count($result) > 0) {
                         $order->setPui(sprintf(
                             'Vielen Dank das Sie sich für die Zahlungsart Ratenzahlung
@@ -523,17 +531,17 @@ class CustomerOrder extends DataController
                             $order->getCurrencyIso()
                         ));
                     }
-                    
+
                     break;
                 default:
                     $paymentModuleCode = PaymentTypes::TYPE_PAYPAL;
                     break;
             }
-            
+
             $order->setPaymentModuleCode($paymentModuleCode);
         }
     }
-    
+
     /**
      * @param $paymentModuleCode
      * @param array $orderSW
@@ -542,7 +550,7 @@ class CustomerOrder extends DataController
     protected function addHeidelpayInvoice($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
         if ($paymentModuleCode === PaymentTypes::TYPE_HEIDELPAY) {
-            
+
             // Invoice
             if (strlen(strip_tags($orderSW['comment'])) > 10) {
                 $order->setPui(html_entity_decode(strip_tags($orderSW['comment'])));
@@ -551,11 +559,11 @@ class CustomerOrder extends DataController
                     [
                         $orderSW['transactionId'],
                     ]);
-                
+
                 if (empty($shortid) || is_null($shortid)) {
                     return;
                 }
-                
+
                 $order->setPui(sprintf(
                     'Bitte überweisen Sie uns den Betrag von %s %s auf folgendes Konto: Kontoinhaber: Heidelberger Payment GmbH Konto-Nr.: 5320130 Bankleitzahl: 37040044 IBAN: DE89370400440532013000 BIC: COBADEFFXXX Geben Sie als Verwendungszweck bitte ausschließlich diese Identifikationsnummer an: %s',
                     number_format((float)$orderSW['invoiceAmount'], 2),
@@ -565,8 +573,8 @@ class CustomerOrder extends DataController
             }
         }
     }
-    
-    public static function calcShippingVat(\jtl\Connector\Shopware\Model\CustomerOrder &$order)
+
+    public static function calcShippingVat(CustomerOrderModel $order)
     {
         return max(array_map(function ($item) {
             return $item->getVat();
