@@ -1,3 +1,8 @@
+2.2.4 (unreleased)
+------
+- CO-417 Removed not needed category level table for performance optimisation
+- CO-549 Use calcShippingVat method only as fallback
+
 2.2.3.1
 ------
 - Save product translations by language and not by locale
