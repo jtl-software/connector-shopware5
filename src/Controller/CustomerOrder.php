@@ -40,13 +40,14 @@ class CustomerOrder extends DataController
     const DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION = 'moptwunschpaketpreferredlocation';
     const DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_NAME = 'moptwunschpaketpreferredneighborname';
     const DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_ADDRESS = 'moptwunschpaketpreferredneighboraddress';
+    const DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE = 'moptwunschpaketaddresstype';
 
     /**
      * @var string[]
      */
     protected static $swDhlWunschpaketAttributes = [
-        'moptwunschpaketaddresstype' => false,
         'moptwunschpaketyellowboxenable' => false,
+        self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE => false,
         self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION => true,
         self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_NAME => true,
         self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_ADDRESS => true,
@@ -598,13 +599,22 @@ class CustomerOrder extends DataController
      */
     protected function addWunschpaketAttributes(CustomerOrderModel $order, array $swAttributes)
     {
+        $mappings = [
+            self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE => 'dhl_wunschpaket_type',
+            self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION => 'dhl_wunschpaket_location',
+            self::DHL_WUNSCHPAKET_ATTRIBUTE_DAY => 'dhl_wunschpaket_day',
+            self::DHL_WUNSCHPAKET_ATTRIBUTE_TIME => 'dhl_wunschpaket_time',
+        ];
+
         foreach ($swAttributes as $attributeName => $value) {
             switch ($attributeName) {
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_DAY:
-                    $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_day')->setValue($value));
-                    break;
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_TIME:
-                    $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_time')->setValue($value));
+                case self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION:
+                case self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE:
+                    if(isset($mappings[$attributeName])) {
+                        $order->addAttribute((new CustomerOrderAttr())->setKey($mappings[$attributeName])->setValue($value));
+                    }
                     break;
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_NAME:
                     $parts = array_map('trim', explode(',', $value, 2));
