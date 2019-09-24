@@ -1045,8 +1045,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Logger::write('Create payment trigger...', Logger::INFO, 'install');
 
         $sql = '
-            DELIMITER $$
-            DROP TRIGGER IF EXISTS `jtl_connector_payment`$$
+            DROP TRIGGER IF EXISTS `jtl_connector_payment`;
             CREATE TRIGGER `jtl_connector_payment` 
                 AFTER UPDATE ON `s_order` FOR EACH ROW
             BEGIN
@@ -1056,8 +1055,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     DELETE FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
                     INSERT IGNORE INTO jtl_connector_payment VALUES (@paymentId, NEW.id, \'\', IF(new.cleareddate IS NULL, now(), new.cleareddate), \'\', NEW.invoice_amount, NEW.transactionID);
                 END IF;
-            END$$
-            DELIMITER ;
+            END;
         ';
 
         Shopware()->Db()->query($sql);
