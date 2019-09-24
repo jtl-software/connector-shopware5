@@ -27,6 +27,7 @@ use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\IdConcatenator;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
+use TheIconic\NameParser\Parser;
 
 /**
  * CustomerOrder Controller
@@ -268,14 +269,14 @@ class CustomerOrder extends DataController
 
                     $jtlOrder->addItem($item);
 
-                    $dhWunschpaketAttributes = [];
+                    $dhlWUnschpaketAttributes = [];
                     // Attributes
                     if (isset($swOrder['attribute']) && !is_null($swOrder['attribute'])) {
                         $excludes = array_merge(['id', 'orderId'], array_keys(self::$swDhlWunschpaketAttributes));
 
                         foreach ($swOrder['attribute'] as $key => $value) {
                             if (isset(self::$swDhlWunschpaketAttributes[$key]) && self::$swDhlWunschpaketAttributes[$key] === true && !empty($value)) {
-                                $dhWunschpaketAttributes[$key] = $value;
+                                $dhlWUnschpaketAttributes[$key] = $value;
                                 continue;
                             }
 
@@ -296,8 +297,8 @@ class CustomerOrder extends DataController
                         }
                     }
 
-                    if (count($dhWunschpaketAttributes) > 0) {
-                        $this->addWunschpaketAttributes($jtlOrder, $dhWunschpaketAttributes);
+                    if (count($dhlWUnschpaketAttributes) > 0) {
+                        $this->addWunschpaketAttributes($jtlOrder, $dhlWUnschpaketAttributes);
                     }
 
                     // Payment Data
@@ -612,18 +613,35 @@ class CustomerOrder extends DataController
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_TIME:
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION:
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE:
-                    if(isset($mappings[$attributeName])) {
+                    if (isset($mappings[$attributeName])) {
                         $order->addAttribute((new CustomerOrderAttr())->setKey($mappings[$attributeName])->setValue($value));
                     }
                     break;
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_NAME:
-                    $parts = array_map('trim', explode(',', $value, 2));
-                    if (count($parts) == 1) {
-                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_last_name')->setValue($parts[0]));
-                    } else {
-                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_first_name')->setValue($parts[1]));
-                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_last_name')->setValue($parts[0]));
+                    $partsMapping = [
+                        'salutation' => 'dhl_wunschpaket_neighbour_salutation',
+                        'firstname' => 'dhl_wunschpaket_neighbour_first_name',
+                        'middlename' => 'dhl_wunschpaket_neighbour_first_name',
+                        'lastname' => 'dhl_wunschpaket_neighbour_last_name',
+                    ];
+
+                    $nameParts = (new Parser())->parse($value)->getAll();
+                    $nameAttributes = [];
+                    foreach ($nameParts as $part => $value) {
+                        if (isset($partsMapping[$part])) {
+                            if (!isset($nameAttributes[$partsMapping[$part]])) {
+                                $nameAttributes[$partsMapping[$part]] = (new CustomerOrderAttr())->setKey($partsMapping[$part])->setValue($value);
+                            } else {
+                                $newValue = $nameAttributes[$partsMapping[$part]]->getValue() . ' ' . $value;
+                                $nameAttributes[$partsMapping[$part]]->setValue($newValue);
+                            }
+                        }
                     }
+
+                    foreach ($nameAttributes as $nameAttribute) {
+                        $order->addAttribute($nameAttribute);
+                    }
+
                     break;
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_ADDRESS:
                     $parts = array_map('trim', explode(',', $value, 2));

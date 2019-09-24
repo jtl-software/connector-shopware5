@@ -26,7 +26,8 @@
         "jtl/connector": "^2.6",
         "symfony/yaml": "^3.4",
         "monolog/monolog": "^1.23",
-        "phing/phing": "^2.16"
+        "phing/phing": "^2.16",
+        "theiconic/name-parser": "^0.1.1"
     },
     "autoload": {
         "psr-4": {
