@@ -301,6 +301,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.2':
             case '2.2.3':
             case '2.2.3.1':
+                $this->createPaymentTrigger();
                 break;
             default:
                 return false;
