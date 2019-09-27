@@ -188,7 +188,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->Form()->setElement('boolean', self::DELETE_USER_DATA, [
             'label' => 'Linking Tabellen nach Deinstallation löschen',
             'required' => true,
-            'value' => false,
+            'value' => true,
             'position' => 2
         ]);
     }
