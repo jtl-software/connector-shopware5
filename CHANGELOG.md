@@ -2,6 +2,7 @@
 ------
 - CO-417 Removed not needed category level table for performance optimisation
 - CO-549 Use calcShippingVat method only as fallback
+- CO-594 Keep connector tables if you want
 
 2.2.3.1
 ------
