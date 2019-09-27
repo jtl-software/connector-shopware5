@@ -10,13 +10,17 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
 use Shopware\Components\Plugin\CachedConfigReader;
 use Shopware\Models\Config\Form;
+use Shopware\Models\Shop\Shop;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Symfony\Component\Yaml\Yaml;
 
 define('CONNECTOR_DIR', __DIR__);
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const KEEP_DATA = 'keep_data';
+    const DELETE_USER_DATA = 'delete_user_data';
+    const CONNECTOR_URL = 'connector_url';
+    const AUTH_TOKEN = 'auth_token';
 
     /**
      * @var Config
@@ -130,36 +134,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'onGetControllerPathFrontend'
         );
 
-        $form = $this->Form();
-
-        // Connector Auth Token
-        $form->setElement('text', 'auth_token',
-            array(
-                'label' => 'Passwort',
-                'required' => true,
-                'value' => $this->createGuid()
-            )
-        );
-
-        /** @var \Shopware\Models\Shop\Shop $shop */
-        $shop = \jtl\Connector\Shopware\Utilities\Shop::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findOneBy(['default' => 1, 'active' => 1]);
-
-        $url = 'Hauptshop nicht gefunden';
-        if (!is_null($shop)) {
-            $proto = $shop->getSecure() ? 'https' : 'http';
-            $url = sprintf('%s://%s%s/%s', $proto, $shop->getHost(), $shop->getBasePath(), 'jtlconnector/');
-        }
-
-        // Connector URL
-        $form->setElement('text', 'connector_url',
-            array(
-                'label' => 'Connector Url (Info! Bitte nicht bearbeiten)',
-                'required' => true,
-                'value' => $url
-            )
-        );
-
-        $this->extendConfigFormWithKeepUserDataField($form);
+        $this->setConfigFormElements();
 
         $this->createProductChecksumTable();
         $this->createCategoryLevelTable();
@@ -175,16 +150,51 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         );
     }
 
-
     /**
-     * @param Form $form
+     * @return void
      */
-    protected function extendConfigFormWithKeepUserDataField(Form $form)
+    public function setConfigFormElements()
     {
-        $form->setElement('boolean', self::KEEP_DATA, [
-            'label' => 'Tabellen nach Deinstallation nicht löschen',
+        /** @var Shop $shop */
+        $shop = ShopUtil::entityManager()->getRepository(Shop::class)->findOneBy(['default' => 1, 'active' => 1]);
+
+        $url = 'Hauptshop nicht gefunden';
+        if (!is_null($shop)) {
+            $proto = $shop->getSecure() ? 'https' : 'http';
+            $url = sprintf('%s://%s%s/%s', $proto, $shop->getHost(), $shop->getBasePath(), 'jtlconnector/');
+        }
+
+        // Connector URL
+        $this->Form()->setElement('text', self::CONNECTOR_URL,
+            array(
+                'label' => 'Connector Url (Info! Bitte nicht bearbeiten)',
+                'required' => true,
+                'value' => $url,
+                'position' => 0
+            )
+        );
+
+        $authToken = $this->createGuid();
+        $tokenElement = $this->form->getElement(self::AUTH_TOKEN);
+        if(!is_null($tokenElement) && !empty($tokenElement->getValue())) {
+            $authToken = $tokenElement->getValue();
+        }
+
+        // Connector Auth Token
+        $this->Form()->setElement('text', self::AUTH_TOKEN,
+            array(
+                'label' => 'Passwort',
+                'required' => true,
+                'value' => $authToken,
+                'position' => 1
+            )
+        );
+
+        $this->Form()->setElement('boolean', self::DELETE_USER_DATA, [
+            'label' => 'Linking Tabellen nach Deinstallation löschen',
             'required' => true,
-            'value' => false
+            'value' => false,
+            'position' => 2
         ]);
     }
 
@@ -320,7 +330,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.2':
             case '2.2.3':
             case '2.2.3.1':
-                $this->extendConfigFormWithKeepUserDataField($this->Form());
+                $this->setConfigFormElements();
                 break;
             default:
                 return false;
@@ -394,7 +404,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $configReader = Shopware()->Container()->get('shopware.plugin.cached_config_reader');
         $pluginConfig = $configReader->getByPluginName('jtlconnector');
 
-        if(!isset($pluginConfig[self::KEEP_DATA]) || $pluginConfig[self::KEEP_DATA] === false) {
+        if(!isset($pluginConfig[self::DELETE_USER_DATA]) || $pluginConfig[self::DELETE_USER_DATA] === true) {
             $this->dropMappingTable();
         }
         Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
