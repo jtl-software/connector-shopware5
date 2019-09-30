@@ -12,6 +12,7 @@ use jtl\Connector\Model\Identity;
 use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Result\Action;
 use jtl\Connector\Shopware\Model\CustomerOrder as CustomerOrderModel;
+use jtl\Connector\Shopware\Model\CustomerOrderAttr;
 use jtl\Connector\Shopware\Model\CustomerOrderItem;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Payment as PaymentUtil;
@@ -26,6 +27,7 @@ use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\IdConcatenator;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
+use TheIconic\NameParser\Parser;
 
 /**
  * CustomerOrder Controller
@@ -34,11 +36,31 @@ use Shopware\Models\Order\Status;
  */
 class CustomerOrder extends DataController
 {
+    const DHL_WUNSCHPAKET_ATTRIBUTE_DAY = 'moptwunschpaketpreferredday';
+    const DHL_WUNSCHPAKET_ATTRIBUTE_TIME = 'moptwunschpaketpreferredtime';
+    const DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION = 'moptwunschpaketpreferredlocation';
+    const DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_NAME = 'moptwunschpaketpreferredneighborname';
+    const DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_ADDRESS = 'moptwunschpaketpreferredneighboraddress';
+    const DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE = 'moptwunschpaketaddresstype';
+
+    /**
+     * @var string[]
+     */
+    protected static $swDhlWunschpaketAttributes = [
+        'moptwunschpaketyellowboxenable' => false,
+        self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE => false,
+        self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION => true,
+        self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_NAME => true,
+        self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_ADDRESS => true,
+        self::DHL_WUNSCHPAKET_ATTRIBUTE_DAY => true,
+        self::DHL_WUNSCHPAKET_ATTRIBUTE_TIME => true,
+    ];
+
     /**
      * Pull
      *
-     * @param \jtl\Connector\Core\Model\QueryFilter $queryFilter
-     * @return \jtl\Connector\Result\Action
+     * @param QueryFilter $queryFilter
+     * @return Action
      */
     public function pull(QueryFilter $queryFilter)
     {
@@ -140,8 +162,7 @@ class CustomerOrder extends DataController
                                 $swDetail['price'] = Money::AsNet($swDetail['price'], $swDetail['taxRate']);
                                 break;
                             case 1: // price is net
-                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'],
-                                    $swDetail['taxRate']), 4);
+                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'], $swDetail['taxRate']), 4);
                                 break;
                         }
 
@@ -248,11 +269,17 @@ class CustomerOrder extends DataController
 
                     $jtlOrder->addItem($item);
 
+                    $dhlWUnschpaketAttributes = [];
                     // Attributes
                     if (isset($swOrder['attribute']) && !is_null($swOrder['attribute'])) {
-                        $excludes = ['id', 'orderId'];
+                        $excludes = array_merge(['id', 'orderId'], array_keys(self::$swDhlWunschpaketAttributes));
 
                         foreach ($swOrder['attribute'] as $key => $value) {
+                            if (isset(self::$swDhlWunschpaketAttributes[$key]) && self::$swDhlWunschpaketAttributes[$key] === true && !empty($value)) {
+                                $dhlWUnschpaketAttributes[$key] = $value;
+                                continue;
+                            }
+
                             if (in_array($key, $excludes)) {
                                 continue;
                             }
@@ -270,18 +297,9 @@ class CustomerOrder extends DataController
                         }
                     }
 
-                    /*
-                    for ($i = 1; $i <= 6; $i++) {
-                        if (isset($orderSW['attribute']["attribute{$i}"]) && strlen($orderSW['attribute']["attribute{$i}"]) > 0) {
-                            $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
-                            $customerOrderAttr->map(true, DataConverter::toObject($orderSW['attribute']));
-                            $customerOrderAttr->setKey("attribute{$i}")
-                                ->setValue((string) $orderSW['attribute']["attribute{$i}"]);
-
-                            $order->addAttribute($customerOrderAttr);
-                        }
+                    if (count($dhlWUnschpaketAttributes) > 0) {
+                        $this->addWunschpaketAttributes($jtlOrder, $dhlWUnschpaketAttributes);
                     }
-                    */
 
                     // Payment Data
                     if (isset($swOrder['customer']['paymentData']) && is_array($swOrder['customer']['paymentData'])) {
@@ -393,9 +411,10 @@ class CustomerOrder extends DataController
     }
 
     /**
-     * @param $paymentModuleCode
+     * @param string $paymentModuleCode
      * @param array $orderSW
      * @param CustomerOrderModel $order
+     * @throws \Exception
      */
     protected function addPayPalPlusInvoice($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
@@ -457,9 +476,10 @@ class CustomerOrder extends DataController
     }
 
     /**
-     * @param $paymentModuleCode
+     * @param string $paymentModuleCode
      * @param array $orderSW
      * @param CustomerOrderModel $order
+     * @throws \Exception
      */
     protected function addPayPalUnified($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
@@ -572,6 +592,77 @@ class CustomerOrder extends DataController
                 ));
             }
         }
+    }
+
+    /**
+     * @param CustomerOrderModel $order
+     * @param array $swAttributes
+     */
+    protected function addWunschpaketAttributes(CustomerOrderModel $order, array $swAttributes)
+    {
+        $mappings = [
+            self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE => 'dhl_wunschpaket_type',
+            self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION => 'dhl_wunschpaket_location',
+            self::DHL_WUNSCHPAKET_ATTRIBUTE_DAY => 'dhl_wunschpaket_day',
+            self::DHL_WUNSCHPAKET_ATTRIBUTE_TIME => 'dhl_wunschpaket_time',
+        ];
+
+        foreach ($swAttributes as $attributeName => $value) {
+            switch ($attributeName) {
+                case self::DHL_WUNSCHPAKET_ATTRIBUTE_DAY:
+                case self::DHL_WUNSCHPAKET_ATTRIBUTE_TIME:
+                case self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION:
+                case self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE:
+                    if (isset($mappings[$attributeName])) {
+                        $order->addAttribute((new CustomerOrderAttr())->setKey($mappings[$attributeName])->setValue($value));
+                    }
+                    break;
+                case self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_NAME:
+                    $partsMapping = [
+                        'salutation' => 'dhl_wunschpaket_neighbour_salutation',
+                        'firstname' => 'dhl_wunschpaket_neighbour_first_name',
+                        'middlename' => 'dhl_wunschpaket_neighbour_first_name',
+                        'lastname' => 'dhl_wunschpaket_neighbour_last_name',
+                    ];
+
+                    $nameParts = (new Parser())->parse($value)->getAll();
+                    $nameAttributes = [];
+                    foreach ($nameParts as $part => $value) {
+                        if (isset($partsMapping[$part])) {
+                            if (!isset($nameAttributes[$partsMapping[$part]])) {
+                                $nameAttributes[$partsMapping[$part]] = (new CustomerOrderAttr())->setKey($partsMapping[$part])->setValue($value);
+                            } else {
+                                $newValue = $nameAttributes[$partsMapping[$part]]->getValue() . ' ' . $value;
+                                $nameAttributes[$partsMapping[$part]]->setValue($newValue);
+                            }
+                        }
+                    }
+
+                    foreach ($nameAttributes as $nameAttribute) {
+                        $order->addAttribute($nameAttribute);
+                    }
+
+                    break;
+                case self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_ADDRESS:
+                    $parts = array_map('trim', explode(',', $value, 2));
+                    $streetParts = [];
+                    $pattern = '/^(?P<street>\d*\D+[^A-Z]) (?P<number>[^a-z]?\D*\d+.*)$/';
+                    $matchResult = preg_match($pattern, $parts[0], $streetParts);
+                    if (isset($streetParts['street'])) {
+                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_street')->setValue($streetParts['street']));
+                    }
+
+                    if (isset($streetParts['number'])) {
+                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_house_number')->setValue($streetParts['number']));
+                    }
+
+                    if (isset($parts[1])) {
+                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_address_addition')->setValue($parts[1]));
+                    }
+                    break;
+            }
+        }
+        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_feeder_system')->setValue('shopware5'));
     }
 
     public static function calcShippingVat(CustomerOrderModel $order)
