@@ -136,9 +136,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $this->setConfigFormElements();
         $this->createProductChecksumTable();
-        $this->createCategoryLevelTable();
         $this->createMappingTables();
-        $this->fillCategoryLevelTable();
         $this->fillCategoryTable();
         $this->fillPaymentTable();
         $this->fillCrossSellingGroupTable();
