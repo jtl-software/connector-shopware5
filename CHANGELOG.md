@@ -1,9 +1,10 @@
-2.2.4 (unreleased)
+2.2.4
 ------
 - CO-417 Removed not needed category level table for performance optimisation
-- CO-549 Use calcShippingVat method only as fallback
-- CO-594 Keep connector tables if you want
-- CO-572 DHL-Wunschpaket plugin integration to book Wunschpaket services over JTL-Shipping
+- CO-540 Cleared date will be used as payment date if possible, existing payment entries only deleted if necessary 
+- CO-549 Assigned tax rate for shipping order items will be used if possible
+- CO-572 DHL-Wunschpaket related attributes will be imported into JTL-Wawi if the DHL-Wunschpaket plugin is installed 
+- CO-594 Connector tables can be kept after connector deinstallation if desired
 
 2.2.3.1
 ------
