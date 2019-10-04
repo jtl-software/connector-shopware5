@@ -125,8 +125,6 @@ class CustomerOrder extends DataMapper
     public function save(CustomerOrderModel $customerOrder)
     {
         $orderSW = null;
-        $result = new CustomerOrderModel;
-
         $this->prepareOrderAssociatedData($customerOrder, $orderSW);
         $this->prepareCustomerAssociatedData($customerOrder, $orderSW);
         $this->prepareCurrencyFactorAssociatedData($customerOrder, $orderSW);
@@ -144,9 +142,9 @@ class CustomerOrder extends DataMapper
 
         // CustomerOrderAttr
 
-        $result->setId(new Identity($orderSW->getId(), $customerOrder->getId()->getHost()));
+        $customerOrder->setId(new Identity($orderSW->getId(), $customerOrder->getId()->getHost()));
 
-        return $result;
+        return $customerOrder;
     }
 
     protected function deleteOrderData(CustomerOrderModel &$customerOrder)
@@ -281,12 +279,10 @@ class CustomerOrder extends DataMapper
 
     protected function prepareDispatchAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
     {
-        $dispatchSW = $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($customerOrder->getShippingMethodCode());
-        if ($dispatchSW === null) {
-            throw new \Exception(sprintf('Dispatch with code (%s) not found', $customerOrder->getShippingMethodCode()));
+        $dispatchSW = $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($customerOrder->getShippingMethodName());
+        if ($dispatchSW !== null) {
+            $orderSW->setDispatch($dispatchSW);
         }
-
-        $orderSW->setDispatch($dispatchSW);
     }
 
     protected function prepareLocaleAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
