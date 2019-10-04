@@ -1,3 +1,7 @@
+Unreleased
+------
+- CO-569 Removed not existent getter calls in customer order mapper
+
 2.2.4
 ------
 - CO-417 Removed not needed category level table for performance optimisation
