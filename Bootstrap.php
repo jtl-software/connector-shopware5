@@ -1,25 +1,33 @@
 <?php
-use jtl\Connector\Shopware\Utilities\Mmc;
-use jtl\Connector\Core\System\Check as CheckUtil;
-use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Core\Config\Config;
 use jtl\Connector\Core\IO\Path;
-use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\System\Check as CheckUtil;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
+use Shopware\Components\Plugin\CachedConfigReader;
+use Shopware\Models\Category\Category;
+use Shopware\Models\Shop\Shop;
 use Symfony\Component\Yaml\Yaml;
 
 define('CONNECTOR_DIR', __DIR__);
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
+    const DELETE_USER_DATA = 'delete_user_data';
+    const CONNECTOR_URL = 'connector_url';
+    const AUTH_TOKEN = 'auth_token';
+
     /**
      * @var Config
      */
     protected $config;
 
-    
+
     public function __construct($name, Enlight_Config $info = null)
     {
 
@@ -31,7 +39,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $eventManager = Shopware()->Container()->get('events');
         $eventManager->addSubscriber(new \jtl\Connector\Shopware\Subscriber\Translation());
     }
-    
+
     public function getCapabilities()
     {
         return array(
@@ -93,9 +101,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 ]
             ), JSON_PRETTY_PRINT));
         }
-        
+
         $this->config = new Config($config_file);
-        
+
         Logger::write('Checking shopware version...', Logger::INFO, 'install');
 
         if (!$this->assertMinimumVersion('5.2.0')) {
@@ -126,19 +134,26 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'onGetControllerPathFrontend'
         );
 
-        $form = $this->Form();
+        $this->setConfigFormElements();
+        $this->createProductChecksumTable();
+        $this->createMappingTables();
+        $this->fillCategoryTable();
+        $this->fillPaymentTable();
+        $this->fillCrossSellingGroupTable();
 
-        // Connector Auth Token
-        $form->setElement('text', 'auth_token',
-            array(
-                'label' => 'Passwort',
-                'required' => true,
-                'value' => $this->createGuid()
-            )
+        return array(
+            'success' => true,
+            'invalidateCache' => array('backend', 'proxy')
         );
+    }
 
-        /** @var \Shopware\Models\Shop\Shop $shop */
-        $shop = \jtl\Connector\Shopware\Utilities\Shop::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findOneBy(['default' => 1, 'active' => 1]);
+    /**
+     * @return void
+     */
+    public function setConfigFormElements()
+    {
+        /** @var Shop $shop */
+        $shop = ShopUtil::entityManager()->getRepository(Shop::class)->findOneBy(['default' => 1, 'active' => 1]);
 
         $url = 'Hauptshop nicht gefunden';
         if (!is_null($shop)) {
@@ -147,26 +162,33 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         }
 
         // Connector URL
-        $form->setElement('text', 'connector_url',
-            array(
-                'label' => 'Connector Url (Info! Bitte nicht bearbeiten)',
-                'required' => true,
-                'value' => $url
-            )
-        );
+        $this->Form()->setElement('text', self::CONNECTOR_URL, [
+            'label' => 'Connector Url (Info! Bitte nicht bearbeiten)',
+            'required' => true,
+            'value' => $url,
+            'position' => 0
+        ]);
 
-        $this->createProductChecksumTable();
-        $this->createCategoryLevelTable();
-        $this->createMappingTables();
-        $this->fillCategoryLevelTable();
-        $this->fillCategoryTable();
-        $this->fillPaymentTable();
-        $this->fillCrossSellingGroupTable();
-        
-        return array(
-            'success' => true,
-            'invalidateCache' => array('backend', 'proxy')
-        );
+        $authToken = $this->createGuid();
+        $tokenElement = $this->form->getElement(self::AUTH_TOKEN);
+        if (!is_null($tokenElement) && !empty($tokenElement->getValue())) {
+            $authToken = $tokenElement->getValue();
+        }
+
+        // Connector Auth Token
+        $this->Form()->setElement('text', self::AUTH_TOKEN, [
+            'label' => 'Passwort',
+            'required' => true,
+            'value' => $authToken,
+            'position' => 1
+        ]);
+
+        $this->Form()->setElement('boolean', self::DELETE_USER_DATA, [
+            'label' => 'Linking Tabellen nach Deinstallation löschen',
+            'required' => true,
+            'value' => true,
+            'position' => 2
+        ]);
     }
 
     public function update($oldVersion)
@@ -232,8 +254,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->createCrossSellingGroupTable();
                 $related = jtl\Connector\Shopware\Model\CrossSellingGroup::RELATED;
                 $similar = jtl\Connector\Shopware\Model\CrossSellingGroup::SIMILAR;
-                $relatedGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?',[$related]);
-                $similarGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?',[$similar]);
+                $relatedGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?', [$related]);
+                $similarGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?', [$similar]);
 
                 if ($relatedGroupId === null && $similarGroupId === null) {
                     $this->fillCrossSellingGroupTable();
@@ -301,6 +323,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.2':
             case '2.2.3':
             case '2.2.3.1':
+                Shopware()->Db()->query("DROP TABLE IF EXISTS `jtl_connector_category_level`");
+                $this->createPaymentTrigger();
+                $this->setConfigFormElements();
                 break;
             default:
                 return false;
@@ -335,7 +360,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     private function dropMappingTable()
     {
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_product_checksum`');
-        Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_category_level`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_category`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_detail`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_customer`');
@@ -370,7 +394,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function uninstall()
     {
-        $this->dropMappingTable();
+        /** @var CachedConfigReader $configReader */
+        $configReader = Shopware()->Container()->get('shopware.plugin.cached_config_reader');
+        $pluginConfig = $configReader->getByPluginName('jtlconnector');
+
+        if (!isset($pluginConfig[self::DELETE_USER_DATA]) || $pluginConfig[self::DELETE_USER_DATA] === true) {
+            $this->dropMappingTable();
+        }
         Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
 
         return true;
@@ -401,9 +431,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                         throw new \Exception('Suhosin is active and the PHP extension \'phar\' needs to be on the executor include whitelist');
                     }
                 }
-    
+
                 $loader = require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
-                if (is_bool($loader)){
+                if (is_bool($loader)) {
                     $loader = require('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
                 }
             } else {
@@ -411,12 +441,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             }
         } elseif (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
             $loader = require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
-            if (is_bool($loader)){
+            if (is_bool($loader)) {
                 $loader = require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
             }
         }
 
-        if($loader instanceof \Composer\Autoload\ClassLoader) {
+        if ($loader instanceof \Composer\Autoload\ClassLoader) {
             $loader->add('', CONNECTOR_DIR . '/plugins');
         }
     }
@@ -454,8 +484,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $i = 0;
         while ($product = $res->fetch()) {
-            $productSW = Shopware()->Models()->find('Shopware\Models\Article\Article', (int) $product['articleID']);
-            $detailSW = Shopware()->Models()->find('Shopware\Models\Article\Detail', (int) $product['id']);
+            $productSW = Shopware()->Models()->find('Shopware\Models\Article\Article', (int)$product['articleID']);
+            $detailSW = Shopware()->Models()->find('Shopware\Models\Article\Detail', (int)$product['id']);
 
             if ($productSW === null || $detailSW === null) {
                 continue;
@@ -471,9 +501,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 ->setInStock($product['instock'])
                 ->setReleaseDate($product['releasedate'])
                 ->setEan($product['ean']);
-    
+
             if (is_callable([$parentDetailSW, 'setLastStock'])) {
-                $parentDetailSW->setLastStock((int) $product['laststock']);
+                $parentDetailSW->setLastStock((int)$product['laststock']);
             }
 
             $parentDetailSW->setArticle($productSW);
@@ -518,60 +548,34 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Shopware()->Models()->flush();
     }
 
-    private function fillCategoryLevelTable(array $parentIds = null, $level = 0)
-    {
-        $ids = !is_null($parentIds) ? implode(', ', $parentIds) : '';
-        Logger::write(sprintf('fill cross selling group table for level (%s) and ids (%s)', $level, $ids), Logger::INFO, 'install');
-
-        $where = 'WHERE parent IS NULL';
-        if ($parentIds === null) {
-            $parentIds = array();
-            Shopware()->Db()->query('TRUNCATE TABLE jtl_connector_category_level');
-        } else {
-            $where = 'WHERE parent IN (' . implode(',', $parentIds) . ')';
-            $parentIds = array();
-        }
-
-        $categories = Shopware()->Db()->fetchAssoc('SELECT id FROM s_categories ' . $where);
-
-        if (count($categories) > 0) {
-            foreach ($categories as $category) {
-                $parentIds[] = (int) $category['id'];
-
-                $sql = '
-                    INSERT IGNORE INTO jtl_connector_category_level
-                    (
-                        category_id, level
-                    )
-                    VALUES (?,?)
-                ';
-
-                Shopware()->Db()->query($sql, array((int) $category['id'], $level));
-            }
-
-            $this->fillCategoryLevelTable($parentIds, $level + 1);
-        }
-    }
-
     private function fillCategoryTable()
     {
         Logger::write('fill category table...', Logger::INFO, 'install');
 
         // Check Mapping activation
-        /** @var \jtl\Connector\Shopware\Mapper\Category $categoryMapper */
-        $categoryMapper = Mmc::getMapper('Category');
         $shopMapper = Mmc::getMapper('Shop');
-        $categoryCount = $categoryMapper->fetchCountForLevel(2);
-        
-        if ($categoryCount > 0 || $shopMapper->duplicateLocalizationsExist()) {
-            $this->config->save('category.mapping', false);
 
+        /** @var Category $rootCategory */
+        $rootCategory = ShopUtil::entityManager()->getRepository(Category::class)->findOneBy(['parentId' => null]);
+        $l2cExists = false;
+        if ($rootCategory instanceof Category) {
+            /** @var Category $cat */
+            foreach ($rootCategory->getChildren()->toArray() as $cat) {
+                if (!$cat->isLeaf()) {
+                    $l2cExists = true;
+                    break;
+                }
+            }
+        }
+
+        if ($l2cExists || $shopMapper->duplicateLocalizationsExist()) {
+            $this->config->save('category.mapping', false);
             return;
         } else {
             $this->config->save('category.mapping', true);
         }
 
-        $mainShopId = (int) Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops WHERE `default` = 1');
+        $mainShopId = (int)Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops WHERE `default` = 1');
         $shopCategories = Shopware()->Db()->fetchAssoc(
             'SELECT s.id, s.category_id, l.locale
              FROM s_core_shops s
@@ -583,9 +587,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         if (count($shopCategories) > 0) {
             $parentCategoryId = null;
             foreach ($shopCategories as $shopCategory) {
-                $categoryId = (int) $shopCategory['category_id'];
-                if ((int) $shopCategory['id'] == $mainShopId) {
-                    $parentCategoryId = (int) $shopCategory['category_id'];
+                $categoryId = (int)$shopCategory['category_id'];
+                if ((int)$shopCategory['id'] == $mainShopId) {
+                    $parentCategoryId = (int)$shopCategory['category_id'];
 
                     continue;
                 }
@@ -603,7 +607,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 ';
 
                 Shopware()->Db()->query($sql, array($parentCategoryId, LanguageUtil::map($shopCategory['locale']), $categoryId));
-                Shopware()->Db()->delete('jtl_connector_category_level', array('category_id = ?' => $categoryId));
             }
         }
     }
@@ -749,23 +752,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ADD CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_product_checksum`
             ADD CONSTRAINT `jtl_connector_product_checksum2` FOREIGN KEY (`detail_id`) REFERENCES `s_articles_details` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
-        ';
-
-        Shopware()->Db()->query($sql);
-    }
-
-    private function createCategoryLevelTable()
-    {
-        Logger::write('Create category level table...', Logger::INFO, 'install');
-
-        $sql = '
-            CREATE TABLE IF NOT EXISTS `jtl_connector_category_level` (
-              `category_id` int(11) unsigned NOT NULL,
-              `level` int(10) unsigned NOT NULL,
-              PRIMARY KEY (`category_id`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-            ALTER TABLE `jtl_connector_category_level`
-            ADD CONSTRAINT `jtl_connector_category_level` FOREIGN KEY (`category_id`) REFERENCES `s_categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
         ';
 
         Shopware()->Db()->query($sql);
@@ -1020,11 +1006,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         Shopware()->Db()->query($sql);
     }
-    
+
     private function createSpecialProductAttributeTable()
     {
         Logger::write('Create special product attribute table...', Logger::INFO, 'install');
-    
+
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_product_attributes` (
               `product_id` int(11) unsigned NOT NULL,
@@ -1035,7 +1021,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ALTER TABLE `jtl_connector_product_attributes`
             ADD CONSTRAINT `jtl_connector_product_attributes_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
         ';
-    
+
         Shopware()->Db()->query($sql);
     }
 
@@ -1043,18 +1029,19 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         Logger::write('Create payment trigger...', Logger::INFO, 'install');
 
-        $sql = "
+        $sql = '
             DROP TRIGGER IF EXISTS `jtl_connector_payment`;
-            CREATE TRIGGER `jtl_connector_payment` AFTER UPDATE ON `s_order`
-            FOR EACH ROW
+            CREATE TRIGGER `jtl_connector_payment` 
+                AFTER UPDATE ON `s_order` FOR EACH ROW
             BEGIN
-            IF LENGTH(NEW.transactionID) > 0 AND NEW.cleared = 12 THEN
-                    SET @paymentId = (SELECT id FROM jtl_connector_payment WHERE customerOrderId = NEW.id);
+                SET @paymentId = NULL, @transactionId = NULL;
+                SELECT id, transactionID INTO @paymentId, @transactionId FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
+                IF LENGTH(NEW.transactionID) > 0 AND NEW.cleared = 12 AND (@paymentId IS NULL OR (@transactionId IS NOT NULL AND @transactionId != new.transactionID)) THEN
                     DELETE FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
-                    INSERT IGNORE INTO jtl_connector_payment VALUES (if(@paymentId > 0, @paymentId, null), NEW.id, '', now(), '', NEW.invoice_amount, NEW.transactionID);
+                    INSERT IGNORE INTO jtl_connector_payment VALUES (@paymentId, NEW.id, \'\', IF(new.cleareddate IS NULL, now(), new.cleareddate), \'\', NEW.invoice_amount, NEW.transactionID);
                 END IF;
             END;
-        ";
+        ';
 
         Shopware()->Db()->query($sql);
     }

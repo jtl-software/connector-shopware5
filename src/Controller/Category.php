@@ -91,10 +91,6 @@ class Category extends DataController
                     $categoryObj = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
                         ->findOneById($categorySW['id']);
 
-                    // Level
-                    //$category->setLevel($categoryObj->getLevel() - 1);
-                    $category->setLevel((int)$categorySW['categoryLevel']['level'] - 1);
-
                     // Attributes
                     if (isset($categorySW['attribute']) && is_array($categorySW['attribute'])) {
                         $ignoreAttributes = ['id', 'categoryId'];
@@ -134,7 +130,7 @@ class Category extends DataController
                                     $categoryAttrI18n->setCategoryAttrId($categoryAttr->getId())
                                         ->setLanguageISO(LanguageUtil::map($localeName))
                                         ->setName($name)
-                                        ->setValue((string) $translation[$index]);
+                                        ->setValue((string)$translation[$index]);
 
                                     $categoryAttr->addI18n($categoryAttrI18n);
                                     $categoryAttr->setIsTranslated(true);
@@ -237,8 +233,8 @@ class Category extends DataController
         ];
 
         $i18n = (new CategoryI18n())->setLanguageISO($langIso);
-        foreach($propertyMappings as $swProp => $jtlProp) {
-            if(isset($data[$swProp])) {
+        foreach ($propertyMappings as $swProp => $jtlProp) {
+            if (isset($data[$swProp])) {
                 $setter = 'set' . ucfirst($jtlProp);
                 $i18n->{$setter}($data[$swProp]);
             }

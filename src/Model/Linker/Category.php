@@ -18,10 +18,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Category extends \Shopware\Models\Category\Category
 {
-    /**
-     * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\CategoryLevel", mappedBy="category")
-     **/
-    protected $categoryLevel;
 
     /**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\CategoryMapping", mappedBy="category")
@@ -33,27 +29,6 @@ class Category extends \Shopware\Models\Category\Category
      **/
     protected $linker;
 
-    /**
-     * Gets the value of categoryLevel.
-     *
-     * @return CategoryLevel
-     */
-    public function getCategoryLevel()
-    {
-        return $this->categoryLevel;
-    }
-
-    /**
-     * Sets the value of catLevel.
-     *
-     * @param CategoryLevel $catLevel
-     * @return self
-     */
-    public function setCategoryLevel(CategoryLevel $categoryLevel)
-    {
-        $this->categoryLevel = $categoryLevel;
-        return $this;
-    }
 
     /**
      * Gets the value of categoryMapping.

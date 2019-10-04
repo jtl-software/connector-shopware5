@@ -1,3 +1,11 @@
+2.2.4
+------
+- CO-417 Removed not needed category level table for performance optimisation
+- CO-540 Cleared date will be used as payment date if possible, existing payment entries only deleted if necessary 
+- CO-549 Assigned tax rate for shipping order items will be used if possible
+- CO-572 DHL-Wunschpaket related attributes will be imported into JTL-Wawi if the DHL-Wunschpaket plugin is installed 
+- CO-594 Connector tables can be kept after connector deinstallation if desired
+
 2.2.3.1
 ------
 - Save product translations by language and not by locale
