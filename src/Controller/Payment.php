@@ -12,6 +12,7 @@ use jtl\Connector\Core\Utilities\DataConverter;
 use jtl\Connector\Result\Action;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Payment as PaymentUtil;
+use Shopware\Models\Order\Order;
 
 /**
  * Payment Controller
@@ -35,9 +36,25 @@ class Payment extends DataController
             $mapper = Mmc::getMapper('Payment');
             $payments = $mapper->findAllNative($limit);
 
+            $customerOrderMapper = Mmc::getMapper('CustomerOrder');
+
             foreach ($payments as $paymentSW) {
                 $paymentModuleCode = PaymentUtil::map(null, $paymentSW['paymentModuleCode']);
                 $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $paymentSW['paymentModuleCode'];
+
+                /** * @var $orderSW Order */
+                $orderSW = $customerOrderMapper->find($paymentSW['customerOrderId']);
+
+                if(!is_null($orderSW)) {
+                    $orderAttributes = $orderSW->getAttribute();
+
+                    if(!is_null($orderAttributes)) {
+                        $swagPayPalUnifiedPaymentType = $orderAttributes->getSwagPaypalUnifiedPaymentType();
+                        if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode, isset($swagPayPalUnifiedPaymentType))) {
+                            $paymentModuleCode = PaymentUtil::mapPayPalUnified($swagPayPalUnifiedPaymentType);
+                        }
+                    }
+                }
 
                 $payment = Mmc::getModel('Payment');
                 $payment->map(true, DataConverter::toObject($paymentSW, true));

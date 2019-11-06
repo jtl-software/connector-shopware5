@@ -35,7 +35,7 @@ final class Payment
                         return $key;
                     }
                 }
-                
+
                 if ($value === $swCode) {
                     return $key;
                 }
@@ -44,7 +44,43 @@ final class Payment
 
         return null;
     }
-    
+
+    /**
+     * @param $paymentModuleCode string
+     * @param $isSwagPaypalUnifiedPaymentTypeAttributeSet bool
+     * @return bool
+     */
+    public static function isPayPalUnifiedType($paymentModuleCode, $isSwagPaypalUnifiedPaymentTypeAttributeSet)
+    {
+        return ($paymentModuleCode === 'SwagPaymentPayPalUnified' ||
+            $paymentModuleCode === 'SwagPaymentPayPalUnifiedInstallments' &&
+            $isSwagPaypalUnifiedPaymentTypeAttributeSet);
+    }
+
+    /**
+     * @param $swagPayPalUnifiedPaymentType
+     * @return string
+     */
+    public static function mapPayPalUnified($swagPayPalUnifiedPaymentType)
+    {
+        switch ($swagPayPalUnifiedPaymentType) {
+            case 'PayPalExpress':
+                $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_EXPRESS;
+                break;
+            case 'PayPalPlus':
+            case 'PayPalPlusInvoice':
+            case 'PayPalInstallments':
+                $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_PLUS;
+                break;
+            case 'PayPalClassic':
+            default:
+                $paymentModuleCode = PaymentTypes::TYPE_PAYPAL;
+                break;
+        }
+
+        return $paymentModuleCode;
+    }
+
     /**
      * Check if PayPal Plus invoice is installed
      * @return bool
@@ -52,10 +88,10 @@ final class Payment
     public static function usePPPInvoice()
     {
         $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_payment_paypal_plus_payment_instruction\'');
-        
+
         return is_array($mysql_result) && count($mysql_result) > 0;
     }
-    
+
     /**
      * Check if PayPal Plugin >= 1.0.5 is installed
      * @return bool
@@ -63,10 +99,10 @@ final class Payment
     public static function usePaypalUnified()
     {
         $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'swag_payment_paypal_unified_%\'');
-        
+
         return is_array($mysql_result) && count($mysql_result) > 0;
     }
-    
+
     /**
      * Check if PayPal Plus installment is installed
      * @return bool
@@ -74,10 +110,10 @@ final class Payment
     public static function usePPPInstallment()
     {
         $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_paypal_installments_financing\'');
-        
+
         return is_array($mysql_result) && count($mysql_result) > 0;
     }
-    
+
     /**
      * Check if Heidelpay invoice is installed
      * @return bool
@@ -85,7 +121,7 @@ final class Payment
     public static function useHeidelpayInvoice()
     {
         $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_hgw_transactions\'');
-    
+
         return is_array($mysql_result) && count($mysql_result) > 0;
     }
 }

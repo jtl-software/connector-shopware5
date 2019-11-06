@@ -483,22 +483,14 @@ class CustomerOrder extends DataController
      */
     protected function addPayPalUnified($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
-        if ($paymentModuleCode === 'SwagPaymentPayPalUnified' || $paymentModuleCode === 'SwagPaymentPayPalUnifiedInstallments'
-            && isset($orderSW['attribute']['swagPaypalUnifiedPaymentType'])) {
+        $swagPayPalUnifiedPaymentType = $orderSW['attribute']['swagPaypalUnifiedPaymentType'];
 
-            switch ($orderSW['attribute']['swagPaypalUnifiedPaymentType']) {
-                case 'PayPalExpress':
-                    $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_EXPRESS;
-                    break;
-                case 'PayPalClassic':
-                    $paymentModuleCode = PaymentTypes::TYPE_PAYPAL;
-                    break;
-                case 'PayPalPlus':
-                    $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_PLUS;
-                    break;
+        if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode, is_null($swagPayPalUnifiedPaymentType))) {
+
+            $paymentModuleCode = PaymentUtil::mapPayPalUnified($swagPayPalUnifiedPaymentType);
+
+            switch ($swagPayPalUnifiedPaymentType) {
                 case 'PayPalPlusInvoice':
-                    $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_PLUS;
-
                     // Invoice
                     $result = Shopware()->Db()
                         ->fetchAll('SELECT *
@@ -527,8 +519,6 @@ class CustomerOrder extends DataController
 
                     break;
                 case 'PayPalInstallments':
-                    $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_PLUS;
-
                     // Installment
                     $result = Shopware()->Db()
                         ->fetchAll('SELECT *
@@ -552,9 +542,6 @@ class CustomerOrder extends DataController
                         ));
                     }
 
-                    break;
-                default:
-                    $paymentModuleCode = PaymentTypes::TYPE_PAYPAL;
                     break;
             }
 
