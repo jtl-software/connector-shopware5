@@ -485,7 +485,7 @@ class CustomerOrder extends DataController
     {
         $swagPayPalUnifiedPaymentType = $orderSW['attribute']['swagPaypalUnifiedPaymentType'];
 
-        if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode, is_null($swagPayPalUnifiedPaymentType))) {
+        if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode) && !is_null($swagPayPalUnifiedPaymentType)) {
 
             $paymentModuleCode = PaymentUtil::mapPayPalUnified($swagPayPalUnifiedPaymentType);
 

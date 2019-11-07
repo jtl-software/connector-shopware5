@@ -42,16 +42,14 @@ class Payment extends DataController
                 $paymentModuleCode = PaymentUtil::map(null, $paymentSW['paymentModuleCode']);
                 $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $paymentSW['paymentModuleCode'];
 
-                /** * @var $orderSW Order */
-                $orderSW = $customerOrderMapper->find($paymentSW['customerOrderId']);
+                if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode)) {
+                    $orderSW = $customerOrderMapper->find($paymentSW['customerOrderId']);
+                    if (!is_null($orderSW)) {
+                        $orderAttributes = $orderSW->getAttribute();
+                        $payPalUnifiedPaymentType = $orderAttributes->getSwagPaypalUnifiedPaymentType();
 
-                if(!is_null($orderSW)) {
-                    $orderAttributes = $orderSW->getAttribute();
-
-                    if(!is_null($orderAttributes)) {
-                        $swagPayPalUnifiedPaymentType = $orderAttributes->getSwagPaypalUnifiedPaymentType();
-                        if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode, isset($swagPayPalUnifiedPaymentType))) {
-                            $paymentModuleCode = PaymentUtil::mapPayPalUnified($swagPayPalUnifiedPaymentType);
+                        if (!is_null($payPalUnifiedPaymentType)) {
+                            $paymentModuleCode = PaymentUtil::mapPayPalUnified($payPalUnifiedPaymentType);
                         }
                     }
                 }
@@ -62,28 +60,6 @@ class Payment extends DataController
 
                 $result[] = $payment;
             }
-
-            /*
-            $payments = $mapper->findAll($limit);
-
-            foreach ($payments as $paymentSW) {
-                $payment = Mmc::getModel('Payment');
-                $payment->map(true, DataConverter::toObject($paymentSW, true));
-
-                $orderMapper = Mmc::getMapper('CustomerOrder');
-                $orderSW = $orderMapper->find($paymentSW['customerOrderId']);
-
-                if ($orderSW !== null) {
-                    if ($orderSW->getPayment() !== null) {
-                        $paymentModuleCode = PaymentUtil::map(null, strtolower($orderSW->getPayment()->getName()));
-                        $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : strtolower($orderSW->getPayment()->getName());
-                        $payment->setPaymentModuleCode($paymentModuleCode);
-                    }
-
-                    $result[] = $payment;
-                }
-            }
-            */
 
             $action->setResult($result);
         } catch (\Exception $exc) {

@@ -46,15 +46,13 @@ final class Payment
     }
 
     /**
-     * @param $paymentModuleCode string
-     * @param $isSwagPaypalUnifiedPaymentTypeAttributeSet bool
+     * @param $paymentModuleCode
      * @return bool
      */
-    public static function isPayPalUnifiedType($paymentModuleCode, $isSwagPaypalUnifiedPaymentTypeAttributeSet)
+    public static function isPayPalUnifiedType($paymentModuleCode)
     {
         return ($paymentModuleCode === 'SwagPaymentPayPalUnified' ||
-            $paymentModuleCode === 'SwagPaymentPayPalUnifiedInstallments' &&
-            $isSwagPaypalUnifiedPaymentTypeAttributeSet);
+            $paymentModuleCode === 'SwagPaymentPayPalUnifiedInstallments');
     }
 
     /**
