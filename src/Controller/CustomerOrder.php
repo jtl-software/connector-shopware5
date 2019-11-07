@@ -483,7 +483,8 @@ class CustomerOrder extends DataController
      */
     protected function addPayPalUnified($paymentModuleCode, array $orderSW, CustomerOrderModel &$order)
     {
-        $swagPayPalUnifiedPaymentType = $orderSW['attribute']['swagPaypalUnifiedPaymentType'];
+        $swagPayPalUnifiedPaymentType = isset($orderSW['attribute']['swagPaypalUnifiedPaymentType']) ?
+            $orderSW['attribute']['swagPaypalUnifiedPaymentType'] : null;
 
         if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode) && !is_null($swagPayPalUnifiedPaymentType)) {
 

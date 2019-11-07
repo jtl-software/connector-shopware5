@@ -26,6 +26,10 @@ use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 class CustomerOrder extends DataMapper
 {
+    /**
+     * @param $id
+     * @return OrderSW|null
+     */
     public function find($id)
     {
         return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Order\Order')->find($id);

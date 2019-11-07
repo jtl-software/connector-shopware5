@@ -36,6 +36,7 @@ class Payment extends DataController
             $mapper = Mmc::getMapper('Payment');
             $payments = $mapper->findAllNative($limit);
 
+            /** @var \jtl\Connector\Shopware\Mapper\CustomerOrder $customerOrderMapper */
             $customerOrderMapper = Mmc::getMapper('CustomerOrder');
 
             foreach ($payments as $paymentSW) {
@@ -43,13 +44,12 @@ class Payment extends DataController
                 $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $paymentSW['paymentModuleCode'];
 
                 if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode)) {
+
                     $orderSW = $customerOrderMapper->find($paymentSW['customerOrderId']);
                     if (!is_null($orderSW)) {
                         $orderAttributes = $orderSW->getAttribute();
-                        $payPalUnifiedPaymentType = $orderAttributes->getSwagPaypalUnifiedPaymentType();
-
-                        if (!is_null($payPalUnifiedPaymentType)) {
-                            $paymentModuleCode = PaymentUtil::mapPayPalUnified($payPalUnifiedPaymentType);
+                        if (method_exists($orderAttributes,'getSwagPaypalUnifiedPaymentType') === true) {
+                            $paymentModuleCode = PaymentUtil::mapPayPalUnified($orderAttributes->getSwagPaypalUnifiedPaymentType());
                         }
                     }
                 }
