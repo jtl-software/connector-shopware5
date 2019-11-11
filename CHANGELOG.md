@@ -1,3 +1,7 @@
+2.2.4.1
+------
+- CO-704 Mapped paypal unified payment methods correcty during payment push
+
 2.2.4
 ------
 - CO-417 Removed not needed category level table for performance optimisation
