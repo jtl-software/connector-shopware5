@@ -326,8 +326,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 Shopware()->Db()->query("DROP TABLE IF EXISTS `jtl_connector_category_level`");
                 $this->createPaymentTrigger();
                 $this->setConfigFormElements();
-                break;
             case '2.2.4':
+                break;
             default:
                 return false;
         }
