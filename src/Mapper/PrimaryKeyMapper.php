@@ -250,6 +250,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         $rows = false;
         $dbInfo = $this->getTableInfo($type);
         if ($dbInfo !== null) {
+            $where = [];
+
             if ($endpointId) {
                 switch ($type) {
                     case IdentityLinker::TYPE_PRODUCT:
@@ -295,7 +297,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             if ($hostId) {
                 // Cannot delete in product image table if ony hostId is set cause of missing mediaType
 
-                $where = array('host_id = ?' => $hostId);
+                $where += array('host_id = ?' => $hostId);
             }
 
             $rows = Shopware()->Db()->delete($dbInfo['table'], $where);
