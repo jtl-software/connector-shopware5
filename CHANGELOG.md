@@ -1,3 +1,7 @@
+2.2.4.2
+------
+- Locked connector core version to 2.6.8
+
 2.2.4.1
 ------
 - CO-704 Mapped paypal unified payment methods correcty during payment push

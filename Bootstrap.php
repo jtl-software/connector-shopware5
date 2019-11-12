@@ -327,6 +327,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->createPaymentTrigger();
                 $this->setConfigFormElements();
             case '2.2.4':
+            case '2.2.4.1':
                 break;
             default:
                 return false;
