@@ -1,10 +1,12 @@
 <?php
+
 use jtl\Connector\Core\Config\Config;
 use jtl\Connector\Core\IO\Path;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\System\Check as CheckUtil;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Shopware\Service\Translation;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
@@ -30,14 +32,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function __construct($name, Enlight_Config $info = null)
     {
-
         $this->runAutoload();
-
         parent::__construct($name, $info);
-
-        /** @var Enlight_Event_EventManager $eventManager */
-        $eventManager = Shopware()->Container()->get('events');
-        $eventManager->addSubscriber(new \jtl\Connector\Shopware\Subscriber\Translation());
     }
 
     public function getCapabilities()
@@ -133,6 +129,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'Enlight_Controller_Dispatcher_ControllerPath_Frontend_Jtlconnector',
             'onGetControllerPathFrontend'
         );
+
+        $this->subscribeTranslationService();
 
         $this->setConfigFormElements();
         $this->createProductChecksumTable();
@@ -328,6 +326,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->setConfigFormElements();
             case '2.2.4':
             case '2.2.4.1':
+            case '2.2.4.2':
+                $this->subscribeTranslationService();
                 break;
             default:
                 return false;
@@ -408,10 +408,34 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         return true;
     }
 
+    protected function subscribeTranslationService()
+    {
+        $this->subscribeEvent(
+            'Enlight_Bootstrap_InitResource_Translation',
+            'overrideTranslationService'
+        );
+    }
+
+    /**
+     * @param Enlight_Event_EventArgs $args
+     * @return string
+     */
     public static function onGetControllerPathFrontend(Enlight_Event_EventArgs $args)
     {
         return dirname(__FILE__) . '/Connector.php';
     }
+
+    /**
+     * @param Enlight_Event_EventArgs $args
+     * @return Translation
+     */
+    public static function overrideTranslationService(Enlight_Event_EventArgs $args)
+    {
+        $container = Shopware()->Container();
+        $connection = $container->get('dbal_connection');
+        return new Translation($connection, $container);
+    }
+
 
     private function runAutoload()
     {
