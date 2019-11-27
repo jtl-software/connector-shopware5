@@ -1,3 +1,8 @@
+2.2.4.3
+------
+- CO-711 Fixed primary key mapper
+- CO-730 Fixed problem with translation service override
+
 2.2.4.2
 ------
 - Locked connector core version to 2.6.8
