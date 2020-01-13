@@ -6,6 +6,8 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Model\ImageI18n;
 use \jtl\Connector\Result\Action;
 use \jtl\Connector\Core\Rpc\Error;
 use \jtl\Connector\Drawing\ImageRelationType;
@@ -77,7 +79,6 @@ class Image extends DataController
                             }
 
                             $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int) $modelSW['cId'], (int) $modelSW['media_id']);
-                            //$path = $modelSW['path'];
                             $foreignKey = IdConcatenator::link(array($modelSW['detailId'], $modelSW['articleID']));
 
                             $model->setId(new Identity($id));
@@ -86,8 +87,17 @@ class Image extends DataController
                                 ->setFilename($mediaServie->getUrl($modelSW['path']))
                                 ->setRemoteUrl($mediaServie->getUrl($modelSW['path']))
                                 ->setSort((int) $modelSW['position']);
-                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
-                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $path))
+
+                            $this->addPos($model, 'addI18n', 'ImageI18n', $modelSW);
+                            if (isset($modelSW['translations'])) {
+                                foreach ($modelSW['translations'] as $localeName => $translation) {
+                                    $imageI18n = Mmc::getModel('ImageI18n');
+                                    $imageI18n->setLanguageISO(LanguageUtil::map($localeName));
+                                    $imageI18n->setImageId($model->getId());
+                                    $imageI18n->setAltText(isset($translation['description']) ? $translation['description'] : '');
+                                    $model->addI18n($imageI18n);
+                                }
+                            }
 
                             $result[] = $model;
                             break;
