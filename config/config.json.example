@@ -18,5 +18,10 @@
             "start_date": null,
             "status_processing": true
         }
+    },
+    "delivery_note": {
+        "push": {
+            "note": true
+        }
     }
 }

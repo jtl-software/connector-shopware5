@@ -179,35 +179,39 @@ class DeliveryNote extends DataMapper
                 $this->Manager()->flush($orderSW);
             }
         }
-    
-        /** @var \Shopware\Models\Document\Document $document */
-        $document = Shopware()->Models()->getRepository(\Shopware\Models\Document\Document::class)->find(2);
-        if (!is_null($document)) {
-        
-            try {
-                // Create order document
-                $document = \Shopware_Components_Document::initDocument(
-                    $orderSW->getId(),
-                    $document->getId(),
-                    [
-                        'netto' => false,
-                        'bid' => '',
-                        'voucher' => null,
-                        'date' => $deliveryNote->getCreationDate()->format('d.m.Y'),
-                        'delivery_date' => $deliveryNote->getCreationDate()->format('d.m.Y'),
-                        'shippingCostsAsPosition' => 0,
-                        '_renderer' => 'pdf',
-                        '_preview' => false,
-                        '_previewForcePagebreak' => '',
-                        '_previewSample' => '',
-                        'docComment' => $deliveryNote->getNote(),
-                        'forceTaxCheck' => false,
-                    ]
-                );
-            
-                $document->render();
-            } catch (\Exception $e) {
-                Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+
+        $createDeliveryNote = Application()->getConfig()->get('delivery_note.push.note', true);
+
+        if ($createDeliveryNote === true) {
+            /** @var \Shopware\Models\Document\Document $document */
+            $document = Shopware()->Models()->getRepository(\Shopware\Models\Document\Document::class)->find(2);
+            if (!is_null($document)) {
+
+                try {
+                    // Create order document
+                    $document = \Shopware_Components_Document::initDocument(
+                        $orderSW->getId(),
+                        $document->getId(),
+                        [
+                            'netto' => false,
+                            'bid' => '',
+                            'voucher' => null,
+                            'date' => $deliveryNote->getCreationDate()->format('d.m.Y'),
+                            'delivery_date' => $deliveryNote->getCreationDate()->format('d.m.Y'),
+                            'shippingCostsAsPosition' => 0,
+                            '_renderer' => 'pdf',
+                            '_preview' => false,
+                            '_previewForcePagebreak' => '',
+                            '_previewSample' => '',
+                            'docComment' => $deliveryNote->getNote(),
+                            'forceTaxCheck' => false,
+                        ]
+                    );
+
+                    $document->render();
+                } catch (\Exception $e) {
+                    Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                }
             }
         }
 
