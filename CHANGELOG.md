@@ -1,3 +1,7 @@
+2.2.5
+------
+- CO-785 Added support for image alt attribute
+
 2.2.4.3
 ------
 - CO-711 Fixed primary key mapper
