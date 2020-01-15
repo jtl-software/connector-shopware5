@@ -72,7 +72,7 @@ class Image extends DataMapper
 
         switch ($relationType) {
             case ImageRelationType::TYPE_PRODUCT:
-                return Shopware()->Db()->fetchAssoc(
+                $productImages = Shopware()->Db()->fetchAssoc(
                     'SELECT i.id as cId, if (d.id > 0, d.id, a.main_detail_id) as detailId, i.*, m.path
                       FROM s_articles_img i
                       LEFT JOIN s_articles_img c ON c.parent_id = i.id
@@ -94,6 +94,20 @@ class Image extends DataMapper
                           AND l.host_id IS NULL
                       LIMIT ' . intval($limit)
                     , [Product::KIND_VALUE_PARENT]);
+
+                $translationService = ShopUtil::translationService();
+                $shops = Mmc::getMapper('Shop')->findAll(null, null);
+                foreach ($productImages as $i => $productImage) {
+                    foreach ($shops as $shop) {
+                        $translation = $translationService->read($shop['id'], 'articleimage', $productImage['id']);
+                        if (!empty($translation)) {
+                            $translation['shopId'] = $shop['id'];
+                            $productImages[$i]['translations'][$shop['locale']['locale']] = $translation;
+                        }
+                    }
+                }
+
+                return $productImages;
 
                 break;
             case ImageRelationType::TYPE_CATEGORY:
