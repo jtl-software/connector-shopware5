@@ -145,7 +145,10 @@ class Product extends DataController
                 $productI18n->setLanguageISO(LanguageUtil::map($localeName))
                     ->setProductId($product->getId())
                     ->setName(isset($translation['name']) ? $translation['name'] : '')
-                    ->setDescription(isset($translation['descriptionLong']) ? $translation['descriptionLong'] : '');
+                    ->setDescription(isset($translation['descriptionLong']) ? $translation['descriptionLong'] : '')
+                    ->setMetaDescription(isset($translation['description']) ? $translation['description'] : '')
+                    ->setTitleTag(isset($translation['metaTitle']) ? $translation['metaTitle'] : '')
+                    ->setMetaKeywords(isset($translation['keywords']) ? $translation['keywords'] : '');
 
                 $productI18n->setUnitName(isset($translation['packUnit']) ? $translation['packUnit'] : '');
 

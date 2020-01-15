@@ -24,8 +24,8 @@ class ProductI18n extends ProductI18nModel
         'deliveryStatus' => '',
         'measurementUnitName' => '',
         'metaDescription' => 'description',
-        'metaKeywords' => '',
-        'titleTag' => '',
+        'metaKeywords' => 'keywords',
+        'titleTag' => 'metaTitle',
         'unitName' => 'packUnit'
     );
     
