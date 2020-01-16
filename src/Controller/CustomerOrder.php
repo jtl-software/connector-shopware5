@@ -257,6 +257,13 @@ class CustomerOrder extends DataController
                         $shippingVat = self::calcShippingVat($jtlOrder);
                     }
 
+                    /**
+                     * @see https://issues.shopware.com/issues/SW-25096
+                     */
+                    if ((int)$swOrder['taxFree'] == 1) {
+                        $shippingVat = 0.0;
+                    }
+
                     $item = Mmc::getModel('CustomerOrderItem');
                     $item->setType(CustomerOrderItem::TYPE_SHIPPING)
                         ->setId(new Identity(sprintf('%s_ship', $swOrder['id'])))
