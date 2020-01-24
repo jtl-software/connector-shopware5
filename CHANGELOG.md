@@ -1,3 +1,7 @@
+2.2.4.4
+------
+- Fixed start_date for payment import
+
 2.2.4.3
 ------
 - CO-711 Fixed primary key mapper
