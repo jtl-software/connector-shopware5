@@ -5,13 +5,18 @@
  */
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Exception\LanguageException;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Model\CategoryAttr;
 use jtl\Connector\Shopware\Utilities\I18n;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Model\Category as JtlCategory;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\Str;
+use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
+use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
 use Shopware\Models\Category\Category as SwCategory;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
@@ -269,6 +274,7 @@ class Category extends DataMapper
      * @param string[] $translations
      * @param string|null $langIso
      * @throws LanguageException
+     * @throws ORMException
      */
     protected function prepareAttributeAssociatedData(JtlCategory $jtlCategory, SwCategory $swCategory, array &$translations, $langIso = null)
     {
@@ -328,47 +334,12 @@ class Category extends DataMapper
         $nullUndefinedAttributesOld = (bool)Application()->getConfig()->get('null_undefined_category_attributes_during_push', true);
         $nullUndefinedAttributes = (bool)Application()->getConfig()->get('category.push.null_undefined_attributes', $nullUndefinedAttributesOld);
 
-        // Reset
-        $used = [];
         $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_categories_attributes');
+
         foreach ($swAttributesList as $tSwAttribute) {
-            if (!$tSwAttribute->isIdentifier()) {
-                $setter = sprintf('set%s', ucfirst(Str::camel($tSwAttribute->getColumnName())));
-                if (isset($attributes[$tSwAttribute->getColumnName()]) && method_exists($swAttribute, $setter)) {
-                    //$swAttribute->{$setter}($attributes[$tSwAttribute->getColumnName()]);
-                    $jtlAttrI18n = I18n::find(ShopUtil::locale()->getLocale(), $attributes[$tSwAttribute->getColumnName()]->getI18ns());
-                    $swAttribute->{$setter}($jtlAttrI18n->getValue());
-                    $used[] = $tSwAttribute->getColumnName();
-                    $translations = self::createAttributeTranslations($attributes[$tSwAttribute->getColumnName()], $tSwAttribute->getColumnName(), $translations, [$langIso]);
-                    unset($attributes[$tSwAttribute->getColumnName()]);
-                } elseif ($nullUndefinedAttributes && method_exists($swAttribute, $setter)) {
-                    $swAttribute->{$setter}(null);
-                }
-            }
-        }
-
-        for ($i = 4; $i <= 20; $i++) {
-            $attr = "attr{$i}";
-            if (in_array($attr, $used) || $i == 17) {
-                continue;
-            }
-
-            $setter = "setAttribute{$i}";
-            if (!method_exists($swAttribute, $setter)) {
-                continue;
-            }
-
-            $index = null;
-            foreach ($attributes as $key => $jtlAttribute) {
-                $jtlAttrI18n = I18n::find(ShopUtil::locale()->getLocale(), $jtlAttribute->getI18ns());
-                $swAttribute->{$setter}($jtlAttrI18n->getValue());
-                $translations = self::createAttributeTranslations($jtlAttribute, 'attribute' . $i, $translations, [$langIso]);
-                unset($attributes[$key]);
-                break;
-            }
-
-            if (count($attributes) == 0) {
-                break;
+            $result = TranslatableAttributes::setAttribute($tSwAttribute, $swAttribute, $attributes, $nullUndefinedAttributes);
+            if ($result === true) {
+                $translations = self::createAttributeTranslations($attributes[$tSwAttribute->getColumnName()], $tSwAttribute->getColumnName(), $translations, [$langIso]);
             }
         }
 
