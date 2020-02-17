@@ -83,7 +83,7 @@ class CustomerOrder extends DataMapper
             ->orderBy('history.changeDate', 'ASC')
             ->setFirstResult(0)
             ->setMaxResults($limit);
-    
+
         // Customer Order pull start date
 
         /** @deprecated Will be removed in a future connector release $startDateOld */
@@ -97,7 +97,7 @@ class CustomerOrder extends DataMapper
                 Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
             }
         }
-    
+
         $query = $builder->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
@@ -129,8 +129,6 @@ class CustomerOrder extends DataMapper
     public function save(CustomerOrderModel $customerOrder)
     {
         $orderSW = null;
-        $result = new CustomerOrderModel;
-
         $this->prepareOrderAssociatedData($customerOrder, $orderSW);
         $this->prepareCustomerAssociatedData($customerOrder, $orderSW);
         $this->prepareCurrencyFactorAssociatedData($customerOrder, $orderSW);
@@ -147,10 +145,10 @@ class CustomerOrder extends DataMapper
         $this->Manager()->flush();
 
         // CustomerOrderAttr
-        
-        $result->setId(new Identity($orderSW->getId(), $customerOrder->getId()->getHost()));
 
-        return $result;
+        $customerOrder->setId(new Identity($orderSW->getId(), $customerOrder->getId()->getHost()));
+
+        return $customerOrder;
     }
 
     protected function deleteOrderData(CustomerOrderModel &$customerOrder)
@@ -158,7 +156,7 @@ class CustomerOrder extends DataMapper
         $orderId = (strlen($customerOrder->getId()->getEndpoint()) > 0) ? (int)$customerOrder->getId()->getEndpoint() : null;
 
         if ($orderId !== null && $orderId > 0) {
-            $orderSW = $this->find((int) $orderId);
+            $orderSW = $this->find((int)$orderId);
             if ($orderSW !== null) {
                 $this->removeItems($orderSW);
                 $this->removeBilling($orderSW);
@@ -207,18 +205,18 @@ class CustomerOrder extends DataMapper
             ->setOrderTime($customerOrder->getCreationDate())
             ->setCustomerComment($customerOrder->getNote())
             ->setNet(0)
-            ->setTrackingCode($customerOrder->getTracking())
+            ->setTrackingCode('')
             ->setCurrency($customerOrder->getCurrencyIso())
-            ->setRemoteAddress($customerOrder->getIp())
+            ->setRemoteAddress('')
             ->setTemporaryId('')
             ->setTransactionId('')
             ->setComment('')
             ->setInternalComment('')
             ->setReferer('');
-        
+
         if (!is_null($customerOrder->getPaymentDate()) &&
             $customerOrder->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED) {
-            
+
             $orderSW->setClearedDate($customerOrder->getPaymentDate());
         }
 
@@ -285,18 +283,16 @@ class CustomerOrder extends DataMapper
 
     protected function prepareDispatchAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
     {
-        $dispatchSW = $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($customerOrder->getShippingMethodCode());
-        if ($dispatchSW === null) {
-            throw new \Exception(sprintf('Dispatch with code (%s) not found', $customerOrder->getShippingMethodCode()));
+        $dispatchSW = $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($customerOrder->getShippingMethodName());
+        if ($dispatchSW !== null) {
+            $orderSW->setDispatch($dispatchSW);
         }
-
-        $orderSW->setDispatch($dispatchSW);
     }
 
     protected function prepareLocaleAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
     {
         // Locale
-        $localeSW = LocaleUtil::getByKey(LanguageUtil::map(null,null, $customerOrder->getLanguageISO()));
+        $localeSW = LocaleUtil::getByKey(LanguageUtil::map(null, null, $customerOrder->getLanguageISO()));
         if ($localeSW === null) {
             throw new \Exception(sprintf('Language Iso with iso (%s) not found', $customerOrder->getLanguageISO()));
         }
@@ -365,8 +361,8 @@ class CustomerOrder extends DataMapper
                 ->setStreet($shippingAddress->getStreet())
                 ->setZipCode($shippingAddress->getZipCode())
                 ->setCity($shippingAddress->getCity());
-                //->setAttribute();
-            
+            //->setAttribute();
+
             $shippingSW->setCountry($countrySW);
             $shippingSW->setOrder($orderSW);
             $shippingSW->setCustomer($orderSW->getCustomer());
@@ -403,7 +399,7 @@ class CustomerOrder extends DataMapper
                 ->setZipCode($billingAddress->getZipCode())
                 ->setCity($billingAddress->getCity())
                 ->setCountry($countrySW);
-                //->setAttribute();
+            //->setAttribute();
 
             $billingSW->setCustomer($orderSW->getCustomer());
             $billingSW->setOrder($orderSW);
@@ -437,7 +433,7 @@ class CustomerOrder extends DataMapper
                 $taxFree = 0;
             }
         }
-        
+
         $orderSW->setInvoiceShipping($invoiceShipping)
             ->setInvoiceShippingNet($invoiceShippingNet)
             ->setTaxFree($taxFree)
@@ -483,7 +479,7 @@ class CustomerOrder extends DataMapper
             ->setMode(0)
             ->setEsdArticle(0)
             ->setReleaseDate(new \DateTime('0000-00-00'));
-            //->setConfig();
+        //->setConfig();
 
         $detailSW->setTaxRate($item->getVat());
         $detailSW->setArticleNumber($item->getSku());
@@ -492,7 +488,7 @@ class CustomerOrder extends DataMapper
         $detailSW->setTax($taxRateSW);
         $detailSW->setOrder($orderSW);
         //$detailSW->setStatus(0);
-        
+
         $ref = new \ReflectionClass($detailSW);
 
         // shopId

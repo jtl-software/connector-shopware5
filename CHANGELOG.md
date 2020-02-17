@@ -1,3 +1,7 @@
+Unreleased
+------
+- CO-569 Removed not existent getter calls in customer order mapper
+
 2.2.5
 ------
 - CO-805 Fixed bug with shipping tax rate
