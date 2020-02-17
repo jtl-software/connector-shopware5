@@ -21,7 +21,7 @@
     },
     "delivery_note": {
         "push": {
-            "note": true
+            "create_document": true
         }
     }
 }

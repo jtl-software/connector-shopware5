@@ -180,7 +180,7 @@ class DeliveryNote extends DataMapper
             }
         }
 
-        $createDeliveryNote = Application()->getConfig()->get('delivery_note.push.note', true);
+        $createDeliveryNote = Application()->getConfig()->get('delivery_note.push.create_document', true);
 
         if ($createDeliveryNote === true) {
             /** @var \Shopware\Models\Document\Document $document */
