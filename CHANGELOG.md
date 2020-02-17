@@ -1,7 +1,8 @@
 2.2.5
 ------
-- CO-784 Added support for product SEO attributes title, keywords, description
+- CO-805 Fixed bug with shipping tax rate
 - CO-785 Added support for image alt attribute
+- CO-784 Added support for product SEO attributes title, keywords, description
 
 2.2.4.4
 ------
