@@ -3,6 +3,10 @@
 - CO-784 Added support for product SEO attributes title, keywords, description
 - CO-785 Added support for image alt attribute
 
+2.2.4.4
+------
+- Fixed start_date for payment import
+
 2.2.4.3
 ------
 - CO-711 Fixed primary key mapper
