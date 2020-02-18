@@ -134,10 +134,7 @@ class CustomerOrder extends DataController
                     }
 
                     // PaymentStatus
-                    $paymentStatus = PaymentStatusUtil::map(null, $swOrder['cleared']);
-                    if ($paymentStatus !== null) {
-                        $jtlOrder->setPaymentStatus($paymentStatus);
-                    }
+                    $jtlOrder->setPaymentStatus(\jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_UNPAID);
 
                     // Locale
                     $swShop = $shopMapper->find((int)$swOrder['languageIso']);
