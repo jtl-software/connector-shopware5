@@ -6,7 +6,10 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\TransactionRequiredException;
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Seo;
 use jtl\Connector\Core\Utilities;
@@ -331,8 +334,8 @@ class Image extends DataMapper
      * @param JtlImage $image
      * @return JtlImage
      * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws OptimisticLockException
+     * @throws TransactionRequiredException
      */
     protected function deleteImageData(JtlImage &$image)
     {
@@ -562,13 +565,15 @@ class Image extends DataMapper
     {
         /** @var ArticleImage\Mapping $mapping */
         foreach ($image->getMappings() as $mapping) {
-            if (count($mapping->getRules()) !== count($options)) {
+            $rules = $mapping->getRules()->toArray();
+            if (count($rules) !== count($options)) {
                 continue;
             }
 
-            $mappingOptions = array_filter($mapping->getOptions, function (ArticleImage\Rule $rule) {
-                return $rule->getOption();
-            });
+            $mappingOptions = [];
+            foreach($rules as $rule) {
+                $mappingOptions[] = $rule->getOption();
+            }
 
             $diff = array_udiff($options, $mappingOptions, function (Option $a, Option $b) {
                 return $a->getId() - $b->getId();
@@ -633,9 +638,9 @@ class Image extends DataMapper
      * @param JtlImage $jtlImage
      * @return ArticleImage|null
      * @throws ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws OptimisticLockException
+     * @throws TransactionRequiredException
+     * @throws LanguageException
      */
     protected function saveArticleImage(JtlImage $jtlImage)
     {
@@ -1006,7 +1011,7 @@ class Image extends DataMapper
      * @param JtlImage $jtlImage
      * @param ArticleImage $swImage
      * @throws \Zend_Db_Adapter_Exception
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws LanguageException
      */
     private function saveAltText(JtlImage $jtlImage, ArticleImage $swImage)
     {
