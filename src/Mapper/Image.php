@@ -354,13 +354,11 @@ class Image extends DataMapper
             case ImageRelationType::TYPE_PRODUCT:
                 list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
                 $this->deleteArticleImage($articleId, $detailId, $imageId);
-                $stmt = ShopUtil::entityManager()->getDBALQueryBuilder()
-                    ->select('COUNT(clpi.media_id)')
-                    ->from('s_articles_img', 'clpi')
-                    ->where('clpi.media_id = :mediaId')
-                    ->setParameters(['mediaId' => $mediaId])
-                    ->execute();
-
+                $query = 'SELECT max(res.cnt) FROM' . \PHP_EOL .
+                         '(SELECT COUNT(sai.media_id) cnt FROM s_articles_img sai WHERE sai.media_id = ?' . \PHP_EOL .
+                         'UNION' . \PHP_EOL .
+                         'SELECT COUNT(clpi.media_id) cnt FROM jtl_connector_link_product_image clpi WHERE clpi.media_id = ?) AS res';
+                $stmt = ShopUtil::connection()->executeQuery($query, [$mediaId, $mediaId]);
                 $mediaCount = 2;
                 if ($stmt instanceof \PDOStatement) {
                     $mediaCount = (int)$stmt->fetchColumn();
@@ -436,12 +434,17 @@ class Image extends DataMapper
 
         }
 
+        //Do not delete anything if it's a parent
+        if($detail->getKind() === Product::KIND_VALUE_PARENT) {
+            return;
+        }
+
         /** @var Product $productMapper */
         $productMapper = Mmc::getMapper('Product');
-        if (!$productMapper->isChildSW($article, $detail)) {
-            $images = $article->getImages();
-        } else {
+        if ($productMapper->isChildSW($article, $detail)) {
             $images = $detail->getImages();
+        } else {
+            $images = $article->getImages();
         }
 
         $swImage = null;
@@ -458,34 +461,29 @@ class Image extends DataMapper
             return;
         }
 
-        if (!is_null($swImage->getParent())) {
-            ShopUtil::entityManager()->remove($swImage);
-            $swImage = $swImage->getParent();
-
-            Logger::write(sprintf('Article (%s) detail (%s) pseudo image (%s) deleted', $articleId, $detailId, $imageId),Logger::DEBUG,'image');
-            $this->rebuildArticleImagesMappings($swImage->getArticle());
-        }
-
-
-        foreach ($swImage->getChildren() as $child) {
-            ShopUtil::entityManager()->remove($child);
-        }
         ShopUtil::entityManager()->remove($swImage);
-        $article->getImages()->removeElement($swImage);
-        if ($swImage->getMain() === 1 && $article->getImages()->count() > 0) {
-            /** @var ArticleImage $newMainImage */
-            $newMainImage = $article->getImages()->first();
-            foreach ($article->getImages() as $image) {
-                if ($image->getPosition() < $newMainImage->getPosition()) {
-                    $newMainImage = $image;
-                }
+        if ($productMapper->isChildSW($article, $detail)) {
+            Logger::write(sprintf('Article (%s) detail (%s) pseudo image (%s) deleted', $articleId, $detailId, $imageId),Logger::DEBUG,'image');
+            $detail->getImages()->removeElement($swImage);
+            if(!empty($swImage->getParent())) {
+                $this->rebuildArticleImagesMappings($swImage->getParent()->getArticle());
             }
-            $newMainImage->setMain(1);
-            ShopUtil::entityManager()->persist($newMainImage);
-            Logger::write(sprintf('Article (%s) main image (%s) switched', $articleId, $newMainImage->getId()), Logger::DEBUG, 'image');
+        } else {
+            Logger::write(sprintf('Article (%s) image (%s) deleted', $articleId, $imageId),Logger::DEBUG,'image');
+            $article->getImages()->removeElement($swImage);
+            if ($swImage->getMain() === 1 && $article->getImages()->count() > 0) {
+                /** @var ArticleImage $newMainImage */
+                $newMainImage = $article->getImages()->first();
+                foreach ($article->getImages() as $image) {
+                    if ($image->getPosition() < $newMainImage->getPosition()) {
+                        $newMainImage = $image;
+                    }
+                }
+                $newMainImage->setMain(1);
+                ShopUtil::entityManager()->persist($newMainImage);
+                Logger::write(sprintf('Article (%s) main image (%s) switched', $articleId, $newMainImage->getId()), Logger::DEBUG, 'image');
+            }
         }
-
-        Logger::write(sprintf('Article (%s) image (%s) deleted', $articleId, $imageId),Logger::DEBUG,'image');
     }
 
     /**
@@ -625,6 +623,7 @@ class Image extends DataMapper
 
     /**
      * @param Media $media
+     * @throws ORMException
      */
     protected function deleteMedia(Media $media)
     {
