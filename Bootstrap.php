@@ -404,8 +404,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         if (!isset($pluginConfig[self::DELETE_USER_DATA]) || $pluginConfig[self::DELETE_USER_DATA] === true) {
             $this->dropMappingTable();
+            Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
         }
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
 
         return true;
     }
@@ -501,14 +501,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         Logger::write('create parent dummies...', Logger::INFO, 'install');
 
-        Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
-
         // Dirty inject parent and insert in db work around
         $res = Shopware()->Db()->query('SELECT d.*, a.configurator_set_id
                                             FROM s_articles_details d
                                             JOIN s_articles a ON a.id = d.articleID
-                                            WHERE a.configurator_set_id > 0
-                                                AND d.kind = ?', [ProductMapper::KIND_VALUE_MAIN]);
+                                            LEFT JOIN s_articles_details dd ON d.articleID = dd.articleID AND dd.kind = ?
+                                            WHERE a.configurator_set_id > 0 AND d.kind = ? AND dd.articleID IS NULL',
+                                            [ProductMapper::KIND_VALUE_PARENT, ProductMapper::KIND_VALUE_MAIN]);
 
         $i = 0;
         while ($product = $res->fetch()) {
@@ -574,6 +573,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         }
 
         Shopware()->Models()->flush();
+
     }
 
     private function fillCategoryTable()
