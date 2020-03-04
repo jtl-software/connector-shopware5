@@ -1,6 +1,9 @@
-Unreleased
+2.2.5.1
 ------
+- CO-496 Fixed missing image relations on variant children
 - CO-569 Removed not existent getter calls in customer order mapper
+- CO-849 Fixed Warning "Zahlung mit Transaktions-ID 'XYZ'..." when importing payment orders
+- CO-866 Keep dummy parents as well in case linking tables should be kept after deinstallation
 
 2.2.5
 ------

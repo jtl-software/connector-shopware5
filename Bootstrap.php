@@ -330,6 +330,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.4.3':
             case '2.2.4.4':
                 $this->subscribeTranslationService();
+            case '2.2.5':
                 break;
             default:
                 return false;
