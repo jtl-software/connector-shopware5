@@ -6,7 +6,10 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\TransactionRequiredException;
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Seo;
 use jtl\Connector\Core\Utilities;
@@ -331,8 +334,8 @@ class Image extends DataMapper
      * @param JtlImage $image
      * @return JtlImage
      * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws OptimisticLockException
+     * @throws TransactionRequiredException
      */
     protected function deleteImageData(JtlImage &$image)
     {
@@ -350,10 +353,9 @@ class Image extends DataMapper
         switch ($image->getRelationType()) {
             case ImageRelationType::TYPE_PRODUCT:
                 list($detailId, $articleId) = IdConcatenator::unlink($foreignId);
-                $this->deleteArticleImage($articleId, $detailId, $imageId);
                 $stmt = ShopUtil::entityManager()->getDBALQueryBuilder()
                     ->select('COUNT(clpi.media_id)')
-                    ->from('s_articles_img', 'clpi')
+                    ->from('jtl_connector_link_product_image', 'clpi')
                     ->where('clpi.media_id = :mediaId')
                     ->setParameters(['mediaId' => $mediaId])
                     ->execute();
@@ -364,6 +366,8 @@ class Image extends DataMapper
                 }
 
                 $deleteMedia = ($mediaCount < 2);
+                $this->deleteArticleImage($articleId, $detailId, $imageId, $deleteMedia);
+
                 break;
             case ImageRelationType::TYPE_CATEGORY:
                 $categorySW = $this->Manager()->getRepository(Category::class)->find((int)$imageId);
@@ -408,9 +412,12 @@ class Image extends DataMapper
      * @param integer $articleId
      * @param integer $detailId
      * @param integer $imageId
-     * @throws \Exception
+     * @param bool $isLastImage
+     * @throws ORMException
+     * @throws OptimisticLockException
+     * @throws TransactionRequiredException
      */
-    protected function deleteArticleImage($articleId, $detailId, $imageId)
+    protected function deleteArticleImage($articleId, $detailId, $imageId, $isLastImage = false)
     {
         /** @var Article $article */
         $article = ShopUtil::entityManager()->find(Article::class, $articleId);
@@ -435,15 +442,25 @@ class Image extends DataMapper
 
         /** @var Product $productMapper */
         $productMapper = Mmc::getMapper('Product');
-        if (!$productMapper->isChildSW($article, $detail)) {
-            $images = $article->getImages();
-        } else {
-            $images = $detail->getImages();
+        if ($productMapper->isChildSW($article, $detail)) {
+            $imageId = $this->deletePseudoArticleImage($detail, $imageId);
         }
 
+        if (!is_null($imageId) && $isLastImage === true) {
+            $this->deleteRealArticleImage($article, $imageId);
+        }
+    }
+
+    /**
+     * @param Article $article
+     * @param integer $imageId
+     * @throws ORMException
+     */
+    protected function deleteRealArticleImage(Article $article, $imageId)
+    {
         $swImage = null;
         /** @var ArticleImage $image */
-        foreach ($images as $image) {
+        foreach ($article->getImages() as $image) {
             if ($image->getId() == $imageId) {
                 $swImage = $image;
                 break;
@@ -455,18 +472,6 @@ class Image extends DataMapper
             return;
         }
 
-        if (!is_null($swImage->getParent())) {
-            ShopUtil::entityManager()->remove($swImage);
-            $swImage = $swImage->getParent();
-
-            Logger::write(sprintf('Article (%s) detail (%s) pseudo image (%s) deleted', $articleId, $detailId, $imageId),Logger::DEBUG,'image');
-            $this->rebuildArticleImagesMappings($swImage->getArticle());
-        }
-
-
-        foreach ($swImage->getChildren() as $child) {
-            ShopUtil::entityManager()->remove($child);
-        }
         ShopUtil::entityManager()->remove($swImage);
         $article->getImages()->removeElement($swImage);
         if ($swImage->getMain() === 1 && $article->getImages()->count() > 0) {
@@ -479,10 +484,42 @@ class Image extends DataMapper
             }
             $newMainImage->setMain(1);
             ShopUtil::entityManager()->persist($newMainImage);
-            Logger::write(sprintf('Article (%s) main image (%s) switched', $articleId, $newMainImage->getId()), Logger::DEBUG, 'image');
+            Logger::write(sprintf('Article (%s) main image (%s) switched', $article->getId(), $newMainImage->getId()), Logger::DEBUG, 'image');
+        }
+        Logger::write(sprintf('Article (%s) image (%s) deleted', $article->getId(), $imageId), Logger::DEBUG, 'image');
+    }
+
+    /**
+     * @param Detail $detail
+     * @param integer $imageId
+     * @return int|null
+     * @throws ORMException
+     */
+    protected function deletePseudoArticleImage(Detail $detail, $imageId)
+    {
+        $swImage = null;
+        /** @var ArticleImage $image */
+        foreach ($detail->getImages() as $image) {
+            if ($image->getId() == $imageId) {
+                $swImage = $image;
+                break;
+            }
         }
 
-        Logger::write(sprintf('Article (%s) image (%s) deleted', $articleId, $imageId),Logger::DEBUG,'image');
+        if (is_null($swImage)) {
+            Logger::write('To be deleted pseudo image (' . $imageId . ') not found!', Logger::DEBUG, 'image');
+            return null;
+        }
+
+        Logger::write(sprintf('Article (%s) detail (%s) pseudo image (%s) deleted', $detail->getArticleId(), $detail->getId(), $imageId), Logger::DEBUG, 'image');
+        ShopUtil::entityManager()->remove($swImage);
+        $detail->getImages()->removeElement($swImage);
+        if (!empty($swImage->getParent())) {
+            $this->rebuildArticleImagesMappings($swImage->getParent()->getArticle());
+            return $swImage->getParent()->getId();
+        }
+
+        return null;
     }
 
     /**
@@ -562,13 +599,15 @@ class Image extends DataMapper
     {
         /** @var ArticleImage\Mapping $mapping */
         foreach ($image->getMappings() as $mapping) {
-            if (count($mapping->getRules()) !== count($options)) {
+            $rules = $mapping->getRules()->toArray();
+            if (count($rules) !== count($options)) {
                 continue;
             }
 
-            $mappingOptions = array_filter($mapping->getOptions, function (ArticleImage\Rule $rule) {
-                return $rule->getOption();
-            });
+            $mappingOptions = [];
+            foreach ($rules as $rule) {
+                $mappingOptions[] = $rule->getOption();
+            }
 
             $diff = array_udiff($options, $mappingOptions, function (Option $a, Option $b) {
                 return $a->getId() - $b->getId();
@@ -620,6 +659,7 @@ class Image extends DataMapper
 
     /**
      * @param Media $media
+     * @throws ORMException
      */
     protected function deleteMedia(Media $media)
     {
@@ -633,9 +673,9 @@ class Image extends DataMapper
      * @param JtlImage $jtlImage
      * @return ArticleImage|null
      * @throws ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
-     * @throws \Doctrine\ORM\TransactionRequiredException
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws OptimisticLockException
+     * @throws TransactionRequiredException
+     * @throws LanguageException
      */
     protected function saveArticleImage(JtlImage $jtlImage)
     {
@@ -1006,7 +1046,7 @@ class Image extends DataMapper
      * @param JtlImage $jtlImage
      * @param ArticleImage $swImage
      * @throws \Zend_Db_Adapter_Exception
-     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws LanguageException
      */
     private function saveAltText(JtlImage $jtlImage, ArticleImage $swImage)
     {
