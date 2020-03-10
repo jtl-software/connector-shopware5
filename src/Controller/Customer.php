@@ -46,11 +46,6 @@ class Customer extends DataController
 
             foreach ($customers as $customerSW) {
                 try {
-                    /** @var \Shopware\Models\Customer\Customer $swCustomer */
-                    $swCustomer = Shopware()->Models()
-                        ->getRepository('Shopware\Models\Customer\Customer')
-                        ->findOneById($customerSW['id']);
-
                     $customerSW['newsletter'] = (bool)$customerSW['newsletter'];
 
                     /** @var \jtl\Connector\Shopware\Model\Customer $customer */
@@ -106,8 +101,11 @@ class Customer extends DataController
                         }
                     }
 
-                    $swCustomerAttribute = $swCustomer->getAttribute();
-                    if($swCustomerAttribute !== null){
+                    if($customerSW['attribute'] !== null){
+                        /** @var \Shopware\Models\Attribute\Customer $swCustomerAttribute */
+                        $swCustomerAttribute = Shopware()->Models()
+                            ->getRepository('Shopware\Models\Attribute\Customer')
+                            ->findOneById($customerSW['attribute']['id']);
 
                         $swCustomerAttributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_user_attributes');
                         /** @var ConfigurationStruct $swCustomerAttribute */

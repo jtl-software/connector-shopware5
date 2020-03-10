@@ -37,6 +37,7 @@ class Customer extends DataMapper
                 'customer',
                 'billing',
                 'shipping',
+                'customerAttributes',
                 'customergroup',
                 'attribute',
                 'shop',
@@ -48,6 +49,7 @@ class Customer extends DataMapper
             ->leftJoin('customer.linker', 'linker')
             ->leftJoin('customer.defaultBillingAddress', 'billing')
             ->leftJoin('customer.defaultShippingAddress', 'shipping')
+            ->leftJoin('customer.attribute', 'customerAttributes')
             ->leftJoin('customer.group', 'customergroup')
             ->leftJoin('billing.attribute', 'attribute')
             ->leftJoin('customer.languageSubShop', 'shop')
