@@ -331,6 +331,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.4.4':
                 $this->subscribeTranslationService();
             case '2.2.5':
+            case '2.2.5.1':
                 break;
             default:
                 return false;
@@ -442,39 +443,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     private function runAutoload()
     {
-        // Tmp directory fallback
-        $dir = sys_get_temp_dir();
-        if (!is_writeable($dir)) {
-            $dir = CONNECTOR_DIR . DIRECTORY_SEPARATOR . 'tmp';
-        }
-
         $loader = null;
-        if (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar')) {
-            if (is_writable($dir)) {
-                if (!extension_loaded('phar')) {
-                    throw new \Exception('PHP Extension \'phar\' is not loaded');
-                }
 
-                if (extension_loaded('suhosin')) {
-                    if (strpos(ini_get('suhosin.executor.include.whitelist'), 'phar') === false) {
-                        throw new \Exception('Suhosin is active and the PHP extension \'phar\' needs to be on the executor include whitelist');
-                    }
-                }
-
-                $loader = require_once('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
-                if (is_bool($loader)) {
-                    $loader = require('phar://' . dirname(__FILE__) . DIRECTORY_SEPARATOR . 'connector.phar' . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
-                }
-            } else {
-                throw new \Exception(sprintf('Das Verzeichnis %s ist nicht beschreibbar. Bitte kontaktieren Sie Ihren Administrator oder Hoster.', $dir));
-            }
-        } elseif (file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php')) {
-            $loader = require_once(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
-            if (is_bool($loader)) {
-                $loader = require(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php');
-            }
+        $filePath = sprintf('%s/vendor/autoload.php', __DIR__);
+        if(!file_exists($filePath)) {
+            throw new \Exception('Could not find vendor/autoload.php. Did you run "composer install"?');
         }
 
+        $loader = require_once ($filePath);
         if ($loader instanceof \Composer\Autoload\ClassLoader) {
             $loader->add('', CONNECTOR_DIR . '/plugins');
         }
@@ -508,7 +484,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                                             JOIN s_articles a ON a.id = d.articleID
                                             LEFT JOIN s_articles_details dd ON d.articleID = dd.articleID AND dd.kind = ?
                                             WHERE a.configurator_set_id > 0 AND d.kind = ? AND dd.articleID IS NULL',
-                                            [ProductMapper::KIND_VALUE_PARENT, ProductMapper::KIND_VALUE_MAIN]);
+            [ProductMapper::KIND_VALUE_PARENT, ProductMapper::KIND_VALUE_MAIN]);
 
         $i = 0;
         while ($product = $res->fetch()) {

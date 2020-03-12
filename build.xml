@@ -46,12 +46,6 @@
                 <include name="CHANGELOG.md" />
                 <include name="plugin.png" />
                 <include name="build-config.yaml" />
-            </fileset>
-        </copy>
-        <delete dir="./build" />
-        <mkdir dir="./build" />
-        <copy todir="./build">
-            <fileset dir=".">
                 <include name="src/" />
                 <include name="vendor/" />
             </fileset>
@@ -59,27 +53,6 @@
     </target>
 
     <target name="package" depends="build">
-        <delete file="./dist/Frontend/jtlconnector/connector.phar" />
-        <pharpackage
-                destfile="./dist/Frontend/jtlconnector/index.phar"
-                basedir="./build"
-                compression="gzip"
-                stub="./stub.php"
-                signature="sha256">
-            <fileset dir="./build">
-                <include name="**/**" />
-            </fileset>
-            <metadata>
-                <element name="version" value="${version}" />
-                <element name="authors">
-                    <element name="Daniel Böhmer">
-                        <element name="email" value="daniel.boehmer@jtl-software.com" />
-                    </element>
-                </element>
-            </metadata>
-        </pharpackage>
-        <move file="./dist/Frontend/jtlconnector/index.phar" tofile="./dist/Frontend/jtlconnector/connector.phar" />
-
         <fileset dir="./dist" id="zipFiles">
             <include name="Frontend/**" />
         </fileset>
@@ -91,7 +64,6 @@
     </target>
 
     <target name="release" depends="package">
-        <delete dir="./build" />
         <delete dir="./dist" />
     </target>
 </project>
