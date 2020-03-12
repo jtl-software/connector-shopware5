@@ -193,6 +193,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         ini_set('max_execution_time', 0);
 
+        if(in_array($oldVersion, ['2.2.5.1', '2.2.5.2'])) {
+            $file = __DIR__ . '/vendor/monolog/monolog/src/Monolog/Utils.php';
+            if(is_file($file)) {
+                unlink($file);
+            }
+        }
+
         switch ($oldVersion) {
             case '1.0.0':
                 Shopware()->Db()->query("UPDATE s_articles_details SET ordernumber = REPLACE(ordernumber, '.0', '.jtlcon.0') WHERE ordernumber LIKE '%.0' AND kind = 0");
@@ -332,6 +339,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->subscribeTranslationService();
             case '2.2.5':
             case '2.2.5.1':
+            case '2.2.5.2':
                 break;
             default:
                 return false;

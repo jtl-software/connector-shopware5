@@ -1,4 +1,9 @@
+2.2.5.3
+------
+- Removed problematic monolog file
+
 2.2.5.2
+------
 - Removed phar dependencies
 - Switched to older monolog version due to compatiblity reasons
 
