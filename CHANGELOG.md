@@ -1,3 +1,7 @@
+2.2.5.2
+- Removed phar dependencies
+- Switched to older monolog version due to compatiblity reasons
+
 2.2.5.1
 ------
 - CO-496 Fixed missing image relations on variant children
