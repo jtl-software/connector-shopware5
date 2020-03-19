@@ -1,3 +1,7 @@
+2.3
+------
+- CO-922 Increased connector core version to ^2.7, increased minimum PHP version to 7.1.3, removed fixed monolog version 
+
 2.2.5.3
 ------
 - Removed problematic monolog file
