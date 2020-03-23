@@ -7,20 +7,16 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Exception\LanguageException;
-use jtl\Connector\Core\Logger\Logger;
-use jtl\Connector\Formatter\ExceptionFormatter;
-use jtl\Connector\Shopware\Model\CategoryAttr;
-use jtl\Connector\Shopware\Utilities\I18n;
-use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Category as JtlCategory;
 use jtl\Connector\Model\Identity;
-use jtl\Connector\Shopware\Utilities\Str;
+use jtl\Connector\Shopware\Model\CategoryAttr;
+use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
 use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
 use Shopware\Models\Category\Category as SwCategory;
-use jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
-use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class Category extends DataMapper
 {

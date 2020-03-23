@@ -121,7 +121,6 @@ class TranslatableAttributes extends Attributes
                 return true;
             } elseif ($nullUndefinedAttributes && method_exists($swAttribute, $setter)) {
                 $swAttribute->{$setter}(null);
-                return null;
             }
         }
 
