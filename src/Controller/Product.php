@@ -11,7 +11,7 @@ use \jtl\Connector\Core\Rpc\Error;
 use \jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Model\ProductAttrI18n;
-use jtl\Connector\Shopware\Utilities\Description;
+use jtl\Connector\Shopware\Utilities\Html;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Core\Utilities\DataConverter;
 use \jtl\Connector\Core\Utilities\DataInjector;
@@ -142,7 +142,7 @@ class Product extends DataController
         // ProductI18n
         $shopUrl = Shop::getUrl();
         if (isset($data['descriptionLong'])) {
-            $data['descriptionLong'] = Description::replacePathsWithFullUrl($data['descriptionLong'], $shopUrl);
+            $data['descriptionLong'] = Html::replacePathsWithFullUrl($data['descriptionLong'], $shopUrl);
         }
 
         $this->addPos($product, 'addI18n', 'ProductI18n', $data);
@@ -154,7 +154,7 @@ class Product extends DataController
                     ->setName(isset($translation['name']) ? $translation['name'] : '')
                     ->setDescription(
                         isset($translation['descriptionLong']) ?
-                        Description::replacePathsWithFullUrl($translation['descriptionLong'], $shopUrl) :
+                        Html::replacePathsWithFullUrl($translation['descriptionLong'], $shopUrl) :
                         ''
                     )
                     ->setMetaDescription(isset($translation['description']) ? $translation['description'] : '')

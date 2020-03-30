@@ -2,14 +2,14 @@
 
 namespace jtl\Connector\Shopware\Tests\Utilities;
 
-use jtl\Connector\Shopware\Utilities\Description;
+use jtl\Connector\Shopware\Utilities\Html;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Class DescriptionTest
  * @package jtl\Connector\Shopware\Utilities
  */
-class DescriptionTest extends TestCase
+class HtmlTest extends TestCase
 {
     /**
      * @dataProvider descriptionDataProvider
@@ -19,7 +19,7 @@ class DescriptionTest extends TestCase
      */
     public function testReplacePathsWithFullUrl($inputString, $shopUrl, $expected)
     {
-        $output = Description::replacePathsWithFullUrl($inputString, $shopUrl);
+        $output = Html::replacePathsWithFullUrl($inputString, $shopUrl);
         $this->assertEquals($expected, $output);
     }
 

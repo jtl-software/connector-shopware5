@@ -6,7 +6,7 @@ namespace jtl\Connector\Shopware\Utilities;
  * Class Description
  * @package jtl\Connector\Shopware\Utilities
  */
-class Description
+class Html
 {
     /**
      * @param $string
