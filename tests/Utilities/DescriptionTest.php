@@ -35,9 +35,19 @@ class DescriptionTest extends TestCase
                 '<img id="111" src="http://foobar.test/media/image/Teaser-Banner.jpg" srcThis="" thisSrc="" sRc="Bar" /> foo bar',
             ],
             [
+                '<img id="111" src="{media path=\'media/image/Teaser-Banner.jpg\'}" srcThis="" thisSrc="" sRc="Bar" /> foo bar',
+                "http://foobar.test/baseurl/",
+                '<img id="111" src="http://foobar.test/baseurl/media/image/Teaser-Banner.jpg" srcThis="" thisSrc="" sRc="Bar" /> foo bar',
+            ],
+            [
                 '<div id="111" src="{media path=\'media/image/Teaser-Banner.jpg\'}"',
                 "http://foobar.test/",
                 '<div id="111" src="{media path=\'media/image/Teaser-Banner.jpg\'}"',
+            ],
+            [
+                '<img id="111" src="http://foobarold.test/media/image/92/94/06/sommerwelten_top.jpg" />',
+                "http://foobar.test/",
+                '<img id="111" src="http://foobarold.test/media/image/92/94/06/sommerwelten_top.jpg" />',
             ],
             [
                 '<img src="{media path=\'media/image/Teaser-Banner.jpg\'}" srcThis="" thisSrc="" sRc="Bar" />
