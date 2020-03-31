@@ -11,6 +11,7 @@ use \jtl\Connector\Core\Rpc\Error;
 use \jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Model\ProductAttrI18n;
+use jtl\Connector\Shopware\Utilities\Html;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Core\Utilities\DataConverter;
 use \jtl\Connector\Core\Utilities\DataInjector;
@@ -21,6 +22,7 @@ use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Utilities\Shop;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Utilities\VariationType;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
@@ -138,6 +140,11 @@ class Product extends DataController
         $product->setStockLevel($stockLevel);
 
         // ProductI18n
+        $shopUrl = Shop::getUrl();
+        if (isset($data['descriptionLong'])) {
+            $data['descriptionLong'] = Html::replacePathsWithFullUrl($data['descriptionLong'], $shopUrl);
+        }
+
         $this->addPos($product, 'addI18n', 'ProductI18n', $data);
         if (isset($data['translations'])) {
             foreach ($data['translations'] as $localeName => $translation) {
@@ -145,7 +152,11 @@ class Product extends DataController
                 $productI18n->setLanguageISO(LanguageUtil::map($localeName))
                     ->setProductId($product->getId())
                     ->setName(isset($translation['name']) ? $translation['name'] : '')
-                    ->setDescription(isset($translation['descriptionLong']) ? $translation['descriptionLong'] : '')
+                    ->setDescription(
+                        isset($translation['descriptionLong']) ?
+                        Html::replacePathsWithFullUrl($translation['descriptionLong'], $shopUrl) :
+                        ''
+                    )
                     ->setMetaDescription(isset($translation['description']) ? $translation['description'] : '')
                     ->setTitleTag(isset($translation['metaTitle']) ? $translation['metaTitle'] : '')
                     ->setMetaKeywords(isset($translation['keywords']) ? $translation['keywords'] : '');

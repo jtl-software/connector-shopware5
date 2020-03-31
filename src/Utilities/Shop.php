@@ -8,6 +8,8 @@ namespace jtl\Connector\Shopware\Utilities;
 
 use jtl\Connector\Shopware\Service\Translation;
 use Shopware\Components\Thumbnail\Manager;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use Shopware\Models\Shop\Shop as SwShop;
 
 final class Shop
 {
@@ -81,6 +83,23 @@ final class Shop
     public static function entityManager()
     {
         return static::get()->Models();
+    }
+
+    /**
+     * @return string
+     */
+    public static function getUrl()
+    {
+        $shop = ShopUtil::entityManager()->getRepository(SwShop::class)->findOneBy(['default' => 1, 'active' => 1]);
+
+        $url = "";
+
+        if (!is_null($shop)) {
+            $proto = $shop->getSecure() ? 'https' : 'http';
+            $url = sprintf('%s://%s%s/', $proto, $shop->getHost(), $shop->getBasePath());
+        }
+
+        return $url;
     }
 
 }
