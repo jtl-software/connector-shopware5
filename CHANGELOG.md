@@ -1,6 +1,7 @@
 2.3.0
 ------
 - CO-922 Increased connector core version to ^2.7, increased minimum PHP version to 7.1.3, removed fixed monolog version 
+- CO-924 Transfer full image tag url in product and category description 
 
 2.2.5.3
 ------
