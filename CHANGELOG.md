@@ -1,3 +1,7 @@
+2.3.0
+------
+
+
 2.2.5.3
 ------
 - Removed problematic monolog file
