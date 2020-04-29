@@ -3,6 +3,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Core\Utilities\Money;
@@ -617,6 +618,10 @@ class CustomerOrder extends DataController
                     ];
 
                     $nameParts = (new Parser())->parse($value)->getAll();
+                    if (!isset($nameParts['salutation'])) {
+                        $nameParts['salutation'] = 'Herr';
+                    }
+
                     $nameAttributes = [];
                     foreach ($nameParts as $part => $value) {
                         if (isset($partsMapping[$part])) {
