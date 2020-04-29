@@ -387,7 +387,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             case IdentityLinker::TYPE_PAYMENT:
                 return array(
                     'table' => 'jtl_connector_link_payment',
-                    'pk' => 'payment_id'
+                    'pk' => 'order_id'
                 );
             case IdentityLinker::TYPE_CROSSSELLING:
                 return array(
