@@ -618,7 +618,7 @@ class CustomerOrder extends DataController
                     ];
 
                     $nameParts = (new Parser())->parse($value)->getAll();
-                    if (!isset($nameParts['salutation'])) {
+                    if (!isset($nameParts['salutation']) || trim($nameParts['salutation']) === '') {
                         $nameParts['salutation'] = 'Herr';
                     }
 
