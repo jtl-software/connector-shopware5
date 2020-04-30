@@ -1071,50 +1071,25 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         }, $existingColumnsInfo);
 
         if (!in_array('order_id', $existingColumns)) {
-            $db->query('ALTER TABLE `jtl_connector_link_payment` ADD COLUMN `order_id` INT(11) NOT NULL FIRST;');
+            $db->query('ALTER TABLE `jtl_connector_link_payment` ADD COLUMN `order_id` INT(11) DEFAULT NULL;');
         }
 
-        try {
-            $db->query('START TRANSACTION;');
-
-            if (in_array('payment_id', $existingColumns)) {
-                $db->query('DELETE `jclp` 
+        if (in_array('payment_id', $existingColumns)) {
+            $db->query('DELETE `jclp` 
                 FROM `jtl_connector_link_payment` `jclp`
                 LEFT JOIN `jtl_connector_payment` `jcp` ON `jcp`.`id` = `jclp`.`payment_id`
                 LEFT JOIN `s_order` `so` ON `so`.`id` = `jcp`.`customerOrderId` 
                 WHERE `so`.id IS NULL OR `jcp`.id IS NULL');
 
-                $limit = 500;
-                $page = 0;
-                do {
-                    $offset = $page * $limit;
-                    $results = $db->fetchAssoc(sprintf('SELECT `jclp`.payment_id,`jcp`.customerOrderId 
-                        FROM `jtl_connector_link_payment` `jclp` 
-                        JOIN `jtl_connector_payment` `jcp` ON `jcp`.`id` = `jclp`.`payment_id`                    
-                        ORDER BY `jclp`.`payment_id` LIMIT %s OFFSET %s', $limit, $offset));
+            $limit = 10000;
+            do {
+                $sql = sprintf(
+                    'UPDATE `jtl_connector_link_payment` `jclp` JOIN `jtl_connector_payment` `jcp` ON `jcp`.`id` = `jclp`.`payment_id`
+                     SET `jclp`.`order_id` = `jcp`.`customerOrderId`
+                     WHERE `jclp`.`order_id` IS NULL
+                     LIMIT %s', $limit);
+            } while ($db->exec($sql) > 0);
 
-                    foreach ($results as $result) {
-                        $db->update('jtl_connector_link_payment',
-                            ['order_id' => $result['customerOrderId']],
-                            ['payment_id' => $result['payment_id']]
-                        );
-                    }
-
-                    $page += 1;
-                } while (!empty($results));
-            }
-            $db->query('COMMIT;');
-        } catch (Exception $exception) {
-
-            $db->query('ROLLBACK;');
-
-            Logger::write('Payment link table migration error.', Logger::ERROR, 'install');
-            Logger::write(sprintf($exception->getTraceAsString()), Logger::ERROR, 'install');
-
-            throw $exception;
-        }
-
-        if (in_array('payment_id', $existingColumns)) {
             $db->query('SET FOREIGN_KEY_CHECKS=0;');
             $db->query('ALTER TABLE `jtl_connector_link_payment` DROP FOREIGN KEY `jtl_connector_link_payment_1`;');
             $db->query('ALTER TABLE `jtl_connector_link_payment` DROP COLUMN `payment_id`;');
