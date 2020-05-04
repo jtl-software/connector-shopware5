@@ -1083,7 +1083,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
             $migratedOrdersCount = $db->fetchOne('SELECT COUNT(order_id) FROM `jtl_connector_link_payment` WHERE order_id IS NOT NULL');
 
-            $limit = 5000;
+            $limit = 15000;
             $i = ceil($migratedOrdersCount/$limit);
             do {
                 $offset = $i * $limit;
