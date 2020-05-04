@@ -1081,8 +1081,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 LEFT JOIN `s_order` `so` ON `so`.`id` = `jcp`.`customerOrderId` 
                 WHERE `so`.id IS NULL OR `jcp`.id IS NULL');
 
-            $i = 0;
+            $migratedOrdersCount = $db->fetchOne('SELECT COUNT(order_id) FROM `jtl_connector_link_payment` WHERE order_id IS NOT NULL');
+
             $limit = 5000;
+            $i = ceil($migratedOrdersCount/$limit);
             do {
                 $offset = $i * $limit;
                 $sql = sprintf(
