@@ -1081,13 +1081,19 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 LEFT JOIN `s_order` `so` ON `so`.`id` = `jcp`.`customerOrderId` 
                 WHERE `so`.id IS NULL OR `jcp`.id IS NULL');
 
-            $limit = 10000;
+            $i = 0;
+            $limit = 5000;
             do {
+                $offset = $i * $limit;
                 $sql = sprintf(
-                    'UPDATE `jtl_connector_link_payment` `jclp` JOIN `jtl_connector_payment` `jcp` ON `jcp`.`id` = `jclp`.`payment_id`
-                     SET `jclp`.`order_id` = `jcp`.`customerOrderId`
-                     WHERE `jclp`.`order_id` IS NULL
-                     LIMIT %s', $limit);
+                    'UPDATE `jtl_connector_link_payment` `jclp` 
+                           JOIN 
+                           (
+                               (SELECT `id`, `customerOrderId` FROM `jtl_connector_payment` LIMIT %s OFFSET %s) `jcp`
+                           ) ON `jcp`.`id` = `jclp`.`payment_id`
+                           SET `jclp`.`order_id` = `jcp`.`customerOrderId`
+                           WHERE `jclp`.`order_id` IS NULL', $limit, $offset);
+                $i++;
             } while ($db->exec($sql) > 0);
 
             $db->query('SET FOREIGN_KEY_CHECKS=0;');
