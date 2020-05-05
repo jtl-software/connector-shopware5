@@ -652,9 +652,15 @@ class CustomerOrder extends DataController
                         $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_house_number')->setValue($streetParts['number']));
                     }
 
+                    $addressAddition = sprintf('%s %s', $order->getShippingAddress()->getZipCode(), $order->getShippingAddress()->getCity());
+                    $addressAdditionAttribute = (new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_address_addition')->setValue($addressAddition);
+
                     if (isset($parts[1])) {
-                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_address_addition')->setValue($parts[1]));
+                        $addressAdditionAttribute->setValue($parts[1]);
                     }
+
+                    $order->addAttribute($addressAdditionAttribute);
+
                     break;
             }
         }
