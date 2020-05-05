@@ -3,6 +3,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Core\Utilities\Money;
@@ -617,6 +618,10 @@ class CustomerOrder extends DataController
                     ];
 
                     $nameParts = (new Parser())->parse($value)->getAll();
+                    if (!isset($nameParts['salutation']) || trim($nameParts['salutation']) === '') {
+                        $nameParts['salutation'] = 'Herr';
+                    }
+
                     $nameAttributes = [];
                     foreach ($nameParts as $part => $value) {
                         if (isset($partsMapping[$part])) {
@@ -647,9 +652,15 @@ class CustomerOrder extends DataController
                         $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_house_number')->setValue($streetParts['number']));
                     }
 
+                    $addressAddition = sprintf('%s %s', $order->getShippingAddress()->getZipCode(), $order->getShippingAddress()->getCity());
+                    $addressAdditionAttribute = (new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_address_addition')->setValue($addressAddition);
+
                     if (isset($parts[1])) {
-                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_address_addition')->setValue($parts[1]));
+                        $addressAdditionAttribute->setValue($parts[1]);
                     }
+
+                    $order->addAttribute($addressAdditionAttribute);
+
                     break;
             }
         }
