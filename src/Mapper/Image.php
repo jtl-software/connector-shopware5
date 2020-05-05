@@ -972,6 +972,10 @@ class Image extends DataMapper
             ->setUserId(0)
             ->setAlbum($album);
 
+        if ($jtlImage->getName() !== '') {
+            $media->setName($jtlImage->getName());
+        }
+
         ShopUtil::entityManager()->persist($media);
         ShopUtil::thumbnailManager()->createMediaThumbnail($media, [], true);
 
