@@ -1,3 +1,9 @@
+2.3.0.2
+------
+- CO 930 - Added if image name is not empty it's now set in backend 
+- CO-975 - DHL Wunschpaket: Added default salutation 'Herr' if no salutation is present
+- CO-961 - If 'additional_address_line2' is not empty it's now transferred to Wawi in extraAddressLine field
+
 2.3.0.1
 ------
 - Hotfix skip monolog file deletion
