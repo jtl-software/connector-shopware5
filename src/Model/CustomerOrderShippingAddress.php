@@ -25,7 +25,6 @@ class CustomerOrderShippingAddress extends CustomerOrderShippingAddressModel
         'company' => 'company',
         'deliveryInstruction' => 'department',
         'street' => 'street',
-        'extraAddressLine' => 'additionalAddressLine1',
         'zipCode' => 'zipCode',
         'city' => 'city',
         'state' => '',
@@ -46,6 +45,28 @@ class CustomerOrderShippingAddress extends CustomerOrderShippingAddressModel
             $obj->salutation = Salutation::toConnector($obj->salutation);
         }
 
+        if (isset($obj->additionalAddressLine1) || isset($obj->additionalAddressLine2)) {
+            $this->setExtraAddressLine($this->formatExtraAddressLine($obj));
+        }
+
         return DataModel::map($toWawi, $obj, $this);
+    }
+
+    /**
+     * @param $obj
+     * @return string
+     */
+    protected function formatExtraAddressLine($obj)
+    {
+        $extraAddressLines = [
+            $obj->additionalAddressLine1,
+            $obj->additionalAddressLine2
+        ];
+
+        $extraAddressLines = array_values(array_filter($extraAddressLines, function ($value) {
+            return strlen(trim($value)) > 0;
+        }));
+
+        return join("\r\n", $extraAddressLines);
     }
 }
