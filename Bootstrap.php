@@ -362,9 +362,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->createSpecificMappingTable();
         $this->createSpecificValueMappingTable();
         $this->createCrossSellingMappingTable();
-        $this->createPaymentTable();
         $this->createPaymentMappingTable();
-        $this->createPaymentTrigger();
         $this->createUnitTable();
         $this->createCategoryTable();
         $this->createCrossSellingGroupTable();
@@ -1089,12 +1087,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $offset = $i * $limit;
                 $sql = sprintf(
                     'UPDATE `jtl_connector_link_payment` `jclp` 
-                           JOIN 
-                           (
-                               (SELECT `id`, `customerOrderId` FROM `jtl_connector_payment` LIMIT %s OFFSET %s) `jcp`
-                           ) ON `jcp`.`id` = `jclp`.`payment_id`
-                           SET `jclp`.`order_id` = `jcp`.`customerOrderId`
-                           WHERE `jclp`.`order_id` IS NULL', $limit, $offset);
+                     JOIN 
+                     (
+                         (SELECT `id`, `customerOrderId` FROM `jtl_connector_payment` LIMIT %s OFFSET %s) `jcp`
+                     ) ON `jcp`.`id` = `jclp`.`payment_id`
+                     SET `jclp`.`order_id` = `jcp`.`customerOrderId`
+                     WHERE `jclp`.`order_id` IS NULL', $limit, $offset);
                 $i++;
             } while ($db->exec($sql) > 0);
 
