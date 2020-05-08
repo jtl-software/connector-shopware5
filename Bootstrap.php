@@ -136,7 +136,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->createProductChecksumTable();
         $this->createMappingTables();
         $this->fillCategoryTable();
-        $this->fillPaymentTable();
         $this->fillCrossSellingGroupTable();
         $this->migratePaymentLinkTable();
 
