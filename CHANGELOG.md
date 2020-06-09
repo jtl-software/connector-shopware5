@@ -1,6 +1,12 @@
+Unreleased
+------
+- CO-923 Fixed CrossSelling deletes in Shopware
+- CO-949 Removed payment trigger and payment table
+- CO-974 Changed logic of payment import (import only in case related order is imported already)
+
 2.3.0.2
 ------
-- CO 930 - Added if image name is not empty it's now set in backend 
+- CO-930 - Added if image name is not empty it's now set in backend 
 - CO-975 - DHL Wunschpaket: Added default salutation 'Herr' if no salutation is present
 - CO-961 - If 'additional_address_line2' is not empty it's now transferred to Wawi in extraAddressLine field
 

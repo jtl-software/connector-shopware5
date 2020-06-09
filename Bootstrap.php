@@ -136,8 +136,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->createProductChecksumTable();
         $this->createMappingTables();
         $this->fillCategoryTable();
-        $this->fillPaymentTable();
         $this->fillCrossSellingGroupTable();
+        $this->migratePaymentLinkTable();
 
         return array(
             'success' => true,
@@ -252,8 +252,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->createCrossSellingGroupTable();
                 $related = jtl\Connector\Shopware\Model\CrossSellingGroup::RELATED;
                 $similar = jtl\Connector\Shopware\Model\CrossSellingGroup::SIMILAR;
-                $relatedGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?', [$related]);
-                $similarGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?', [$similar]);
+                $relatedGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?',
+                    [$related]);
+                $similarGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?',
+                    [$similar]);
 
                 if ($relatedGroupId === null && $similarGroupId === null) {
                     $this->fillCrossSellingGroupTable();
@@ -336,6 +338,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.5.3':
             case '2.3.0':
             case '2.3.0.1':
+                $this->migratePaymentLinkTable();
                 break;
             default:
                 return false;
@@ -358,9 +361,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $this->createSpecificMappingTable();
         $this->createSpecificValueMappingTable();
         $this->createCrossSellingMappingTable();
-        $this->createPaymentTable();
         $this->createPaymentMappingTable();
-        $this->createPaymentTrigger();
         $this->createUnitTable();
         $this->createCategoryTable();
         $this->createCrossSellingGroupTable();
@@ -410,7 +411,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         if (!isset($pluginConfig[self::DELETE_USER_DATA]) || $pluginConfig[self::DELETE_USER_DATA] === true) {
             $this->dropMappingTable();
-            Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
+            Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?",
+                [ProductMapper::KIND_VALUE_PARENT]);
         }
 
         return true;
@@ -450,11 +452,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $loader = null;
 
         $filePath = sprintf('%s/vendor/autoload.php', __DIR__);
-        if(!file_exists($filePath)) {
+        if (!file_exists($filePath)) {
             throw new \Exception('Could not find vendor/autoload.php. Did you run "composer install"?');
         }
 
-        $loader = require_once ($filePath);
+        $loader = require_once($filePath);
         if ($loader instanceof \Composer\Autoload\ClassLoader) {
             $loader->add('', CONNECTOR_DIR . '/plugins');
         }
@@ -615,7 +617,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     VALUES (?,?,?)
                 ';
 
-                Shopware()->Db()->query($sql, array($parentCategoryId, LanguageUtil::map($shopCategory['locale']), $categoryId));
+                Shopware()->Db()->query($sql,
+                    array($parentCategoryId, LanguageUtil::map($shopCategory['locale']), $categoryId));
             }
         }
     }
@@ -963,12 +966,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $sql = '
             CREATE TABLE IF NOT EXISTS `jtl_connector_link_payment` (
-              `payment_id` int(11) unsigned NOT NULL,
+              `order_id` int(11) NOT NULL,
               `host_id` int(10) unsigned NOT NULL,
-              PRIMARY KEY (`payment_id`)
+              PRIMARY KEY (`order_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_payment`
-            ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`payment_id`) REFERENCES `jtl_connector_payment` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`order_id`) REFERENCES `s_order` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_payment` ADD INDEX(`host_id`);
         ';
 
@@ -1053,5 +1056,53 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         ';
 
         Shopware()->Db()->query($sql);
+    }
+
+    private function migratePaymentLinkTable()
+    {
+        $db = Shopware()->Db();
+
+        $existingColumnsInfo = $db->query('SHOW COLUMNS FROM `jtl_connector_link_payment`;')->fetchAll();
+        $existingColumns = array_map(function ($data) {
+            return $data['Field'];
+        }, $existingColumnsInfo);
+
+        if (!in_array('order_id', $existingColumns)) {
+            $db->query('ALTER TABLE `jtl_connector_link_payment` ADD COLUMN `order_id` INT(11) DEFAULT NULL;');
+        }
+
+        if (in_array('payment_id', $existingColumns)) {
+            $db->query('DELETE `jclp` 
+                FROM `jtl_connector_link_payment` `jclp`
+                LEFT JOIN `jtl_connector_payment` `jcp` ON `jcp`.`id` = `jclp`.`payment_id`
+                LEFT JOIN `s_order` `so` ON `so`.`id` = `jcp`.`customerOrderId` 
+                WHERE `so`.id IS NULL OR `jcp`.id IS NULL');
+
+            $migratedOrdersCount = $db->fetchOne('SELECT COUNT(order_id) FROM `jtl_connector_link_payment` WHERE order_id IS NOT NULL');
+
+            $limit = 15000;
+            $i = ceil($migratedOrdersCount/$limit);
+            do {
+                $offset = $i * $limit;
+                $sql = sprintf(
+                    'UPDATE `jtl_connector_link_payment` `jclp` 
+                     JOIN 
+                     (
+                         (SELECT `id`, `customerOrderId` FROM `jtl_connector_payment` LIMIT %s OFFSET %s) `jcp`
+                     ) ON `jcp`.`id` = `jclp`.`payment_id`
+                     SET `jclp`.`order_id` = `jcp`.`customerOrderId`
+                     WHERE `jclp`.`order_id` IS NULL', $limit, $offset);
+                $i++;
+            } while ($db->exec($sql) > 0);
+
+            $db->query('SET FOREIGN_KEY_CHECKS=0;');
+            $db->query('ALTER TABLE `jtl_connector_link_payment` DROP FOREIGN KEY `jtl_connector_link_payment_1`;');
+            $db->query('ALTER TABLE `jtl_connector_link_payment` DROP COLUMN `payment_id`;');
+            $db->query('ALTER TABLE `jtl_connector_link_payment` ADD PRIMARY KEY (`order_id`)');
+            $db->query('ALTER TABLE `jtl_connector_link_payment` ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`order_id`) REFERENCES `s_order` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION');
+            $db->query('DROP TRIGGER IF EXISTS `jtl_connector_payment`;');
+            $db->query('DROP TABLE IF EXISTS `jtl_connector_payment`');
+            $db->query('SET FOREIGN_KEY_CHECKS=1;');
+        }
     }
 }
