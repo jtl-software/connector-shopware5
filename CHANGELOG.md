@@ -2,7 +2,8 @@ Unreleased
 ------
 - CO-923 Fixed CrossSelling deletes in Shopware
 - CO-949 Removed payment trigger and payment table
-- CO-974 Changed logic of payment import (import only in case related order is imported already)
+- CO-974 Changed logic when payment will be imported
+- CO-966 Fixed limiting customer group to 50 
 
 2.3.0.2
 ------
