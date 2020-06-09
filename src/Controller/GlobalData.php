@@ -36,7 +36,7 @@ class GlobalData extends DataController
         
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit = null;
 
             /** @var \jtl\Connector\Shopware\Model\GlobalData $globalData */
             $globalData = Mmc::getModel('GlobalData');
