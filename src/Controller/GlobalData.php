@@ -72,7 +72,8 @@ class GlobalData extends DataController
                     if (!is_null($currencySW)) {
                         $currencySW['default'] = (bool) $currencySW['default'];
                         $currencySW['hasCurrencySignBeforeValue'] = ($currencySW['position'] == 32) ? true : false;
-                
+
+                        /** @var \jtl\Connector\Shopware\Model\Currency $currency */
                         $currency = Mmc::getModel('Currency');
                         $currency->map(true, DataConverter::toObject($currencySW, true));
                 

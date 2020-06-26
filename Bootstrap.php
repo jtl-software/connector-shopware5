@@ -339,6 +339,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.3.0':
             case '2.3.0.1':
             case '2.3.0.2':
+            case '2.4.0':
                 $this->migratePaymentLinkTable();
                 break;
             default:
@@ -1086,13 +1087,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             do {
                 $offset = $i * $limit;
                 $sql = sprintf(
-                    'UPDATE `jtl_connector_link_payment` `jclp` 
+                    'UPDATE `jtl_connector_link_payment`
                      JOIN 
                      (
                          (SELECT `id`, `customerOrderId` FROM `jtl_connector_payment` LIMIT %s OFFSET %s) `jcp`
-                     ) ON `jcp`.`id` = `jclp`.`payment_id`
-                     SET `jclp`.`order_id` = `jcp`.`customerOrderId`
-                     WHERE `jclp`.`order_id` IS NULL', $limit, $offset);
+                     ) ON `payment_id` = `jcp`.`id`
+                     SET `order_id` = `jcp`.`customerOrderId`
+                     WHERE `order_id` IS NULL', $limit, $offset);
                 $i++;
             } while ($db->exec($sql) > 0);
 

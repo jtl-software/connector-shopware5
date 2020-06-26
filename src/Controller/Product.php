@@ -217,8 +217,8 @@ class Product extends DataController
             if ($customerGroup->getId() == Shopware()->Shop()->getCustomerGroup()->getId() && (int) $data['prices'][$i]['from'] == 1) {
                 $recommendedRetailPrice = (double) $data['prices'][$i]['pseudoPrice'];
                 $defaultPrice = clone $productPrice;
-                $defaultPrice->setCustomerGroupId(new Identity('0', 0))
-                    ->setCustomerId(new Identity('0', 0));
+                $defaultPrice->setCustomerGroupId(new Identity('', 0))
+                    ->setCustomerId(new Identity('', 0));
                 $arr = $defaultPrice->getItems();
                 $arr[0]->setQuantity(0);
                 $defaultPrice->setItems(array($arr[0]));

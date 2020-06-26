@@ -1,6 +1,9 @@
+2.4.1
+## Attention: Update process can take some time!
+- Removed alias in update query
+
 2.4.0
 ------
-## Attention: Update process can take some time!
 - CO-923 Fixed CrossSelling deletes in Shopware
 - CO-949 Removed payment trigger and payment table
 - CO-974 Changed logic when payment will be imported
