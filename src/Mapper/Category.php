@@ -289,6 +289,7 @@ class Category extends DataMapper
 
         $attributes = [];
         $mappings = [];
+        $categoryAttributes = [];
         foreach ($jtlCategory->getAttributes() as $jtlAttribute) {
             if ($jtlAttribute->getIsCustomProperty()) {
                 continue;
@@ -322,6 +323,8 @@ class Category extends DataMapper
 
                     $mappings[$attributeI18n->getName()] = $jtlAttribute->getId()->getHost();
                     $attributes[$attributeI18n->getName()] = $jtlAttribute;
+
+                    $categoryAttributes[$attributeI18n->getName()] = $attributeI18n->getValue();
                 }
             }
         }
@@ -333,7 +336,7 @@ class Category extends DataMapper
         $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_categories_attributes');
 
         foreach ($swAttributesList as $tSwAttribute) {
-            $result = TranslatableAttributes::setAttribute($tSwAttribute, $swAttribute, $attributes, $nullUndefinedAttributes);
+            $result = TranslatableAttributes::setAttribute($tSwAttribute, $swAttribute, $categoryAttributes, $nullUndefinedAttributes);
             if ($result === true) {
                 $translations = self::createAttributeTranslations($attributes[$tSwAttribute->getColumnName()], $tSwAttribute->getColumnName(), $translations, [$langIso]);
             }
