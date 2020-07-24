@@ -301,7 +301,7 @@ class CustomerOrder extends DataController
                     }
 
                     if (count($dhlWUnschpaketAttributes) > 0) {
-                        $this->addWunschpaketAttributes($keyValueAttributes, $dhlWUnschpaketAttributes);
+                        $this->addWunschpaketAttributes($jtlOrder, $keyValueAttributes, $dhlWUnschpaketAttributes);
                     }
 
                     $jtlOrder->setAttributes($keyValueAttributes->getAttributes());
@@ -588,10 +588,11 @@ class CustomerOrder extends DataController
     }
 
     /**
+     * @param CustomerOrderModel $order
      * @param KeyValueAttributes $keyValueAttributes
      * @param array $swAttributes
      */
-    protected function addWunschpaketAttributes(KeyValueAttributes $keyValueAttributes, array $swAttributes)
+    protected function addWunschpaketAttributes(CustomerOrderModel $order, KeyValueAttributes $keyValueAttributes, array $swAttributes)
     {
         $mappings = [
             self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE => 'dhl_wunschpaket_type',
@@ -650,9 +651,14 @@ class CustomerOrder extends DataController
                             $streetParts['number']);
                     }
 
+                    $addressAddition = sprintf('%s %s', $order->getShippingAddress()->getZipCode(), $order->getShippingAddress()->getCity());
+
                     if (isset($parts[1])) {
-                        $keyValueAttributes->addAttribute('dhl_wunschpaket_neighbour_address_addition', $parts[1]);
+                        $addressAddition = $parts[1];
                     }
+
+                    $keyValueAttributes->addAttribute('dhl_wunschpaket_neighbour_address_addition', $addressAddition);
+
                     break;
             }
         }
