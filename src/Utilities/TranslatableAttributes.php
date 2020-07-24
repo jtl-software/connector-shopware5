@@ -6,7 +6,9 @@ use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Identity;
+use Shopware\Bundle\AttributeBundle\Service\ConfigurationStruct;
 use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
+use Shopware\Components\Model\ModelEntity;
 
 /**
  * Class TranslatableAttributes
@@ -95,13 +97,13 @@ class TranslatableAttributes extends Attributes
     }
 
     /**
-     * @param $tSwAttribute
-     * @param $swAttribute
-     * @param $attributes
-     * @param $nullUndefinedAttributes
-     * @return bool|null
+     * @param ConfigurationStruct $tSwAttribute
+     * @param ModelEntity $swAttribute
+     * @param array $attributes
+     * @param bool $nullUndefinedAttributes
+     * @return bool
      */
-    public static function setAttribute($tSwAttribute, $swAttribute, &$attributes, $nullUndefinedAttributes)
+    public static function setAttribute(ConfigurationStruct $tSwAttribute, ModelEntity $swAttribute, array &$attributes, bool $nullUndefinedAttributes)
     {
         if (!$tSwAttribute->isIdentifier()) {
             $setter = sprintf('set%s', ucfirst(Str::camel($tSwAttribute->getColumnName())));
