@@ -136,10 +136,7 @@ class CustomerOrder extends DataController
                     }
 
                     // PaymentStatus
-                    $paymentStatus = PaymentStatusUtil::map(null, $swOrder['cleared']);
-                    if ($paymentStatus !== null) {
-                        $jtlOrder->setPaymentStatus($paymentStatus);
-                    }
+                    $jtlOrder->setPaymentStatus(\jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_UNPAID);
 
                     // Locale
                     $swShop = $shopMapper->find((int)$swOrder['languageIso']);
@@ -256,6 +253,13 @@ class CustomerOrder extends DataController
                     $shippingVat = isset($swOrder['invoiceShippingTaxRate']) ? (float)$swOrder['invoiceShippingTaxRate'] : 0.0;
                     if ($shippingVat === 0.0 && $shippingPrice > 0. && $shippingPrice !== $shippingPriceGross) {
                         $shippingVat = self::calcShippingVat($jtlOrder);
+                    }
+
+                    /**
+                     * @see https://issues.shopware.com/issues/SW-25096
+                     */
+                    if ((int)$swOrder['taxFree'] == 1) {
+                        $shippingVat = 0.0;
                     }
 
                     $item = Mmc::getModel('CustomerOrderItem');
@@ -615,6 +619,11 @@ class CustomerOrder extends DataController
                     ];
 
                     $nameParts = (new Parser())->parse($value)->getAll();
+                    if (!isset($nameParts['salutation']) || trim($nameParts['salutation']) === '') {
+                        $nameParts['salutation'] = 'Herr';
+                    }
+
+                    $nameAttributes = [];
                     foreach ($nameParts as $part => $value) {
                         if (isset($partsMapping[$part])) {
 

@@ -5,16 +5,24 @@
  */
 namespace jtl\Connector\Shopware\Controller;
 
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \jtl\Connector\Core\Utilities\DataInjector;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Core\Utilities\DataInjector;
 
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Core\Model\QueryFilter;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Mapper\CrossSellingGroup;
+use jtl\Connector\Shopware\Mapper\Currency;
+use jtl\Connector\Shopware\Mapper\CustomerGroup;
+use jtl\Connector\Shopware\Mapper\MeasurementUnit;
+use jtl\Connector\Shopware\Mapper\Shipping;
+use jtl\Connector\Shopware\Mapper\Shop;
+use jtl\Connector\Shopware\Mapper\TaxRate;
+use jtl\Connector\Shopware\Mapper\Unit;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 /**
@@ -36,11 +44,12 @@ class GlobalData extends DataController
         
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit = null;
 
             /** @var \jtl\Connector\Shopware\Model\GlobalData $globalData */
             $globalData = Mmc::getModel('GlobalData');
 
+            /** @var Shop $shopMapper */
             $shopMapper = Mmc::getMapper('Shop');
             $shops = $shopMapper->findAll(null);
     
@@ -56,13 +65,15 @@ class GlobalData extends DataController
                 $uniqueCurrencyIds[] = $id;
                 
                 try {
+                    /** @var Currency $currencyMapper */
                     $currencyMapper = Mmc::getMapper('Currency');
                     $currencySW = $currencyMapper->find($id, true);
             
                     if (!is_null($currencySW)) {
                         $currencySW['default'] = (bool) $currencySW['default'];
                         $currencySW['hasCurrencySignBeforeValue'] = ($currencySW['position'] == 32) ? true : false;
-                
+
+                        /** @var \jtl\Connector\Shopware\Model\Currency $currency */
                         $currency = Mmc::getModel('Currency');
                         $currency->map(true, DataConverter::toObject($currencySW, true));
                 
@@ -96,7 +107,7 @@ class GlobalData extends DataController
                 }
             }
 
-            // CustomerGroups
+            /** @var CustomerGroup $mapper */
             $mapper = Mmc::getMapper('CustomerGroup');
             $customerGroupSWs = $mapper->findAll($limit);
 
@@ -123,7 +134,7 @@ class GlobalData extends DataController
 
             // CustomerGroupAttrs
 
-            // CrossSellingGroups
+            /** @var CrossSellingGroup $crossSellingGroupMapper */
             $crossSellingGroupMapper = Mmc::getMapper('CrossSellingGroup');
             $crossSellingGroupSWs = $crossSellingGroupMapper->fetchAll($limit);
             foreach ($crossSellingGroupSWs as $crossSellingGroupSW) {
@@ -152,7 +163,7 @@ class GlobalData extends DataController
                 $globalData->addCrossSellingGroup($crossSellingGroup);
             }
 
-            // Units
+            /** @var Unit $mapper */
             $mapper = Mmc::getMapper('Unit');
             $unitSWs = $mapper->findAll($limit);
 
@@ -172,7 +183,7 @@ class GlobalData extends DataController
                 }
             }
 
-            // Measurement Units
+            /** @var MeasurementUnit $mapper */
             $mapper = Mmc::getMapper('MeasurementUnit');
             $measurementUnitSWs = $mapper->findAll($limit);
 
@@ -223,7 +234,7 @@ class GlobalData extends DataController
 
             // TaxClasss
 
-            // TaxRates
+            /** @var TaxRate $mapper */
             $mapper = Mmc::getMapper('TaxRate');
             $taxSWs = $mapper->findAll($limit);
 
@@ -235,7 +246,7 @@ class GlobalData extends DataController
                 $globalData->addTaxRate($tax);
             }
 
-            // Shipping
+            /** @var Shipping $mapper */
             $mapper = Mmc::getMapper('Shipping');
             $shippingMethodSWs = $mapper->findAll($limit);
 

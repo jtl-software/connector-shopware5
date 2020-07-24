@@ -26,23 +26,32 @@ class Payment extends DataMapper
         // Customer Order pull start date
         $where = '';
         try {
-            $start_date = Application()->getConfig()->get('customer_order_pull_start_date', null);
-            if (!is_null($start_date)) {
-                $date_time = new \DateTime($start_date);
-                $where = sprintf(' AND o.orderTime >= \'%s\'', $date_time->format('Y-m-d H:i:s'));
+            $startDateOld = Application()->getConfig()->get('customer_order_pull_start_date', null);
+            $startDate = Application()->getConfig()->get('customer_order.pull.start_date', $startDateOld);
+            if (!is_null($startDate)) {
+                $dateTime = new \DateTime($startDate);
+                $where = sprintf(' AND o.orderTime >= \'%s\'', $dateTime->format('Y-m-d H:i:s'));
             }
         } catch (\Exception $e) {
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
         }
-        
+
         return Shopware()->Db()->fetchAssoc(
-            'SELECT p.id, p.customerOrderId,
-              p.billingInfo, p.creationDate, p.totalSum, p.transactionId, m.name as paymentModuleCode
-            FROM jtl_connector_payment p
-            JOIN s_order o ON o.id = p.customerOrderId
-            JOIN s_core_paymentmeans m ON m.id = o.paymentID
-            LEFT JOIN jtl_connector_link_payment pl ON pl.payment_id = p.id
-            WHERE pl.payment_id IS NULL
+            'SELECT
+                    o.id as id,
+                    o.id as customerOrderId,
+                    "" as billingInfo,
+                    IF(o.cleareddate IS NULL, now(), o.cleareddate) as creationDate,
+                    o.invoice_amount as totalSum,
+                    o.transactionID as transactionId,
+                    m.name AS paymentModuleCode
+                FROM s_order o
+                JOIN jtl_connector_link_order lo ON lo.order_id = o.id
+                JOIN s_core_paymentmeans m ON m.id = o.paymentID
+                LEFT JOIN jtl_connector_link_payment pl ON pl.order_id = o.id
+                WHERE pl.order_id IS NULL
+                AND lo.order_id IS NOT NULL
+                AND o.cleared = 12 AND LENGTH(o.transactionID) > 0
             ' . $where . '
             limit ' . $limit
         );
@@ -70,27 +79,23 @@ class Payment extends DataMapper
 
     public function fetchCount($limit = 100)
     {
-        // Customer Order pull start date
         $where = '';
         try {
-            $start_date = Application()->getConfig()->get('customer_order_pull_start_date', null);
-            if (!is_null($start_date)) {
-                $date_time = new \DateTime($start_date);
-                $where = sprintf(' AND o.orderTime >= \'%s\'', $date_time->format('Y-m-d H:i:s'));
+            $startDateOld = Application()->getConfig()->get('customer_order_pull_start_date', null);
+            $startDate = Application()->getConfig()->get('customer_order.pull.start_date', $startDateOld);
+            if (!is_null($startDate)) {
+                $dateTime = new \DateTime($startDate);
+                $where = sprintf(' AND o.orderTime >= \'%s\'', $dateTime->format('Y-m-d H:i:s'));
             }
         } catch (\Exception $e) {
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
         }
-        
-        return (int) Shopware()->Db()->fetchOne(
-            'SELECT count(*) as count
-            FROM jtl_connector_payment p
-            JOIN s_order o ON o.id = p.customerOrderId
-            JOIN s_core_paymentmeans m ON m.id = o.paymentID
-            LEFT JOIN jtl_connector_link_payment pl ON pl.payment_id = p.id
-            WHERE pl.payment_id IS NULL' . $where
-        );
 
-        //return $this->findAll($limit, true);
+        return (int)Shopware()->Db()->fetchOne(
+            'SELECT count(*) as count
+            FROM s_order o            
+            LEFT JOIN jtl_connector_link_payment pl ON pl.order_id = o.id            
+            WHERE pl.order_id IS NULL AND o.cleared = 12 AND LENGTH(o.transactionID) > 0' . $where
+        );
     }
 }

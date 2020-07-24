@@ -101,7 +101,6 @@ class CrossSelling extends DataMapper
 
     public function save(CrossSellingModel $crossSelling)
     {
-        $this->delete($crossSelling);
         list ($sDetailId, $sProductId) = IdConcatenator::unlink($crossSelling->getProductId()->getEndpoint());
         foreach ($crossSelling->getItems() as $item) {
             if (count($item->getProductIds()) > 0) {
@@ -109,6 +108,10 @@ class CrossSelling extends DataMapper
                 $group = CrossSellingGroupUtil::get($item->getCrossSellingGroupId()->getEndpoint());
                 $table = ($group !== null) ? $group->getTable() : 's_articles_relationships';
                 $sql = sprintf('INSERT INTO %s VALUES ', $table);
+
+                Shopware()->Db()->delete($table, array(
+                    'articleID = ?' => $sProductId
+                ));
 
                 foreach ($item->getProductIds() as $i => $identity) {
                     if (strlen($crossSelling->getProductId()->getEndpoint()) > 0 && strlen($identity->getEndpoint()) > 0) {

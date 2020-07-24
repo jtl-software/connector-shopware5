@@ -20,26 +20,18 @@ class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Acti
     public function indexAction()
     {
         session_destroy();
-        define('CONNECTOR_DIR', __DIR__);
-    
-        // Tmp directory fallback
-        $dir = sys_get_temp_dir();
-        if (!is_writeable($dir)) {
-            $dir = CONNECTOR_DIR . DIRECTORY_SEPARATOR . 'tmp';
+        if(!defined('CONNECTOR_DIR')) {
+            define('CONNECTOR_DIR', __DIR__);
         }
-        
-        $application = null;
 
+        $bootstrapFile = sprintf('%s/src/bootstrap.php', CONNECTOR_DIR);
+        if(!file_exists($bootstrapFile)) {
+            throw new \Exception('Could not find src/bootstrap.php. Something is very wrong!');
+        }
+
+        $application = null;
         try {
-            if (file_exists(CONNECTOR_DIR . '/connector.phar')) {
-                if (is_writable($dir)) {
-                    include_once('phar://' . CONNECTOR_DIR . '/connector.phar/src/bootstrap.php');
-                } else {
-                    echo sprintf('Directory %s is not writeable. Please contact your administrator or hoster.', $dir);
-                }
-            } else {
-                include_once(CONNECTOR_DIR . '/src/bootstrap.php');
-            }
+            require_once $bootstrapFile;
         } catch (\Exception $e) {
             if (is_object($application)) {
                 $handler = $application->getErrorHandler()->getExceptionHandler();

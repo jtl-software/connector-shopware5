@@ -84,8 +84,14 @@ class CrossSellingGroup extends DataMapper
 
     public function fetchAll($limit = 100)
     {
+        $query = 'SELECT * FROM jtl_connector_crosssellinggroup';
+
+        if(!is_null($limit)){
+            $query .= ' LIMIT' . intval($limit);
+        }
+
         $groups = Shopware()->Db()->fetchAll(
-            'SELECT * FROM jtl_connector_crosssellinggroup LIMIT ' . intval($limit)
+            $query
         );
 
         if (is_array($groups) && count($groups) > 0) {

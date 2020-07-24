@@ -12,6 +12,8 @@ use jtl\Connector\Core\Rpc\Error;
 use jtl\Connector\Shopware\Model\CategoryAttr;
 use jtl\Connector\Shopware\Model\CategoryAttrI18n;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use jtl\Connector\Shopware\Utilities\Html;
+use jtl\Connector\Shopware\Utilities\Shop;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
 use Shopware\Models\Category\Category as CategoryShopware;
@@ -150,7 +152,9 @@ class Category extends DataController
                     if (!isset($categorySW['localeName']) || strlen($categorySW['localeName']) == 0) {
                         $categorySW['localeName'] = Shopware()->Shop()->getLocale()->getLocale();
                     }
-
+                    if (isset($categorySW['cmsText'])) {
+                        $categorySW['cmsText'] = Html::replacePathsWithFullUrl($categorySW['cmsText'], Shop::getUrl());
+                    }
                     $this->addPos($category, 'addI18n', 'CategoryI18n', $categorySW);
 
                     // Other languages
@@ -211,7 +215,12 @@ class Category extends DataController
         foreach ($propertyMappings as $swProp => $jtlProp) {
             if (isset($data[$swProp])) {
                 $setter = 'set' . ucfirst($jtlProp);
-                $i18n->{$setter}($data[$swProp]);
+                $value = $data[$swProp];
+                if($jtlProp === 'description'){
+                    $value = Html::replacePathsWithFullUrl($value, Shop::getUrl());
+                }
+
+                $i18n->{$setter}($value);
             }
         }
 

@@ -1,7 +1,55 @@
+2.4.1
+## Attention: Update process can take some time!
+- Removed alias in update query
+
+2.4.0
+------
+- CO-923 Fixed CrossSelling deletes in Shopware
+- CO-949 Removed payment trigger and payment table
+- CO-974 Changed logic when payment will be imported
+- CO-966 Fixed limiting customer group to 50 
+
+2.3.0.2
+------
+- CO-930 - Added if image name is not empty it's now set in backend 
+- CO-975 - DHL Wunschpaket: Added default salutation 'Herr' if no salutation is present
+- CO-961 - If 'additional_address_line2' is not empty it's now transferred to Wawi in extraAddressLine field
+
+2.3.0.1
+------
+- Hotfix skip monolog file deletion
+
+2.3.0
+------
+- CO-922 Increased connector core version to ^2.7, increased minimum PHP version to 7.1.3, removed fixed monolog version 
+- CO-924 Transfer full image tag url in product and category description 
+
+2.2.5.3
+------
+- Removed problematic monolog file
+
+2.2.5.2
+------
+- Removed phar dependencies
+- Switched to older monolog version due to compatiblity reasons
+
+2.2.5.1
+------
+- CO-496 Fixed missing image relations on variant children
+- CO-569 Removed not existent getter calls in customer order mapper
+- CO-849 Fixed Warning "Zahlung mit Transaktions-ID 'XYZ'..." when importing payment orders
+- CO-866 Keep dummy parents as well in case linking tables should be kept after deinstallation
+
 2.2.5
 ------
-- CO-784 Added support for product SEO attributes title, keywords, description
+- CO-805 Fixed bug with shipping tax rate
 - CO-785 Added support for image alt attribute
+- CO-784 Added support for product SEO attributes title, keywords, description
+- CO-567 Delivery note creation can be now turned off in config
+
+2.2.4.4
+------
+- Fixed start_date for payment import
 
 2.2.4.3
 ------
