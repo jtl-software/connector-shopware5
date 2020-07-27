@@ -81,6 +81,7 @@ class CustomerOrder extends DataMapper
             ->where('linker.hostId IS NULL')
             ->andWhere('orders.status != -1')
             ->orderBy('history.changeDate', 'ASC')
+            ->orderBy('details.id', 'ASC')
             ->setFirstResult(0)
             ->setMaxResults($limit);
 
