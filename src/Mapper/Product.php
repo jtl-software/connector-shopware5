@@ -735,7 +735,7 @@ class Product extends DataMapper
         }
 
         if (!$exists) {
-            $detailSW->setShippingTime($product->getSupplierDeliveryTime());
+            $detailSW->setShippingTime($product->calculateHandlingTime());
         }
 
         // Last stock
