@@ -1,6 +1,9 @@
-Unreleased
+2.5.0
 ------
-- Changed supplier delivery time to handling time
+- CO-187 Added customer attributes support
+- CO-840 Refactored attributes handling
+- CO-1066 Fixed order items order during import in JTL-Wawi
+- CO-1086 Changed supplier delivery time to handling time
 
 2.4.1
 ------
