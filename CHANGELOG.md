@@ -1,4 +1,9 @@
+Unreleased
+------
+- Changed supplier delivery time to handling time
+
 2.4.1
+------
 ## Attention: Update process can take some time!
 - Removed alias in update query
 
