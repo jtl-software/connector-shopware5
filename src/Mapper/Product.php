@@ -12,6 +12,7 @@ use jtl\Connector\Shopware\Model\ProductVariation;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Model\Product as JtlProduct;
 use jtl\Connector\Model\ProductChecksum;
+use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
 use jtl\Connector\Shopware\Utilities\VariationType;
 use jtl\Connector\Core\Exception\DatabaseException;
 use jtl\Connector\Core\Logger\Logger;
@@ -942,55 +943,12 @@ class Product extends DataMapper
         $nullUndefinedAttributesOld = (bool)Application()->getConfig()->get('null_undefined_product_attributes_during_push', true);
         $nullUndefinedAttributes = (bool)Application()->getConfig()->get('product.push.null_undefined_attributes', $nullUndefinedAttributesOld);
 
-        // Reset
-        $used = [];
+        $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
 
-        $sw_attributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
-        /** @var ConfigurationStruct $sw_attribute */
-        foreach ($sw_attributes as $sw_attribute) {
-            if (!$sw_attribute->isIdentifier()) {
-                $setter = sprintf('set%s', ucfirst(Str::camel($sw_attribute->getColumnName())));
-                if (isset($attributes[$sw_attribute->getColumnName()]) && method_exists($attributeSW, $setter)) {
-                    $value = $attributes[$sw_attribute->getColumnName()];
-                    if (in_array($sw_attribute->getColumnType(), [TypeMapping::TYPE_DATE, TypeMapping::TYPE_DATETIME])) {
-                        try {
-                            $value = new \DateTime($value);
-                        } catch (\Throwable $ex) {
-                            $value = null;
-                            Logger::write(ExceptionFormatter::format($ex), Logger::ERROR, 'global');
-                        }
-                    }
-                    $attributeSW->{$setter}($value);
-                    $used[] = $sw_attribute->getColumnName();
-                    $attrMappings[$sw_attribute->getColumnName()] = $mappings[$sw_attribute->getColumnName()];
-                    unset($attributes[$sw_attribute->getColumnName()]);
-                } else if ($nullUndefinedAttributes && method_exists($attributeSW, $setter)) {
-                    $attributeSW->{$setter}(null);
-                }
-            }
-        }
-
-        for ($i = 4; $i <= 20; $i++) {
-            $attr = "attr{$i}";
-            if (in_array($attr, $used) || $i == 17) {
-                continue;
-            }
-
-            $setter = "setAttr{$i}";
-            if (!method_exists($attributeSW, $setter)) {
-                continue;
-            }
-
-            $index = null;
-            foreach ($attributes as $key => $value) {
-                $attributeSW->{$setter}($value);
-                $attrMappings[$attr] = $mappings[$key];
-                unset($attributes[$key]);
-                break;
-            }
-
-            if (count($attributes) == 0) {
-                break;
+        foreach ($swAttributesList as $tSwAttribute) {
+            $result = TranslatableAttributes::setAttribute($tSwAttribute, $attributeSW, $attributes, $nullUndefinedAttributes);
+            if ($result === true) {
+                $attrMappings[$tSwAttribute->getColumnName()] = $mappings[$tSwAttribute->getColumnName()];
             }
         }
 

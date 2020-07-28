@@ -7,14 +7,18 @@
 namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Model\CustomerAttr;
 use \jtl\Connector\Result\Action;
 use \jtl\Connector\Core\Rpc\Error;
 use \jtl\Connector\Core\Model\QueryFilter;
 use \jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Shopware\Utilities\KeyValueAttributes;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Salutation;
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Shopware\Utilities\Str;
+use Shopware\Bundle\AttributeBundle\Service\ConfigurationStruct;
 
 /**
  * Customer Controller
@@ -87,18 +91,42 @@ class Customer extends DataController
                         ->setLanguageISO(LanguageUtil::map($customerSW['languageSubShop']['locale']['locale']));
 
                     // Attributes
+                    $keyValueAttributes = new KeyValueAttributes(CustomerAttr::class);
                     if (isset($customerSW['defaultBillingAddress']['attribute']) && is_array($customerSW['defaultBillingAddress']['attribute'])) {
                         for ($i = 1; $i <= 6; $i++) {
                             if (isset($customerSW['defaultBillingAddress']['attribute']["text{$i}"]) && strlen(trim($customerSW['defaultBillingAddress']['attribute']["text{$i}"]))) {
-                                $customerAttr = Mmc::getModel('CustomerAttr');
-                                $customerAttr->map(true, DataConverter::toObject($customerSW['defaultBillingAddress']['attribute']));
-                                $customerAttr->setCustomerId($customer->getId())
-                                    ->setKey("text{$i}")
-                                    ->setValue((string) $customerSW['defaultBillingAddress']['attribute']["text{$i}"]);
-
-                                $customer->addAttribute($customerAttr);
+                                $keyValueAttributes->addAttribute("text{$i}",
+                                    (string)$customerSW['defaultBillingAddress']['attribute']["text{$i}"]);
                             }
                         }
+                    }
+
+                    if($customerSW['attribute'] !== null){
+                        /** @var \Shopware\Models\Attribute\Customer $swCustomerAttribute */
+                        $swCustomerAttribute = Shopware()->Models()
+                            ->getRepository('Shopware\Models\Attribute\Customer')
+                            ->findOneById($customerSW['attribute']['id']);
+
+                        $swCustomerAttributes = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_user_attributes');
+                        /** @var ConfigurationStruct $swCustomerAttribute */
+                        foreach($swCustomerAttributes as $attribute){
+                            if(!$attribute->isIdentifier()){
+                                $getter = sprintf('get%s', ucfirst(Str::camel($attribute->getColumnName())));
+                                if(method_exists($swCustomerAttribute,$getter)){
+                                    $value = $swCustomerAttribute->$getter();
+                                    $key = $attribute->getColumnName();
+
+                                    $keyValueAttributes->addAttribute(
+                                        $key,
+                                        $value
+                                    );
+                                }
+                            }
+                        }
+                    }
+
+                    foreach($keyValueAttributes->getAttributes() as $attribute) {
+                        $customer->addAttribute($attribute);
                     }
 
                     //$result[] = $customer->getPublic();

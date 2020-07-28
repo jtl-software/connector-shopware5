@@ -15,6 +15,7 @@ use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use jtl\Connector\Shopware\Utilities\Html;
 use jtl\Connector\Shopware\Utilities\Shop;
 use jtl\Connector\Shopware\Utilities\Str;
+use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
 use Shopware\Models\Category\Category as CategoryShopware;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Core\Utilities\DataConverter;
@@ -94,55 +95,29 @@ class Category extends DataController
                         ->findOneById($categorySW['id']);
 
                     // Attributes
+                    $translatableAttributes = new TranslatableAttributes(CategoryAttr::class, CategoryAttrI18n::class);
+
                     if (isset($categorySW['attribute']) && is_array($categorySW['attribute'])) {
                         $ignoreAttributes = ['id', 'categoryId'];
                         foreach ($categorySW['attribute'] AS $name => $value) {
-                            //for ($i = 1; $i <= 6; $i++) {
+
                             if (empty($value) || in_array($name, $ignoreAttributes)) {
                                 continue;
                             }
 
-                            //if (isset($categorySW['attribute']["attribute{$i}"]) && strlen(trim($categorySW['attribute']["attribute{$i}"]))) {
                             $attrId = IdConcatenator::link(array($categorySW['attribute']['id'], $name));
-                            $attrIdentity = new Identity($attrId);
 
-                            /** @var CategoryAttr $categoryAttr */
-                            $categoryAttr = Mmc::getModel('CategoryAttr')
-                                ->setCategoryId($category->getId())
-                                ->setId($attrIdentity);
-
-                            /** @var CategoryAttrI18n $categoryAttrI18n */
-                            $categoryAttrI18n = Mmc::getModel('CategoryAttrI18n')
-                                ->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
-                                ->setName($name)
-                                ->setValue((string)$value)
-                                ->setCategoryAttrId($category->getId());
-
-                            $categoryAttr->addI18n($categoryAttrI18n);
-
-                            // Attribute Translation
-                            if (isset($categorySW['translations'])) {
-                                foreach ($categorySW['translations'] as $localeName => $translation) {
-                                    $index = sprintf('__attribute_%s', Str::snake($name, '_'));
-                                    if (!isset($translation[$index])) {
-                                        continue;
-                                    }
-
-                                    $categoryAttrI18n = Mmc::getModel('CategoryAttrI18n');
-                                    $categoryAttrI18n->setCategoryAttrId($categoryAttr->getId())
-                                        ->setLanguageISO(LanguageUtil::map($localeName))
-                                        ->setName($name)
-                                        ->setValue((string)$translation[$index]);
-
-                                    $categoryAttr->addI18n($categoryAttrI18n);
-                                    $categoryAttr->setIsTranslated(true);
-                                }
+                            $translatableAttributes->addAttribute($attrId);
+                            $translatableAttributes->addAttributeTranslation($attrId, $name, $value,
+                                LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())
+                            );
+                            if(is_array($categorySW['translations'])) {
+                                $translatableAttributes->addTranslations($attrId, $name, $categorySW['translations']);
                             }
-
-                            $category->addAttribute($categoryAttr);
 
                         }
                     }
+                    $category->setAttributes($translatableAttributes->getAttributes());
 
                     // Invisibility
                     if (isset($categorySW['customerGroups']) && is_array($categorySW['customerGroups'])) {

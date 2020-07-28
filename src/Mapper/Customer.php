@@ -6,16 +6,22 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\ORMException;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Model\Customer as CustomerModel;
-use \Shopware\Components\Api\Exception as ApiException;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Shopware\Utilities\Salutation as SalutationUtil;
+use jtl\Connector\Model\Customer as CustomerModel;
+use jtl\Connector\Model\CustomerAttr;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Salutation as SalutationUtil;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
+use Shopware\Components\Api\Exception as ApiException;
+use Shopware\Models\Attribute\Customer as CustomerAttribute;
+use Shopware\Models\Attribute\User;
 use Shopware\Models\Customer\Address as AddressSW;
-use \Shopware\Models\Customer\Customer as CustomerSW;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use Shopware\Models\Customer\Customer as CustomerSW;
 
 class Customer extends DataMapper
 {
@@ -30,6 +36,7 @@ class Customer extends DataMapper
                 'customer',
                 'billing',
                 'shipping',
+                'customerAttributes',
                 'customergroup',
                 'attribute',
                 'shop',
@@ -41,6 +48,7 @@ class Customer extends DataMapper
             ->leftJoin('customer.linker', 'linker')
             ->leftJoin('customer.defaultBillingAddress', 'billing')
             ->leftJoin('customer.defaultShippingAddress', 'shipping')
+            ->leftJoin('customer.attribute', 'customerAttributes')
             ->leftJoin('customer.group', 'customergroup')
             ->leftJoin('billing.attribute', 'attribute')
             ->leftJoin('customer.languageSubShop', 'shop')
@@ -87,7 +95,8 @@ class Customer extends DataMapper
         try {
             $this->prepareCustomerAssociatedData($customer, $customerSW, $addressSW);
             $this->prepareCustomerGroupAssociatedData($customer, $customerSW);
-    
+            $this->prepareAttributeAssociatedData($customer, $customerSW);
+
             $violations = $this->Manager()->validate($customerSW);
             if ($violations->count() > 0) {
                 throw new ApiException\ValidationException($violations);
@@ -122,6 +131,44 @@ class Customer extends DataMapper
                 $this->Manager()->remove($customerSW);
                 $this->Manager()->flush($customerSW);
             }
+        }
+    }
+
+    /**
+     * @param CustomerModel $jtlCustomer
+     * @param CustomerSW $swCustomer
+     * @throws ORMException
+     */
+    protected function prepareAttributeAssociatedData(CustomerModel $jtlCustomer, CustomerSW $swCustomer)
+    {
+        /** @var $swAttribute CustomerAttribute */
+        $swAttribute = $swCustomer->getAttribute();
+        if ($swAttribute === null) {
+            $swAttribute = new \Shopware\Models\Attribute\Customer();
+            $swAttribute->setCustomer($swCustomer);
+            ShopUtil::entityManager()->persist($swAttribute);
+        }
+
+        $jtlAttributes = [];
+        /** @var CustomerAttr $attribute */
+        foreach($jtlCustomer->getAttributes() as $attribute){
+            if ($attribute->getKey() !== "") {
+                $jtlAttributes[$attribute->getKey()] = $attribute->getValue();
+            }
+        }
+
+        if (!empty($jtlAttributes)) {
+
+            $nullUndefinedAttributes = (bool)Application()->getConfig()->get('customer.push.null_undefined_attributes',
+                true);
+            $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_user_attributes');
+
+            foreach ($swAttributesList as $attribute) {
+                TranslatableAttributes::setAttribute($attribute, $swAttribute, $jtlAttributes,
+                    $nullUndefinedAttributes);
+            }
+
+            ShopUtil::entityManager()->persist($swAttribute);
         }
     }
 

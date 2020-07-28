@@ -14,6 +14,7 @@ use jtl\Connector\Result\Action;
 use jtl\Connector\Shopware\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Shopware\Model\CustomerOrderAttr;
 use jtl\Connector\Shopware\Model\CustomerOrderItem;
+use jtl\Connector\Shopware\Utilities\KeyValueAttributes;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Payment as PaymentUtil;
 use jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
@@ -274,7 +275,10 @@ class CustomerOrder extends DataController
                     $jtlOrder->addItem($item);
 
                     $dhlWUnschpaketAttributes = [];
+
                     // Attributes
+                    $keyValueAttributes = new KeyValueAttributes(CustomerOrderAttr::class);
+
                     if (isset($swOrder['attribute']) && !is_null($swOrder['attribute'])) {
                         $excludes = array_merge(['id', 'orderId'], array_keys(self::$swDhlWunschpaketAttributes));
 
@@ -292,18 +296,15 @@ class CustomerOrder extends DataController
                                 continue;
                             }
 
-                            $customerOrderAttr = Mmc::getModel('CustomerOrderAttr');
-                            $customerOrderAttr->map(true, DataConverter::toObject($swOrder['attribute']));
-                            $customerOrderAttr->setKey($key)
-                                ->setValue((string)$value);
-
-                            $jtlOrder->addAttribute($customerOrderAttr);
+                            $keyValueAttributes->addAttribute($key,(string) $value);
                         }
                     }
 
                     if (count($dhlWUnschpaketAttributes) > 0) {
-                        $this->addWunschpaketAttributes($jtlOrder, $dhlWUnschpaketAttributes);
+                        $this->addWunschpaketAttributes($jtlOrder, $keyValueAttributes, $dhlWUnschpaketAttributes);
                     }
+
+                    $jtlOrder->setAttributes($keyValueAttributes->getAttributes());
 
                     // Payment Data
                     if (isset($swOrder['customer']['paymentData']) && is_array($swOrder['customer']['paymentData'])) {
@@ -588,9 +589,10 @@ class CustomerOrder extends DataController
 
     /**
      * @param CustomerOrderModel $order
+     * @param KeyValueAttributes $keyValueAttributes
      * @param array $swAttributes
      */
-    protected function addWunschpaketAttributes(CustomerOrderModel $order, array $swAttributes)
+    protected function addWunschpaketAttributes(CustomerOrderModel $order, KeyValueAttributes $keyValueAttributes, array $swAttributes)
     {
         $mappings = [
             self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE => 'dhl_wunschpaket_type',
@@ -606,7 +608,7 @@ class CustomerOrder extends DataController
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION:
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE:
                     if (isset($mappings[$attributeName])) {
-                        $order->addAttribute((new CustomerOrderAttr())->setKey($mappings[$attributeName])->setValue($value));
+                        $keyValueAttributes->addAttribute($mappings[$attributeName], $value);
                     }
                     break;
                 case self::DHL_WUNSCHPAKET_ATTRIBUTE_NEIGHBOUR_NAME:
@@ -625,17 +627,13 @@ class CustomerOrder extends DataController
                     $nameAttributes = [];
                     foreach ($nameParts as $part => $value) {
                         if (isset($partsMapping[$part])) {
-                            if (!isset($nameAttributes[$partsMapping[$part]])) {
-                                $nameAttributes[$partsMapping[$part]] = (new CustomerOrderAttr())->setKey($partsMapping[$part])->setValue($value);
-                            } else {
-                                $newValue = $nameAttributes[$partsMapping[$part]]->getValue() . ' ' . $value;
-                                $nameAttributes[$partsMapping[$part]]->setValue($newValue);
-                            }
-                        }
-                    }
 
-                    foreach ($nameAttributes as $nameAttribute) {
-                        $order->addAttribute($nameAttribute);
+                            $key = $partsMapping[$part];
+                            if ($oldValue = $keyValueAttributes->getValue($key) !== '') {
+                                $value = $oldValue . ' ' . $value;
+                            }
+                            $keyValueAttributes->addAttribute($key, $value);
+                        }
                     }
 
                     break;
@@ -643,28 +641,28 @@ class CustomerOrder extends DataController
                     $parts = array_map('trim', explode(',', $value, 2));
                     $streetParts = [];
                     $pattern = '/^(?P<street>\d*\D+[^A-Z]) (?P<number>[^a-z]?\D*\d+.*)$/';
-                    $matchResult = preg_match($pattern, $parts[0], $streetParts);
+                    preg_match($pattern, $parts[0], $streetParts);
                     if (isset($streetParts['street'])) {
-                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_street')->setValue($streetParts['street']));
+                        $keyValueAttributes->addAttribute('dhl_wunschpaket_neighbour_street', $streetParts['street']);
                     }
 
                     if (isset($streetParts['number'])) {
-                        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_house_number')->setValue($streetParts['number']));
+                        $keyValueAttributes->addAttribute('dhl_wunschpaket_neighbour_house_number',
+                            $streetParts['number']);
                     }
 
                     $addressAddition = sprintf('%s %s', $order->getShippingAddress()->getZipCode(), $order->getShippingAddress()->getCity());
-                    $addressAdditionAttribute = (new CustomerOrderAttr())->setKey('dhl_wunschpaket_neighbour_address_addition')->setValue($addressAddition);
 
                     if (isset($parts[1])) {
-                        $addressAdditionAttribute->setValue($parts[1]);
+                        $addressAddition = $parts[1];
                     }
 
-                    $order->addAttribute($addressAdditionAttribute);
+                    $keyValueAttributes->addAttribute('dhl_wunschpaket_neighbour_address_addition', $addressAddition);
 
                     break;
             }
         }
-        $order->addAttribute((new CustomerOrderAttr())->setKey('dhl_wunschpaket_feeder_system')->setValue('shopware5'));
+        $keyValueAttributes->addAttribute('dhl_wunschpaket_feeder_system','shopware5');
     }
 
     public static function calcShippingVat(CustomerOrderModel $order)
