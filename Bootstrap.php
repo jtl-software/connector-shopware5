@@ -9,6 +9,7 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Service\Translation;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Payment;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
 use Shopware\Components\Plugin\CachedConfigReader;
@@ -630,13 +631,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         Logger::write('fill payment table...', Logger::INFO, 'install');
 
-        Shopware()->Db()->query(
-            "INSERT INTO jtl_connector_payment
+        Shopware()->Db()->query(sprintf(
+                "INSERT INTO jtl_connector_payment
             (
               SELECT null, id, '', ordertime, '', invoice_amount, transactionID
               FROM s_order
-              WHERE LENGTH(transactionID) > 0 AND cleared = 12
-            )"
+              WHERE LENGTH(transactionID) > 0 AND cleared IN (%s)
+            )", Payment::getAllowedPaymentClearedStates(true))
         );
     }
 
@@ -1044,19 +1045,19 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         Logger::write('Create payment trigger...', Logger::INFO, 'install');
 
-        $sql = '
+        $sql = sprintf('
             DROP TRIGGER IF EXISTS `jtl_connector_payment`;
             CREATE TRIGGER `jtl_connector_payment` 
                 AFTER UPDATE ON `s_order` FOR EACH ROW
             BEGIN
                 SET @paymentId = NULL, @transactionId = NULL;
                 SELECT id, transactionID INTO @paymentId, @transactionId FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
-                IF LENGTH(NEW.transactionID) > 0 AND NEW.cleared = 12 AND (@paymentId IS NULL OR (@transactionId IS NOT NULL AND @transactionId != new.transactionID)) THEN
+                IF LENGTH(NEW.transactionID) > 0 AND NEW.cleared IN (%s) AND (@paymentId IS NULL OR (@transactionId IS NOT NULL AND @transactionId != new.transactionID)) THEN
                     DELETE FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
                     INSERT IGNORE INTO jtl_connector_payment VALUES (@paymentId, NEW.id, \'\', IF(new.cleareddate IS NULL, now(), new.cleareddate), \'\', NEW.invoice_amount, NEW.transactionID);
                 END IF;
             END;
-        ';
+        ', Payment::getAllowedPaymentClearedStates(true));
 
         Shopware()->Db()->query($sql);
     }

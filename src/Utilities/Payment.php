@@ -122,4 +122,22 @@ final class Payment
 
         return is_array($mysql_result) && count($mysql_result) > 0;
     }
+
+    /**
+     * @param bool $asString
+     * @return array|string
+     */
+    public static function getAllowedPaymentClearedStates(bool $asString = false)
+    {
+        $defaultState = [
+            \Shopware\Models\Order\Status::PAYMENT_STATE_COMPLETELY_PAID
+        ];
+
+        $allowedClearedStates = array_merge(
+            Application()->getConfig()->get('payment.pull.allowed_cleared_states', []),
+            $defaultState
+        );
+
+        return $asString === true ? join(',', $allowedClearedStates) : $allowedClearedStates;
+    }
 }

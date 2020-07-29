@@ -36,7 +36,7 @@ class Payment extends DataMapper
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
         }
 
-        return Shopware()->Db()->fetchAssoc(
+        return Shopware()->Db()->fetchAssoc(sprintf(
             'SELECT
                     o.id as id,
                     o.id as customerOrderId,
@@ -51,10 +51,10 @@ class Payment extends DataMapper
                 LEFT JOIN jtl_connector_link_payment pl ON pl.order_id = o.id
                 WHERE pl.order_id IS NULL
                 AND lo.order_id IS NOT NULL
-                AND o.cleared = 12 AND LENGTH(o.transactionID) > 0
+                AND o.cleared IN (%s) AND LENGTH(o.transactionID) > 0
             ' . $where . '
             limit ' . $limit
-        );
+        ),\jtl\Connector\Shopware\Utilities\Payment::getAllowedPaymentClearedStates(true));
     }
 
     /*
@@ -91,11 +91,11 @@ class Payment extends DataMapper
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
         }
 
-        return (int)Shopware()->Db()->fetchOne(
+        return (int)Shopware()->Db()->fetchOne(sprintf(
             'SELECT count(*) as count
             FROM s_order o            
             LEFT JOIN jtl_connector_link_payment pl ON pl.order_id = o.id            
-            WHERE pl.order_id IS NULL AND o.cleared = 12 AND LENGTH(o.transactionID) > 0' . $where
-        );
+            WHERE pl.order_id IS NULL AND o.cleared IN (%s) AND LENGTH(o.transactionID) > 0' . $where
+        ), \jtl\Connector\Shopware\Utilities\Payment::getAllowedPaymentClearedStates(true));
     }
 }

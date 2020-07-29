@@ -13,6 +13,11 @@
             "article_detail_preselection": false
         }
     },
+    "payment":{
+        "pull":{
+            "allowed_cleared_states": [],
+        }
+    },
     "customer_order": {
         "pull": {
             "start_date": null,
