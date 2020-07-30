@@ -210,7 +210,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.0.5':
             case '1.0.6':
             case '1.0.7':
-                $this->createPaymentTrigger();
                 $this->fillPaymentTable();
                 Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_image` ADD INDEX(`host_id`, `image_id`)');
             case '1.0.8':
@@ -219,7 +218,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                      JOIN s_order o ON o.id = p.customerOrderId
                      SET p.totalSum = o.invoice_amount'
                 );
-                $this->createPaymentTrigger();
             case '1.0.9':
             case '1.0.10':
             case '1.0.11':
@@ -241,7 +239,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.2.3':
             case '1.2.4':
             case '1.2.5':
-                $this->createPaymentTrigger();
             case '1.3.0':
             case '1.3.1':
             case '1.3.2':
@@ -263,7 +260,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 }
             case '1.4.3':
             case '1.4.4':
-                $this->createPaymentTrigger();
             case '1.4.5':
             case '1.4.6':
             case '1.4.7':
@@ -325,7 +321,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.3':
             case '2.2.3.1':
                 Shopware()->Db()->query("DROP TABLE IF EXISTS `jtl_connector_category_level`");
-                $this->createPaymentTrigger();
                 $this->setConfigFormElements();
             case '2.2.4':
             case '2.2.4.1':
@@ -394,7 +389,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_crosssellinggroup_i18n`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_crosssellinggroup`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_product_attributes`');
-        Shopware()->Db()->query('DROP TRIGGER IF EXISTS `jtl_connector_payment`');
     }
 
     public function enable()
@@ -1037,27 +1031,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ALTER TABLE `jtl_connector_product_attributes`
             ADD CONSTRAINT `jtl_connector_product_attributes_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
         ';
-
-        Shopware()->Db()->query($sql);
-    }
-
-    private function createPaymentTrigger()
-    {
-        Logger::write('Create payment trigger...', Logger::INFO, 'install');
-
-        $sql = sprintf('
-            DROP TRIGGER IF EXISTS `jtl_connector_payment`;
-            CREATE TRIGGER `jtl_connector_payment` 
-                AFTER UPDATE ON `s_order` FOR EACH ROW
-            BEGIN
-                SET @paymentId = NULL, @transactionId = NULL;
-                SELECT id, transactionID INTO @paymentId, @transactionId FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
-                IF LENGTH(NEW.transactionID) > 0 AND NEW.cleared IN (%s) AND (@paymentId IS NULL OR (@transactionId IS NOT NULL AND @transactionId != new.transactionID)) THEN
-                    DELETE FROM jtl_connector_payment WHERE customerOrderId = NEW.id;
-                    INSERT IGNORE INTO jtl_connector_payment VALUES (@paymentId, NEW.id, \'\', IF(new.cleareddate IS NULL, now(), new.cleareddate), \'\', NEW.invoice_amount, NEW.transactionID);
-                END IF;
-            END;
-        ', Payment::getAllowedPaymentClearedStates(true));
 
         Shopware()->Db()->query($sql);
     }
