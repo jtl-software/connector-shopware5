@@ -15,7 +15,7 @@
     },
     "payment":{
         "pull":{
-            "allowed_cleared_states": [],
+            "allowed_cleared_states": []
         }
     },
     "customer_order": {
