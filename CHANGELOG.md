@@ -1,3 +1,7 @@
+2.5.1
+-----
+- CO-1089 Fixed rounding differences when importing voucher code positions in orders
+
 2.5.0
 ------
 - CO-187 Added customer attributes support

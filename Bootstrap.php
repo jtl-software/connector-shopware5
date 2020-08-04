@@ -342,6 +342,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.4.0':
                 $this->migratePaymentLinkTable();
             case '2.4.1':
+            case '2.5.0':
                 break;
             default:
                 return false;
