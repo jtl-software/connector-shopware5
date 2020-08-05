@@ -1,5 +1,9 @@
+2.5.2
+------
+- Fixed set shipping time by handling time only
+
 2.5.1
------
+------
 - CO-1089 Fixed rounding differences when importing voucher code positions in orders
 
 2.5.0
