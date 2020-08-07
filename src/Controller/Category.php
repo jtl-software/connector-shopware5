@@ -97,6 +97,8 @@ class Category extends DataController
                     // Attributes
                     $translatableAttributes = new TranslatableAttributes(CategoryAttr::class, CategoryAttrI18n::class);
 
+                    $languageIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+
                     if (isset($categorySW['attribute']) && is_array($categorySW['attribute'])) {
                         $ignoreAttributes = ['id', 'categoryId'];
                         foreach ($categorySW['attribute'] AS $name => $value) {
@@ -108,9 +110,7 @@ class Category extends DataController
                             $attrId = IdConcatenator::link(array($categorySW['attribute']['id'], $name));
 
                             $translatableAttributes->addAttribute($attrId);
-                            $translatableAttributes->addAttributeTranslation($attrId, $name, $value,
-                                LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())
-                            );
+                            $translatableAttributes->addAttributeTranslation($attrId, $name, $value, $languageIso);
                             if(is_array($categorySW['translations'])) {
                                 $translatableAttributes->addTranslations($attrId, $name, $categorySW['translations']);
                             }
@@ -118,6 +118,26 @@ class Category extends DataController
                         }
                     }
                     $category->setAttributes($translatableAttributes->getAttributes());
+                    $category->addAttribute(
+                        (new \jtl\Connector\Model\CategoryAttr())
+                            ->setId(new Identity(CategoryAttr::IS_BLOG))
+                            ->addI18n(
+                                (new \jtl\Connector\Model\CategoryAttrI18n())
+                                    ->setLanguageISO($languageIso)
+                                    ->setName(CategoryAttr::IS_BLOG)
+                                    ->setValue($categorySW['blog'] === true ? '1' : '0')
+                            )
+                    );
+                    $category->addAttribute(
+                        (new \jtl\Connector\Model\CategoryAttr())
+                            ->setId(new Identity(CategoryAttr::LIMIT_TO_SHOPS))
+                            ->addI18n(
+                                (new \jtl\Connector\Model\CategoryAttrI18n())
+                                    ->setLanguageISO($languageIso)
+                                    ->setName(CategoryAttr::LIMIT_TO_SHOPS)
+                                    ->setValue($categorySW['shops'])
+                            )
+                    );
 
                     // Invisibility
                     if (isset($categorySW['customerGroups']) && is_array($categorySW['customerGroups'])) {

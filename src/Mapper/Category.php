@@ -298,24 +298,32 @@ class Category extends DataMapper
             foreach ($jtlAttribute->getI18ns() as $attributeI18n) {
                 if ($attributeI18n->getLanguageISO() === $langIso) {
 
-                    // Active fix
-                    $allowedActiveValues = array('0', '1', 0, 1, false, true);
-                    if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::IS_ACTIVE, 'isactive'])
-                        && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                        $swCategory->setActive((bool)$attributeI18n->getValue());
+                    if(CategoryAttr::isSpecialAttribute($attributeI18n->getName())){
 
-                        continue;
-                    }
+                        // Active fix
+                        $allowedActiveValues = array('0', '1', 0, 1, false, true);
+                        if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::IS_ACTIVE, 'isactive'])
+                            && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
+                            $swCategory->setActive((bool)$attributeI18n->getValue());
+                        }
 
-                    // Cms Headline
-                    if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::CMS_HEADLINE, 'cmsheadline'])) {
-                        $swCategory->setCmsHeadline($attributeI18n->getValue());
-
-                        foreach ($jtlAttribute->getI18ns() as $i18n) {
-                            if ($i18n->getLanguageISO() === $langIso) {
-                                continue;
+                        // Cms Headline
+                        if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::CMS_HEADLINE, 'cmsheadline'])) {
+                            $swCategory->setCmsHeadline($attributeI18n->getValue());
+                            foreach ($jtlAttribute->getI18ns() as $i18n) {
+                                if ($i18n->getLanguageISO() === $langIso) {
+                                    continue;
+                                }
+                                $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
                             }
-                            $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
+                        }
+
+                        if ($attributeI18n->getName() === CategoryAttr::IS_BLOG) {
+                            $swCategory->setBlog((bool)$attributeI18n->getValue());
+                        }
+
+                        if ($attributeI18n->getName() === CategoryAttr::LIMIT_TO_SHOPS) {
+                            $swCategory->setShops($attributeI18n->getValue());
                         }
 
                         continue;
