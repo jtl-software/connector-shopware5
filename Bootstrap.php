@@ -625,14 +625,15 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     {
         Logger::write('fill payment table...', Logger::INFO, 'install');
 
-        Shopware()->Db()->query(sprintf(
-                "INSERT INTO jtl_connector_payment
-            (
-              SELECT null, id, '', ordertime, '', invoice_amount, transactionID
-              FROM s_order
-              WHERE LENGTH(transactionID) > 0 AND cleared IN (%s)
-            )", Payment::getAllowedPaymentClearedStates(true))
-        );
+        $sql = sprintf(
+            "INSERT INTO jtl_connector_payment
+             (
+                SELECT null, o.id, '', o.ordertime, '', o.invoice_amount, o.transactionID
+                FROM s_order o
+                WHERE LENGTH(o.transactionID) > 0 AND o.cleared IN (%s)
+             )", Payment::getAllowedPaymentClearedStates(true));
+
+        Shopware()->Db()->query($sql);
     }
 
     private function fillCrossSellingGroupTable()
@@ -1058,7 +1059,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $migratedOrdersCount = $db->fetchOne('SELECT COUNT(order_id) FROM `jtl_connector_link_payment` WHERE order_id IS NOT NULL');
 
             $limit = 15000;
-            $i = ceil($migratedOrdersCount/$limit);
+            $i = ceil($migratedOrdersCount / $limit);
             do {
                 $offset = $i * $limit;
                 $sql = sprintf(

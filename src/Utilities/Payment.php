@@ -6,7 +6,8 @@
 
 namespace jtl\Connector\Shopware\Utilities;
 
-use \jtl\Connector\Payment\PaymentTypes;
+use jtl\Connector\Payment\PaymentTypes;
+use Shopware\Models\Order\Status;
 
 final class Payment
 {
@@ -130,13 +131,13 @@ final class Payment
     public static function getAllowedPaymentClearedStates(bool $asString = false)
     {
         $defaultState = [
-            \Shopware\Models\Order\Status::PAYMENT_STATE_COMPLETELY_PAID
+            Status::PAYMENT_STATE_COMPLETELY_PAID
         ];
 
-        $allowedClearedStates = array_merge(
+        $allowedClearedStates = array_unique(array_merge(
             Application()->getConfig()->get('payment.pull.allowed_cleared_states', []),
             $defaultState
-        );
+        ));
 
         return $asString === true ? join(',', $allowedClearedStates) : $allowedClearedStates;
     }
