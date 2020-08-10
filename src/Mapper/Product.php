@@ -35,6 +35,7 @@ use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use Shopware\Models\Customer\PriceGroup;
+use \Shopware\Models\Price\Group as SwGroup;
 use Shopware\Models\Plugin\Plugin;
 use Shopware\Models\Property\Group;
 use Shopware\Models\Property\Option;
@@ -881,8 +882,8 @@ class Product extends DataMapper
                         }else{
                             $article->setPriceGroupActive(true);
                             $priceGroupId = (int)$attributeValue;
-                            $priceGroupSW = Shopware()->Models()->getRepository('Shopware\Models\Price\Group')->find($priceGroupId);
-                            if ($priceGroupSW instanceof \Shopware\Models\Price\Group) {
+                            $priceGroupSW = Shopware()->Models()->getRepository(SwGroup::class)->find($priceGroupId);
+                            if ($priceGroupSW instanceof SwGroup) {
                                 $article->setPriceGroup($priceGroupSW);
                             }
                         }

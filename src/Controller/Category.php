@@ -119,7 +119,7 @@ class Category extends DataController
                     }
                     $category->setAttributes($translatableAttributes->getAttributes());
                     $category->addAttribute(
-                        (new \jtl\Connector\Model\CategoryAttr())
+                        (new CategoryAttr())
                             ->setId(new Identity(CategoryAttr::IS_BLOG))
                             ->addI18n(
                                 (new \jtl\Connector\Model\CategoryAttrI18n())
@@ -129,10 +129,10 @@ class Category extends DataController
                             )
                     );
                     $category->addAttribute(
-                        (new \jtl\Connector\Model\CategoryAttr())
+                        (new CategoryAttr())
                             ->setId(new Identity(CategoryAttr::LIMIT_TO_SHOPS))
                             ->addI18n(
-                                (new \jtl\Connector\Model\CategoryAttrI18n())
+                                (new CategoryAttrI18n())
                                     ->setLanguageISO($languageIso)
                                     ->setName(CategoryAttr::LIMIT_TO_SHOPS)
                                     ->setValue($categorySW['shops'])
