@@ -122,23 +122,15 @@ class Manufacturer extends DataMapper
     public function saveTranslatation(ManufacturerModel $manufacturer, ManufacturerSW $manufacturerSW)
     {
         foreach ($manufacturer->getI18ns() as $i18n) {
-            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) !== false) {
 
                 $iso = $i18n->getLanguageISO();
-                $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $iso));
-
-                if ($locale === null) {
-                    throw new ApiException\NotFoundException(sprintf('Could not find any locale for iso (%s)', $iso));
-                }
-
-                $shopMapper = Mmc::getMapper('Shop');
-                $shops = $shopMapper->findByLocale($locale->getLocale());
-
-                if ($shops === null || (is_array($shops) && count($shops) == 0)) {
-                    throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
-                }
+                $locale = LanguageUtil::map(null, null, $iso);
+                $language = LocaleUtil::extractLanguageFromLocale($locale);
 
                 $translationService = ShopUtil::translationService();
+                $shopMapper = Mmc::getMapper('Shop');
+                $shops = $shopMapper->findByLanguage($language);
 
                 foreach ($shops as $shop) {
                     $translationService->delete($shop->getId(), 'supplier', $manufacturerSW->getId());
@@ -197,7 +189,7 @@ class Manufacturer extends DataMapper
     protected function prepareI18nAssociatedData(ManufacturerModel &$manufacturer, ManufacturerSW &$manufacturerSW)
     {
         foreach ($manufacturer->getI18ns() as $i18n) {
-            if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
                 $manufacturerSW->setDescription($i18n->getDescription());
                 $manufacturerSW->setMetaTitle($i18n->getTitleTag());
                 $manufacturerSW->setMetaDescription($i18n->getMetaDescription());

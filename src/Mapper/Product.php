@@ -509,7 +509,7 @@ class Product extends DataMapper
 
         // I18n
         foreach ($product->getI18ns() as $i18n) {
-            if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
                 $productSW->setDescription($i18n->getMetaDescription())
                     ->setDescriptionLong($i18n->getDescription())
                     ->setKeywords($i18n->getMetaKeywords())
@@ -542,7 +542,7 @@ class Product extends DataMapper
                     // Category Mapping
                     if ($useMapping) {
                         foreach ($product->getI18ns() as $i18n) {
-                            if ($i18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()) && strlen($i18n->getName()) > 0) {
+                            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false && strlen($i18n->getName()) > 0) {
                                 $categoryMapping = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
                                 if ($categoryMapping !== null) {
                                     $collection->add($categoryMapping);
@@ -757,7 +757,7 @@ class Product extends DataMapper
         foreach ($product->getVariations() as $variation) {
             $variationName = null;
             foreach ($variation->getI18ns() as $variationI18n) {
-                if ($variationI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                if (ShopUtil::isShopwareDefaultLanguage($variationI18n->getLanguageISO())) {
                     $variationName = $variationI18n->getName();
                 }
             }
@@ -767,7 +767,7 @@ class Product extends DataMapper
                 foreach ($variation->getValues() as $variationValue) {
                     $name = null;
                     foreach ($variationValue->getI18ns() as $variationValueI18n) {
-                        if ($variationValueI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                        if (ShopUtil::isShopwareDefaultLanguage($variationValueI18n->getLanguageISO())) {
                             $name = $variationValueI18n->getName();
                         }
                     }
@@ -814,7 +814,7 @@ class Product extends DataMapper
             }
 
             foreach ($attribute->getI18ns() as $attributeI18n) {
-                if ($attributeI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                if (ShopUtil::isShopwareDefaultLanguage($attributeI18n->getLanguageISO())) {
                     $lcAttributeName = strtolower($attributeI18n->getName());
                     $attributeValue = $attributeI18n->getValue();
 
@@ -991,7 +991,7 @@ class Product extends DataMapper
                 $variationName = null;
                 $variationValueName = null;
                 foreach ($variation->getI18ns() as $variationI18n) {
-                    if ($variationI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    if (ShopUtil::isShopwareDefaultLanguage($variationI18n->getLanguageISO())) {
                         $variationName = $variationI18n->getName();
                     }
                 }
@@ -1011,7 +1011,7 @@ class Product extends DataMapper
 
                 foreach ($variation->getValues() as $i => $variationValue) {
                     foreach ($variationValue->getI18ns() as $variationValueI18n) {
-                        if ($variationValueI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                        if (ShopUtil::isShopwareDefaultLanguage($variationValueI18n->getLanguageISO())) {
                             $variationValueName = $variationValueI18n->getName();
                         }
                     }
@@ -1232,21 +1232,19 @@ class Product extends DataMapper
         }
 
         $translationService = ShopUtil::translationService();
-        /** @var \Shopware\Models\Shop\Shop[] $shops */
-        $shops = ShopUtil::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findAll();
 
         foreach ($translations as $langIso2B => $translation) {
             /** @var \Shopware\Models\Shop\Locale $locale */
-            if ($langIso2B === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
+            $langIso1 = LanguageUtil::convert(null, $langIso2B);
+            if ($langIso1 === LocaleUtil::extractLanguageFromLocale(ShopUtil::locale()->getLocale())) {
                 continue;
             }
 
-            $langIso1 = LanguageUtil::convert(null, $langIso2B);
-            foreach ($shops as $shop) {
-                if (strpos($shop->getLocale()->getLocale(), $langIso1) !== 0) {
-                    continue;
-                }
+            /** @var \Shopware\Models\Shop\Shop[] $shops */
+            $shopMapper = Mmc::getMapper('Shop');
+            $shops = $shopMapper->findByLanguage($langIso1);
 
+            foreach ($shops as $shop) {
                 if ($merge) {
                     $savedTranslation = $translationService->read($shop->getId(), $type, $key);
                     $translation = array_merge($savedTranslation, $translation);
@@ -1273,7 +1271,7 @@ class Product extends DataMapper
         $data = [];
         foreach ($product->getI18ns() as $i18n) {
             $langIso = $i18n->getLanguageISO();
-            if ($langIso === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
+            if (ShopUtil::isShopwareDefaultLanguage($langIso)) {
                 continue;
             }
 
@@ -1313,7 +1311,7 @@ class Product extends DataMapper
         foreach ($product->getAttributes() as $attribute) {
             foreach ($attribute->getI18ns() as $attrI18n) {
                 $langIso = $attrI18n->getLanguageISO();
-                if ($langIso === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
+                if (ShopUtil::isShopwareDefaultLanguage($langIso)) {
                     continue;
                 }
 
@@ -1337,7 +1335,7 @@ class Product extends DataMapper
             if (!is_null($unitSW)) {
                 foreach ($unitSW->getI18ns() as $unitI18n) {
                     $langIso = $unitI18n->getLanguageIso();
-                    if ($langIso === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
+                    if (ShopUtil::isShopwareDefaultLanguage($langIso)) {
                         continue;
                     }
                 }
@@ -1394,10 +1392,10 @@ class Product extends DataMapper
             // Get default translation values
             $variations = array();
             $values = array();
-            $defaultIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+
             foreach ($product->getVariations() as $variation) {
                 foreach ($variation->getI18ns() as $variationI18n) {
-                    if ($variationI18n->getLanguageISO() === $defaultIso) {
+                    if (ShopUtil::isShopwareDefaultLanguage($variationI18n->getLanguageISO())) {
                         $variations[$variationI18n->getName()] = $variation->getId()->getHost();
                         break;
                     }
@@ -1405,7 +1403,7 @@ class Product extends DataMapper
 
                 foreach ($variation->getValues() as $value) {
                     foreach ($value->getI18ns() as $valueI18n) {
-                        if ($valueI18n->getLanguageISO() === $defaultIso) {
+                        if (ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO())) {
                             $values[$variation->getId()->getHost()][$valueI18n->getName()] = $value->getId()->getHost();
                             break;
                         }
@@ -1416,7 +1414,7 @@ class Product extends DataMapper
             // Write non default translation values
             foreach ($product->getVariations() as $variation) {
                 foreach ($variation->getI18ns() as $variationI18n) {
-                    if ($variationI18n->getLanguageISO() !== $defaultIso) {
+                    if (ShopUtil::isShopwareDefaultLanguage($variationI18n->getLanguageISO()) !== false) {
                         foreach ($confiSetSW->getGroups() as $groupSW) {
                             if (isset($variations[$groupSW->getName()]) && $variations[$groupSW->getName()] == $variation->getId()->getHost()) {
                                 try {
@@ -1431,7 +1429,7 @@ class Product extends DataMapper
 
                 foreach ($variation->getValues() as $value) {
                     foreach ($value->getI18ns() as $valueI18n) {
-                        if ($valueI18n->getLanguageISO() !== $defaultIso) {
+                        if (ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO())) {
                             foreach ($confiSetSW->getOptions() as $optionSW) {
                                 if (isset($values[$variation->getId()->getHost()][$optionSW->getName()])
                                     && $values[$variation->getId()->getHost()][$optionSW->getName()] == $value->getId()->getHost()) {
@@ -1511,7 +1509,7 @@ class Product extends DataMapper
         foreach ($product->getMediaFiles() as $mediaFile) {
             $name = '';
             foreach ($mediaFile->getI18ns() as $i18n) {
-                if ($i18n->getLanguageIso() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageIso())) {
                     $name = $i18n->getName();
                 }
             }

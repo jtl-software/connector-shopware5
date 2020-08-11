@@ -7,6 +7,7 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Exception\LanguageException;
+use jtl\Connector\Core\Utilities\Language;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Category as JtlCategory;
 use jtl\Connector\Model\Identity;
@@ -210,7 +211,7 @@ class Category extends DataMapper
         if (is_null($swCategory)) {
             $name = null;
             foreach ($jtlCategory->getI18ns() as $i18n) {
-                if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) === Shopware()->Shop()->getLocale()->getLocale()) {
+                if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
                     $name = $i18n->getName();
                     break;
                 }
@@ -245,7 +246,7 @@ class Category extends DataMapper
         // I18n
         $exists = false;
         foreach ($jtlCategory->getI18ns() as $i18n) {
-            if (LanguageUtil::map(null, null, $i18n->getLanguageISO()) === Shopware()->Shop()->getLocale()->getLocale()) {
+            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
                 $exists = true;
 
                 $swCategory->setName($i18n->getName());
@@ -275,7 +276,9 @@ class Category extends DataMapper
     protected function prepareAttributeAssociatedData(JtlCategory $jtlCategory, SwCategory $swCategory, array &$translations, $langIso = null)
     {
         if (is_null($langIso)) {
-            $langIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+            $langIso = \jtl\Connector\Shopware\Utilities\Locale::extractLanguageFromLocale(Shopware()->Shop()->getLocale()->getLocale());
+        }else{
+            $langIso = Language::convert(null, $langIso);
         }
 
         // Attribute
@@ -296,7 +299,7 @@ class Category extends DataMapper
             }
 
             foreach ($jtlAttribute->getI18ns() as $attributeI18n) {
-                if ($attributeI18n->getLanguageISO() === $langIso) {
+                if (Language::convert(null, $attributeI18n->getLanguageISO()) === $langIso) {
 
                     // Active fix
                     $allowedActiveValues = array('0', '1', 0, 1, false, true);
@@ -312,7 +315,7 @@ class Category extends DataMapper
                         $swCategory->setCmsHeadline($attributeI18n->getValue());
 
                         foreach ($jtlAttribute->getI18ns() as $i18n) {
-                            if ($i18n->getLanguageISO() === $langIso) {
+                            if (Language::convert(null, $i18n->getLanguageISO()) === $langIso) {
                                 continue;
                             }
                             $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
@@ -365,7 +368,7 @@ class Category extends DataMapper
     public function prepareCategoryMapping(JtlCategory $jtlCategory, SwCategory $swCategory)
     {
         foreach ($jtlCategory->getI18ns() as $i18n) {
-            if (strlen($i18n->getLanguageISO()) > 0 && LanguageUtil::map(null, null, $i18n->getLanguageISO()) !== Shopware()->Shop()->getLocale()->getLocale()) {
+            if (strlen($i18n->getLanguageISO()) > 0 && ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false) {
                 $categoryMappingSW = CategoryMappingUtil::findCategoryMappingByParent($swCategory->getId(), $i18n->getLanguageISO());
 
                 if (is_null($categoryMappingSW)) {
@@ -422,20 +425,17 @@ class Category extends DataMapper
         foreach ($jtlCategory->getI18ns() as $i18n) {
             $langIso2B = $i18n->getLanguageISO();
             $langIso1 = LanguageUtil::convert(null, $langIso2B);
-            if ($langIso2B === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
+            if (ShopUtil::isShopwareDefaultLanguage($langIso2B)) {
                 continue;
             }
 
+            $shopMapper = Mmc::getMapper('Shop');
             /** @var \Shopware\Models\Shop\Shop[] $shops */
-            $shops = ShopUtil::entityManager()->getRepository(\Shopware\Models\Shop\Shop::class)->findAll();
-            foreach ($shops as $shop) {
-                if (strpos($shop->getLocale()->getLocale(), $langIso1) !== 0) {
-                    continue;
-                }
+            $shops = $shopMapper->findByLanguage($langIso1);
 
+            foreach ($shops as $shop) {
                 $categoryTranslation = array_filter([
                     'description' => $i18n->getName(),
-                    //'cmsheadline' => $i18n->get,
                     'cmstext' => $i18n->getDescription(),
                     'metatitle' => $i18n->getTitleTag(),
                     'metakeywords' => $i18n->getMetaKeywords(),

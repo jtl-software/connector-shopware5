@@ -140,20 +140,12 @@ class ConfiguratorGroup extends DataMapper
             throw new ApiException\NotFoundException(sprintf('Configurator Group by id (%s) not found', $id));
         }
 
-        $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $iso));
-
-        if ($locale === null) {
-            throw new ApiException\NotFoundException(sprintf('Could not find any locale for iso (%s)', $iso));
-        }
-
-        $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findByLocale($locale->getLocale());
-
-        if ($shops === null || (is_array($shops) && count($shops) == 0)) {
-            throw new ApiException\NotFoundException(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso));
-        }
+        $locale = LanguageUtil::map(null, null, $iso);
+        $language = LocaleUtil::extractLanguageFromLocale($locale);
 
         $translationService = ShopUtil::translationService();
+        $shopMapper = Mmc::getMapper('Shop');
+        $shops = $shopMapper->findByLanguage($language);
 
         foreach ($shops as $shop) {
             $translationService->delete($shop->getId(), 'configuratorgroup', $id);

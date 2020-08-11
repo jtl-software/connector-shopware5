@@ -51,6 +51,22 @@ final class Locale
         return $locale;
     }
 
+    /**
+     * @param string $locale
+     * @return string
+     * @throws \Exception
+     */
+    public static function extractLanguageFromLocale(string $locale): string
+    {
+        list($languageCode, $countryCode) = explode('_', $locale);
+
+        if (empty($languageCode)) {
+            throw new \Exception(sprintf("Invalid locale '%s'. Cannot extract language code.", $locale));
+        }
+
+        return strtolower($languageCode);
+    }
+
     private function __construct()
     {
     }

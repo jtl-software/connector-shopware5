@@ -206,7 +206,8 @@ class Customer extends DataMapper
         }
 
         $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findByLocale(LanguageUtil::map($customer->getLanguageISO()));
+        $language = \jtl\Connector\Shopware\Utilities\Locale::extractLanguageFromLocale(LanguageUtil::map($customer->getLanguageISO()));
+        $shops = $shopMapper->findByLanguage($language);
         if (is_array($shops) && count($shops) > 0) {
             $customerSW->setLanguageSubShop($shops[0]);
         }
