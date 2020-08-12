@@ -206,13 +206,6 @@ class Customer extends DataMapper
             $customerSW->setDefaultBillingAddress($addressSW);
         }
 
-        $shopMapper = Mmc::getMapper('Shop');
-        $language = LocaleUtil::extractLanguageIsoFromLocale(LanguageUtil::map($customer->getLanguageISO()));
-        $shops = $shopMapper->findByLanguageIso($language);
-        if (is_array($shops) && count($shops) > 0) {
-            $customerSW->setLanguageSubShop($shops[0]);
-        }
-    
         /**
          * 0 => normal account ("don't create customer account" wasn't checked)<br>
          * 1 => hidden account ("don't create customer account" was checked)
