@@ -276,8 +276,8 @@ class Specific extends DataMapper
                 continue;
             }
 
-            $language = LocaleUtil::extractLanguageFromLocale($locale->getLocale());
-            $shops = $shopMapper->findByLanguage($language);
+            $language = LocaleUtil::extractLanguageIsoFromLocale($locale->getLocale());
+            $shops = $shopMapper->findByLanguageIso($language);
 
             if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false) {
                 foreach ($shops as $shop) {
@@ -307,8 +307,8 @@ class Specific extends DataMapper
                     if ($valueId !== null && ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO()) === false) {
                         $locale = LocaleUtil::getByKey(LanguageUtil::map(null,null, $valueI18n->getLanguageISO()));
                         if ($locale !== null) {
-                            $language = LocaleUtil::extractLanguageFromLocale($locale->getLocale());
-                            $shops = $shopMapper->findByLanguage($language);
+                            $language = LocaleUtil::extractLanguageIsoFromLocale($locale->getLocale());
+                            $shops = $shopMapper->findByLanguageIso($language);
 
                             foreach ($shops as $shop) {
                                 $translationService->write(

@@ -31,26 +31,26 @@ final class Shop
     }
 
     /**
-     * @param string $languageIso6392Code
+     * @param string $languageIsoCode2B
      * @param string $localeCode
      * @return bool
      * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    public static function areSameLanguages(string $languageIso6392Code, string $localeCode): bool
+    public static function areSameLanguages(string $languageIsoCode2B, string $localeCode): bool
     {
         return
-            Locale::extractLanguageFromLocale(LanguageUtil::map(null, null, $languageIso6392Code)) ===
-            Locale::extractLanguageFromLocale($localeCode);
+            Locale::extractLanguageIsoFromLocale(LanguageUtil::map(null, null, $languageIsoCode2B)) ===
+            Locale::extractLanguageIsoFromLocale($localeCode);
     }
 
     /**
-     * @param string $languageIso6392Code
+     * @param string $languageIsoCode2B
      * @return bool
      * @throws \jtl\Connector\Core\Exception\LanguageException
      */
-    public static function isShopwareDefaultLanguage(string $languageIso6392Code): bool
+    public static function isShopwareDefaultLanguage(string $languageIsoCode2B): bool
     {
-        return self::areSameLanguages($languageIso6392Code, Shopware()->Shop()->getLocale()->getLocale());
+        return self::areSameLanguages($languageIsoCode2B, Shopware()->Shop()->getLocale()->getLocale());
     }
 
     /**

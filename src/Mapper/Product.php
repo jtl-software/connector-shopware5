@@ -1236,13 +1236,13 @@ class Product extends DataMapper
         foreach ($translations as $langIso2B => $translation) {
             /** @var \Shopware\Models\Shop\Locale $locale */
             $langIso1 = LanguageUtil::convert(null, $langIso2B);
-            if ($langIso1 === LocaleUtil::extractLanguageFromLocale(ShopUtil::locale()->getLocale())) {
+            if ($langIso1 === LocaleUtil::extractLanguageIsoFromLocale(ShopUtil::locale()->getLocale())) {
                 continue;
             }
 
             /** @var \Shopware\Models\Shop\Shop[] $shops */
             $shopMapper = Mmc::getMapper('Shop');
-            $shops = $shopMapper->findByLanguage($langIso1);
+            $shops = $shopMapper->findByLanguageIso($langIso1);
 
             foreach ($shops as $shop) {
                 if ($merge) {

@@ -9,6 +9,7 @@ namespace jtl\Connector\Shopware\Mapper;
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Customer as CustomerModel;
 use jtl\Connector\Model\CustomerAttr;
@@ -206,8 +207,8 @@ class Customer extends DataMapper
         }
 
         $shopMapper = Mmc::getMapper('Shop');
-        $language = \jtl\Connector\Shopware\Utilities\Locale::extractLanguageFromLocale(LanguageUtil::map($customer->getLanguageISO()));
-        $shops = $shopMapper->findByLanguage($language);
+        $language = LocaleUtil::extractLanguageIsoFromLocale(LanguageUtil::map($customer->getLanguageISO()));
+        $shops = $shopMapper->findByLanguageIso($language);
         if (is_array($shops) && count($shops) > 0) {
             $customerSW->setLanguageSubShop($shops[0]);
         }

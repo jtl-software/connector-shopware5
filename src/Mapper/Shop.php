@@ -28,7 +28,11 @@ class Shop extends DataMapper
             ->getQuery()->getResult();
     }
 
-    public function findByLanguage($language)
+    /**
+     * @param $languageIso
+     * @return int|mixed|string
+     */
+    public function findByLanguageIso($languageIso)
     {
         return $this->Manager()->createQueryBuilder()->select(
                 'shop',
@@ -37,7 +41,7 @@ class Shop extends DataMapper
             ->from('Shopware\Models\Shop\Shop', 'shop')
             ->leftJoin('shop.locale', 'locale')
             ->where('locale.locale LIKE :locale')
-            ->setParameter('locale', $language.'_%')
+            ->setParameter('locale', $languageIso.'_%')
             ->getQuery()->getResult();
     }
 

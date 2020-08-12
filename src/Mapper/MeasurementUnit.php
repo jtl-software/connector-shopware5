@@ -125,9 +125,9 @@ class MeasurementUnit extends DataMapper
             if (ShopUtil::isShopwareDefaultLanguage($iso) !== false) {
                 $locale = LanguageUtil::map(null, null, $iso);
 
-                $language = LocaleUtil::extractLanguageFromLocale($locale);
+                $language = LocaleUtil::extractLanguageIsoFromLocale($locale);
                 $shopMapper = Mmc::getMapper('Shop');
-                $shops = $shopMapper->findByLanguage($language);
+                $shops = $shopMapper->findByLanguageIso($language);
 
                 foreach ($shops as $shop) {
                     $translationService->write(

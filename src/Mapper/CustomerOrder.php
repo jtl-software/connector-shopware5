@@ -298,9 +298,9 @@ class CustomerOrder extends DataMapper
             throw new \Exception(sprintf('Language Iso with iso (%s) not found', $customerOrder->getLanguageISO()));
         }
 
-        $language = LocaleUtil::extractLanguageFromLocale($localeSW->getLocale());
+        $language = LocaleUtil::extractLanguageIsoFromLocale($localeSW->getLocale());
         $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findByLanguage($language);
+        $shops = $shopMapper->findByLanguageIso($language);
         if ($shops === null || (is_array($shops) && count($shops) == 0)) {
             throw new \Exception(sprintf('Shop with language iso (%s) and locale (%s) not found', $customerOrder->getLanguageISO(), $localeSW->getLocale()));
         }
