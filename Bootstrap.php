@@ -87,6 +87,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                         'enable_custom_properties' => false,
                         'null_undefined_attributes' => true,
                         'article_detail_preselection' => false,
+                        'use_handling_time_for_shipping' => false,
                     ]
                 ],
                 'customer_order' => [

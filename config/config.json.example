@@ -10,7 +10,8 @@
         "push": {
             "enable_custom_properties": false,
             "null_undefined_attributes": true,
-            "article_detail_preselection": false
+            "article_detail_preselection": false,
+            "use_handling_time_for_shipping": false
         }
     },
     "customer_order": {
