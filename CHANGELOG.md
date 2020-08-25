@@ -1,5 +1,9 @@
 2.6.0
 ------
+- CO-1037/CO-531 - Fixed packUnit translations
+- CO-1001 - Fixed language mapping (ex. translations for shops with a locale at_DE should be now saved)
+- CO-951 - Added attribute to control is_blog category attribute
+- CO-391 - Added attribute to assign product price group
 
 2.5.3
 ------
