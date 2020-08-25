@@ -358,6 +358,23 @@ class Product extends DataController
         }
         $product->setAttributes($translatableAttributes->getAttributes());
 
+        $languageIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+
+        /** @var $product \jtl\Connector\Model\Product */
+        if (!is_null($data['priceGroupId'])) {
+            $product->addAttribute(
+                (new ProductAttr())
+                    ->setId(new Identity(ProductAttr::PRICE_GROUP_ID))
+                    ->addI18n(
+                        (new ProductAttrI18n())
+                            ->setLanguageISO($languageIso)
+                            ->setProductAttrId(new Identity(ProductAttr::PRICE_GROUP_ID))
+                            ->setName(ProductAttr::PRICE_GROUP_ID)
+                            ->setValue((string) $data['priceGroupId'])
+                    )
+            );
+        }
+
         //Additional Text
         if(!empty($data['additionalText'])) {
             $attrId = IdConcatenator::link(array($product->getId()->getEndpoint(), 'addtxt'));

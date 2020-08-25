@@ -34,6 +34,8 @@ use jtl\Connector\Linker\ChecksumLinker;
 use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use Shopware\Models\Customer\PriceGroup;
+use \Shopware\Models\Price\Group as SwGroup;
 use Shopware\Models\Plugin\Plugin;
 use Shopware\Models\Property\Group;
 use Shopware\Models\Property\Option;
@@ -857,6 +859,20 @@ class Product extends DataMapper
                     if (in_array($lcAttributeName, [ProductAttr::PSEUDO_SALES, 'sw_pseudo_sales'])) {
                         $article->setPseudoSales((int)$attributeValue);
 
+                        continue;
+                    }
+
+                    if ($lcAttributeName === ProductAttr::PRICE_GROUP_ID) {
+                        if (empty($attributeValue)) {
+                            $article->setPriceGroupActive(false);
+                        }else{
+                            $article->setPriceGroupActive(true);
+                            $priceGroupId = (int)$attributeValue;
+                            $priceGroupSW = Shopware()->Models()->getRepository(SwGroup::class)->find($priceGroupId);
+                            if ($priceGroupSW instanceof SwGroup) {
+                                $article->setPriceGroup($priceGroupSW);
+                            }
+                        }
                         continue;
                     }
 
