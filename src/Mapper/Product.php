@@ -1340,13 +1340,13 @@ class Product extends DataMapper
                     if ($langIso === LanguageUtil::map(ShopUtil::locale()->getLocale())) {
                         continue;
                     }
-                }
 
-                if (!isset($data[$langIso])) {
-                    $data[$langIso] = $this->initVariantTranslation();
-                }
+                    if (!isset($data[$langIso])) {
+                        $data[$langIso] = $this->initVariantTranslation();
+                    }
 
-                $data[$langIso]['packUnit'] = $unitI18n->getName();
+                    $data[$langIso]['packUnit'] = $unitI18n->getName();
+                }
             }
         }
 
