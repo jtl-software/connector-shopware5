@@ -107,7 +107,7 @@ class MeasurementUnit extends DataMapper
         }
 
         foreach ($unit->getI18ns() as $i18n) {
-            if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
                 $unitSW->setName($i18n->getName());
             }
         }
@@ -119,26 +119,15 @@ class MeasurementUnit extends DataMapper
     {
         $translationService = ShopUtil::translationService();
         $translationService->deleteAll('config_units', $unitSW->getId());
-        $defaultIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+
         foreach ($unit->getI18ns() as $i18n) {
             $iso = $i18n->getLanguageISO();
-            if ($iso !== $defaultIso) {
-                $locale = LocaleUtil::getByKey(LanguageUtil::map(null, null, $iso));
+            if (ShopUtil::isShopwareDefaultLanguage($iso) !== false) {
+                $locale = LanguageUtil::map(null, null, $iso);
 
-                if ($locale === null) {
-                    Logger::write(sprintf('Could not find any locale for (%s)', $i18n->getLanguageISO()), Logger::WARNING, 'database');
-
-                    continue;
-                }
-
+                $language = LocaleUtil::extractLanguageIsoFromLocale($locale);
                 $shopMapper = Mmc::getMapper('Shop');
-                $shops = $shopMapper->findByLocale($locale->getLocale());
-
-                if ($shops === null || (is_array($shops) && count($shops) == 0)) {
-                    Logger::write(sprintf('Could not find any shop with locale (%s) and iso (%s)', $locale->getLocale(), $iso), Logger::WARNING, 'database');
-
-                    continue;
-                }
+                $shops = $shopMapper->findByLanguageIso($language);
 
                 foreach ($shops as $shop) {
                     $translationService->write(
@@ -160,7 +149,7 @@ class MeasurementUnit extends DataMapper
     {
         $name = '';
         foreach ($unit->getI18ns() as $i18n) {
-            if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
                 $name = $i18n->getName();
             }
         }

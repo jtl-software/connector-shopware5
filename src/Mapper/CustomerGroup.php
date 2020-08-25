@@ -8,6 +8,7 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
 use \jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use \Shopware\Models\Customer\Group as CustomerGroupSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
@@ -117,7 +118,7 @@ class CustomerGroup extends DataMapper
     {
         // I18n
         foreach ($customerGroup->getI18ns() as $i18n) {
-            if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
 
                 // EK fix, thanks Shopware :/
                 $groupKey = ($customerGroupSW->getKey() === 'EK') ? $customerGroupSW->getKey() : substr($i18n->getName(), 0, 5);
