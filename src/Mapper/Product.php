@@ -725,7 +725,24 @@ class Product extends DataMapper
         $detailSW->setHeight($product->getHeight());
 
         // Delivery time
-        $detailSW->setShippingTime($product->calculateHandlingTime());
+        $exists = false;
+        $useHandlingTimeOnly = (bool)Application()->getConfig()->get('product.push.use_handling_time_for_shipping', false);
+        if(!$useHandlingTimeOnly) {
+            foreach ($product->getI18ns() as $i18n) {
+                if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    $deliveryStatus = trim(str_replace(['Tage', 'Days', 'Tag', 'Day'], '', $i18n->getDeliveryStatus()));
+                    if ($deliveryStatus !== '' && $deliveryStatus !== '0') {
+                        $detailSW->setShippingTime($deliveryStatus);
+                        $exists = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!$exists) {
+            $detailSW->setShippingTime($product->calculateHandlingTime());
+        }
 
         // Last stock
         $inStock = 0;

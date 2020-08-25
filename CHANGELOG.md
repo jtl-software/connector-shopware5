@@ -5,6 +5,11 @@
 - CO-951 - Added attribute to control is_blog category attribute
 - CO-391 - Added attribute to assign product price group
 
+2.5.4
+------
+- CO-1106 Reverted using handling time as shipping time only
+          Added config flag "product.push.use_handling_time_for_shipping" for using handling time as shipping time only
+
 2.5.3
 ------
 - Updated connector core due to compatiblity reasons with JTl-Wawi 1.5.27.0
