@@ -1,3 +1,6 @@
+2.6.0
+------
+
 2.5.3
 ------
 - Updated connector core due to compatiblity reasons with JTl-Wawi 1.5.27.0
