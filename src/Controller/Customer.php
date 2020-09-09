@@ -95,8 +95,7 @@ class Customer extends DataController
                     if (isset($customerSW['defaultBillingAddress']['attribute']) && is_array($customerSW['defaultBillingAddress']['attribute'])) {
                         for ($i = 1; $i <= 6; $i++) {
                             if (isset($customerSW['defaultBillingAddress']['attribute']["text{$i}"]) && strlen(trim($customerSW['defaultBillingAddress']['attribute']["text{$i}"]))) {
-                                $keyValueAttributes->addAttribute("text{$i}",
-                                    (string)$customerSW['defaultBillingAddress']['attribute']["text{$i}"]);
+                                $keyValueAttributes->addAttribute("text{$i}", $customerSW['defaultBillingAddress']['attribute']["text{$i}"]);
                             }
                         }
                     }
@@ -115,6 +114,14 @@ class Customer extends DataController
                                 if(method_exists($swCustomerAttribute,$getter)){
                                     $value = $swCustomerAttribute->$getter();
                                     $key = $attribute->getColumnName();
+
+                                    if ($value instanceof \DateTimeInterface) {
+                                        $value = $value->format(\DateTime::ISO8601);
+                                    }
+
+                                    if (is_null($value) || empty($value)) {
+                                        continue;
+                                    }
 
                                     $keyValueAttributes->addAttribute(
                                         $key,
