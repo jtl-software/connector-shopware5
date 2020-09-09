@@ -1,3 +1,7 @@
+2.6.1
+------
+- CO-1144 - Fixed import of DateTime attributes
+
 2.6.0
 ------
 - CO-1037/CO-531 - Fixed packUnit translations
