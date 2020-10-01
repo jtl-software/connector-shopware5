@@ -287,6 +287,10 @@ class Image extends DataMapper
                     break;
             }
 
+            if (($imageName = $jtlImage->getName()) !== '') {
+                $media->setName($imageName);
+            }
+
             ShopUtil::entityManager()->persist($media);
             ShopUtil::entityManager()->persist($referencedModel);
             ShopUtil::entityManager()->flush();
@@ -971,10 +975,6 @@ class Image extends DataMapper
             ->setCreated(new \DateTime())
             ->setUserId(0)
             ->setAlbum($album);
-
-        if ($jtlImage->getName() !== '') {
-            $media->setName($jtlImage->getName());
-        }
 
         ShopUtil::entityManager()->persist($media);
         ShopUtil::thumbnailManager()->createMediaThumbnail($media, [], true);
