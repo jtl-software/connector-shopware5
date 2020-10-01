@@ -741,7 +741,17 @@ class Product extends DataMapper
         }
 
         if (!$exists) {
-            $detailSW->setShippingTime($product->calculateHandlingTime());
+            $shippingTime = $product->calculateHandlingTime();
+            $considerNextAvailableInflowDate = (bool)Application()->getConfig()->get('product.push.consider_supplier_inflow_date_for_shipping', true);
+            if($product->getStockLevel()->getStockLevel() <= 0 && $considerNextAvailableInflowDate && !is_null($product->getNextAvailableInflowDate())) {
+                $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
+                $today = new \DateTime((new \DateTime())->format('Y-m-d'));
+                if($inflow->getTimestamp() - $today->getTimestamp() > 0) {
+                    $shippingTime = $inflow->diff($today)->days;
+                }
+            }
+
+            $detailSW->setShippingTime($shippingTime);
         }
 
         // Last stock
