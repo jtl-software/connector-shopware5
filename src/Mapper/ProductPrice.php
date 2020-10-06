@@ -219,11 +219,16 @@ class ProductPrice extends DataMapper
                     $priceSW = new \Shopware\Models\Article\Price;
                 }
 
+                $pseudoPrice = 0.;
+                if (!is_null($recommendedRetailPrice) && $recommendedRetailPrice > $priceItem->getNetPrice()) {
+                    $pseudoPrice = $recommendedRetailPrice;
+                }
+
                 $priceSW->setArticle($article)
                     ->setCustomerGroup($customerGroupSW)
                     ->setFrom($quantity)
                     ->setPrice($priceItem->getNetPrice())
-                    ->setPseudoPrice($recommendedRetailPrice)
+                    ->setPseudoPrice($pseudoPrice)
                     ->setDetail($detail);
 
                 if ($quantity == 1) {
