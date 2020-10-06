@@ -1,3 +1,9 @@
+2.7.0
+------
+- CO-1170 - Added new payment method mapping hgw_ivb2b
+- CO-1167 - Added config option 'consider_supplier_inflow_date_for_shipping' (default: true) for calculation delivery time
+- CO-1010 - Set RRP only when it's greater than normal price
+
 2.6.1
 ------
 - CO-1144 - Fixed import of DateTime attributes
