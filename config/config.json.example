@@ -11,7 +11,8 @@
             "enable_custom_properties": false,
             "null_undefined_attributes": true,
             "article_detail_preselection": false,
-            "use_handling_time_for_shipping": false
+            "use_handling_time_for_shipping": false,
+            "consider_supplier_inflow_date_for_shipping": true
         }
     },
     "customer_order": {
