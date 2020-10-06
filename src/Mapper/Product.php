@@ -48,6 +48,8 @@ class Product extends DataMapper
     const KIND_VALUE_PARENT = 3;
     const KIND_VALUE_DEFAULT = 2;
     const KIND_VALUE_MAIN = 1;
+    const KEYWORDS_RELEVANCE = 'keywords_relevance';
+
 
     protected static $masterProductIds = array();
 
@@ -974,11 +976,24 @@ class Product extends DataMapper
 
         $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
 
+        $jtlSearchKeywordsAttribute = null;
+
         foreach ($swAttributesList as $tSwAttribute) {
+
+            if ($tSwAttribute->getColumnName() === self::KEYWORDS_RELEVANCE) {
+                $jtlSearchKeywordsAttribute = $tSwAttribute;
+                continue;
+            }
+
             $result = TranslatableAttributes::setAttribute($tSwAttribute, $attributeSW, $attributes, $nullUndefinedAttributes);
             if ($result === true) {
                 $attrMappings[$tSwAttribute->getColumnName()] = $mappings[$tSwAttribute->getColumnName()];
             }
+        }
+
+        if (!is_null($jtlSearchKeywordsAttribute)) {
+            $keywordAttribute[self::KEYWORDS_RELEVANCE] = $product->getKeywords();
+            TranslatableAttributes::setAttribute($jtlSearchKeywordsAttribute, $attributeSW, $keywordAttribute, false);
         }
 
         ShopUtil::entityManager()->persist($attributeSW);

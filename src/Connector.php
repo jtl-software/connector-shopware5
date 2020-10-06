@@ -19,6 +19,7 @@ use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Formatter\ExceptionFormatter;
 use \jtl\Connector\Shopware\Utilities\Mmc;
+use Shopware\Components\CacheManager;
 
 /**
  * Shopware Connector
@@ -123,27 +124,31 @@ class Connector extends BaseConnector
                     $err->setMessage($exc->getMessage());
                     $action->setError($err);
                 }
-
-                return $action;
             }
-
-            if (!is_array($requestpacket->getParams())) {
-                throw new \Exception('Param must be an array');
-            }
-
-            $action = new Action();
-            $results = array();
-            $entities = $requestpacket->getParams();
-            foreach ($entities as $entity) {
-                $result = $this->controller->{$this->action}($entity);
-
-                if ($result->getResult() !== null) {
-                    $results[] = $result->getResult();
+            else {
+                if (!is_array($requestpacket->getParams())) {
+                    throw new \Exception('Param must be an array');
                 }
 
-                $action->setHandled(true)
-                    ->setResult($results)
-                    ->setError($result->getError());    // Todo: refactor to array of errors
+                $action = new Action();
+                $results = array();
+                $entities = $requestpacket->getParams();
+                foreach ($entities as $entity) {
+                    $result = $this->controller->{$this->action}($entity);
+
+                    if ($result->getResult() !== null) {
+                        $results[] = $result->getResult();
+                    }
+
+                    $action->setHandled(true)
+                        ->setResult($results)
+                        ->setError($result->getError());    // Todo: refactor to array of errors
+                }
+
+                if($this->getMethod()->getController() === 'product'){
+                    $cacheManager = Shopware()->Container()->get('shopware.cache_manager');
+                    $cacheManager->clearByTag(CacheManager::CACHE_TAG_SEARCH);
+                }
             }
 
             return $action;
