@@ -28,13 +28,16 @@ use Shopware\Components\CacheManager;
  */
 class Connector extends BaseConnector
 {
+    public const
+        SESSION_CLEAR_CACHE = 'clearCache';
+
     /**
      * Current Controller
      *
      * @var \jtl\Connector\Core\Controller\Controller
      */
     protected $controller;
-    
+
     /**
      * @var string
      */
@@ -145,9 +148,8 @@ class Connector extends BaseConnector
                         ->setError($result->getError());    // Todo: refactor to array of errors
                 }
 
-                if($this->getMethod()->getController() === 'product'){
-                    $cacheManager = Shopware()->Container()->get('shopware.cache_manager');
-                    $cacheManager->clearByTag(CacheManager::CACHE_TAG_SEARCH);
+                if ($this->getMethod()->getController() === 'product') {
+                    $_SESSION[self::SESSION_CLEAR_CACHE][CacheManager::CACHE_TAG_SEARCH] = true;
                 }
             }
 

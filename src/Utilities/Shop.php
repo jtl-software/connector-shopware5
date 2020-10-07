@@ -8,6 +8,8 @@ namespace jtl\Connector\Shopware\Utilities;
 
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Service\Translation;
+use Shopware\Bundle\MediaBundle\MediaService;
+use Shopware\Components\CacheManager;
 use Shopware\Components\Thumbnail\Manager;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Shopware\Models\Shop\Shop as SwShop;
@@ -70,9 +72,17 @@ final class Shop
     }
 
     /**
-     * @return \Shopware\Bundle\MediaBundle\MediaService
+     * @return CacheManager
      */
-    public static function mediaService()
+    public static function cacheManager(): CacheManager
+    {
+        return static::get()->Container()->get('shopware.cache_manager');
+    }
+
+    /**
+     * @return MediaService
+     */
+    public static function mediaService(): MediaService
     {
         return static::get()->Container()->get('shopware_media.media_service');
     }
@@ -80,7 +90,7 @@ final class Shop
     /**
      * @return Manager
      */
-    public static function thumbnailManager()
+    public static function thumbnailManager(): Manager
     {
         return static::get()->Container()->get('thumbnail_manager');
     }
@@ -88,7 +98,7 @@ final class Shop
     /**
      * @return Translation
      */
-    public static function translationService()
+    public static function translationService(): Translation
     {
         return static::get()->Container()->get('translation');
     }

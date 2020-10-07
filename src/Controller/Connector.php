@@ -10,13 +10,15 @@ use jtl\Connector\Application\Application;
 use jtl\Connector\Event\EventHandler;
 use jtl\Connector\Model\BoolResult;
 use jtl\Connector\Model\ConnectorServerInfo;
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Core\Model\QueryFilter;
-use \jtl\Connector\Model\ConnectorIdentification;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Model\ConnectorIdentification;
+use jtl\Connector\Shopware\Utilities\Shop;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use jtl\Connector\Shopware\Connector as SwConnector;
 use Shopware\Components\ShopwareReleaseStruct;
 
 /**
@@ -28,7 +30,7 @@ class Connector extends DataController
     /**
      * Identify
      *
-     * @return \jtl\Connector\Result\Action
+     * @return Action
      */
     public function identify()
     {
@@ -74,7 +76,7 @@ class Connector extends DataController
     /**
      * Finish
      *
-     * @return \jtl\Connector\Result\Action
+     * @return Action
      */
     public function finish()
     {
@@ -82,6 +84,14 @@ class Connector extends DataController
         
         $action->setHandled(true);
         $action->setResult(true);
+
+        $cacheManager = Shop::cacheManager();
+        $clearCacheTags = $_SESSION[SwConnector::SESSION_CLEAR_CACHE] ?? [];
+        foreach($clearCacheTags as $clearCacheTag => $clearIt) {
+            if($clearIt === true) {
+                $cacheManager->clearByTag($clearCacheTag);
+            }
+        }
         
         return $action;
     }
@@ -89,8 +99,8 @@ class Connector extends DataController
     /**
      * Statistic
      *
-     * @param \jtl\Connector\Core\Model\QueryFilter $queryFilter
-     * @return \jtl\Connector\Result\Action
+     * @param QueryFilter $queryFilter
+     * @return Action
      */
     public function statistic(QueryFilter $queryFilter)
     {

@@ -12,6 +12,7 @@ abstract class DataMapper extends Singleton
 {
     protected $manager;
 
+
     protected function __construct()
     {
         $this->manager = Shopware()->Models();
