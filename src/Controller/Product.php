@@ -51,7 +51,7 @@ class Product extends DataController
             $result = array();
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
-            /** @var \jtl\Connector\Shopware\Mapper\Product $mapper */
+            /** @var ProductMapper $mapper */
             $mapper = Mmc::getMapper('Product');
             
             $products = $mapper->findAll($limit);
@@ -334,6 +334,12 @@ class Product extends DataController
             ];
 
             foreach ($data['attribute'] as $key => $value) {
+
+                if ($key === ProductMapper::SEARCH_KEYWORDS_ATTRIBUTE) {
+                    $product->setKeywords($value);
+                    continue;
+                }
+
                 if (in_array($key, $exclusives)) {
                     continue;
                 }

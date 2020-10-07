@@ -48,8 +48,8 @@ class Product extends DataMapper
     const KIND_VALUE_PARENT = 3;
     const KIND_VALUE_DEFAULT = 2;
     const KIND_VALUE_MAIN = 1;
-    const KEYWORDS_RELEVANCE = 'keywords_relevance';
 
+    const SEARCH_KEYWORDS_ATTRIBUTE = 'search_keywords_attribute';
 
     protected static $masterProductIds = array();
 
@@ -980,7 +980,7 @@ class Product extends DataMapper
 
         foreach ($swAttributesList as $tSwAttribute) {
 
-            if ($tSwAttribute->getColumnName() === self::KEYWORDS_RELEVANCE) {
+            if ($tSwAttribute->getColumnName() === self::SEARCH_KEYWORDS_ATTRIBUTE) {
                 $jtlSearchKeywordsAttribute = $tSwAttribute;
                 continue;
             }
@@ -992,7 +992,7 @@ class Product extends DataMapper
         }
 
         if (!is_null($jtlSearchKeywordsAttribute)) {
-            $keywordAttribute[self::KEYWORDS_RELEVANCE] = $product->getKeywords();
+            $keywordAttribute[self::SEARCH_KEYWORDS_ATTRIBUTE] = $product->getKeywords();
             TranslatableAttributes::setAttribute($jtlSearchKeywordsAttribute, $attributeSW, $keywordAttribute, false);
         }
 
