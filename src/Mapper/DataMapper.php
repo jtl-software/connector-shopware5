@@ -7,14 +7,25 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Core\Utilities\Singleton;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+
 
 abstract class DataMapper extends Singleton
 {
+    /**
+     * @var \Shopware\Components\Model\ModelManager
+     */
     protected $manager;
+
+    /**
+     * @var MapperFactory
+     */
+    protected $factory;
 
     protected function __construct()
     {
-        $this->manager = Shopware()->Models();
+        $this->manager = ShopUtil::entityManager();
+        $this->factory = new MapperFactory();
     }
 
     protected function Manager()
