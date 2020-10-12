@@ -157,8 +157,7 @@ class Customer extends DataMapper
 
         if (!empty($jtlAttributes)) {
 
-            $nullUndefinedAttributes = (bool)Application()->getConfig()->get('customer.push.null_undefined_attributes',
-                true);
+            $nullUndefinedAttributes = (bool)$this->config->get('customer.push.null_undefined_attributes', true);
             $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_user_attributes');
 
             foreach ($swAttributesList as $attribute) {
