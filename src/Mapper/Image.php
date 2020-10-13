@@ -40,7 +40,7 @@ use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Shopware\Models\Property\Value;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-class Image extends DataMapper
+class Image extends AbstractDataMapper
 {
     /**
      * @param integer $id

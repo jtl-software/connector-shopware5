@@ -43,7 +43,7 @@ use Shopware\Models\Property\Value;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use SwagCustomProducts\Models\Template;
 
-class Product extends DataMapper
+class Product extends AbstractDataMapper
 {
     const KIND_VALUE_PARENT = 3;
     const KIND_VALUE_DEFAULT = 2;

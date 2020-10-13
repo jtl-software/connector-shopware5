@@ -11,7 +11,7 @@ use jtl\Connector\Model\Currency as CurrencyModel;
 use jtl\Connector\Model\Identity;
 use Shopware\Models\Shop\Currency as CurrencySW;
 
-class Currency extends DataMapper
+class Currency extends AbstractDataMapper
 {
     public function find($id, $array_hydration = false)
     {

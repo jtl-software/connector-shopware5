@@ -24,7 +24,7 @@ use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use \jtl\Connector\Shopware\Utilities\Salutation;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
-class CustomerOrder extends DataMapper
+class CustomerOrder extends AbstractDataMapper
 {
     /**
      * @param $id

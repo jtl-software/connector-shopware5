@@ -6,15 +6,41 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Application\Application;
 use \jtl\Connector\Core\Utilities\Singleton;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use Noodlehaus\ConfigInterface;
+use Shopware\Components\Model\ModelManager;
 
-abstract class DataMapper extends Singleton
+
+abstract class AbstractDataMapper extends Singleton
 {
+    /**
+     * @var ConfigInterface
+     */
+    protected $config;
+
+    /**
+     * @var \Shopware\Components\DependencyInjection\Container
+     */
+    protected $container;
+
+    /**
+     * @var ModelManager
+     */
     protected $manager;
+
+    /**
+     * @var MapperFactory
+     */
+    protected $factory;
 
     protected function __construct()
     {
-        $this->manager = Shopware()->Models();
+        $this->config = Application()->getConfig();
+        $this->container = Shopware()->Container();
+        $this->manager = ShopUtil::entityManager();
+        $this->factory = new MapperFactory();
     }
 
     protected function Manager()

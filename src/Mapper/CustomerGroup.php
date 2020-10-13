@@ -12,7 +12,7 @@ use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use \Shopware\Models\Customer\Group as CustomerGroupSW;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
-class CustomerGroup extends DataMapper
+class CustomerGroup extends AbstractDataMapper
 {
     protected $groupKeyTables = array(
         's_user' => 'customergroup',

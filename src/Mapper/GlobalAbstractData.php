@@ -9,7 +9,7 @@ namespace jtl\Connector\Shopware\Mapper;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Model\GlobalData as GlobalDataModel;
 
-class GlobalData extends DataMapper
+class GlobalAbstractData extends AbstractDataMapper
 {
     public function save(GlobalDataModel $globalData)
     {

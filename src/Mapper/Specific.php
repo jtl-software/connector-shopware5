@@ -17,7 +17,7 @@ use Shopware\Models\Property\Value as ValueSW;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
-class Specific extends DataMapper
+class Specific extends AbstractDataMapper
 {
     public function find($id)
     {

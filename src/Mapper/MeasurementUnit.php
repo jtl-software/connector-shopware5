@@ -15,7 +15,7 @@ use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
-class MeasurementUnit extends DataMapper
+class MeasurementUnit extends AbstractDataMapper
 {
     public function find($id)
     {

@@ -8,7 +8,7 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Core\Logger\Logger;
 
-class Locale extends DataMapper
+class Locale extends AbstractDataMapper
 {
     public function find($id)
     {

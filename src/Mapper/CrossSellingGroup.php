@@ -11,7 +11,7 @@ use jtl\Connector\Model\CrossSellingGroup as CrossSellingGroupModel;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\Mmc;
 
-class CrossSellingGroup extends DataMapper
+class CrossSellingGroup extends AbstractDataMapper
 {
     public function find($id, $loadI18n = false)
     {

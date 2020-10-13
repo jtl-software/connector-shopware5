@@ -9,7 +9,7 @@ namespace jtl\Connector\Shopware\Mapper;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
 
-class Payment extends DataMapper
+class Payment extends AbstractDataMapper
 {
     public function findOneBy(array $kv)
     {
