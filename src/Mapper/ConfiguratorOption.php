@@ -15,7 +15,7 @@ use \jtl\Connector\ModelContainer\ProductContainer;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 
-class ConfiguratorOption extends DataMapper
+class ConfiguratorOption extends AbstractDataMapper
 {
     public function find($id)
     {

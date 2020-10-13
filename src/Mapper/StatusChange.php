@@ -12,7 +12,7 @@ use \jtl\Connector\Shopware\Utilities\Status as StatusUtil;
 use \jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
 use \jtl\Connector\Core\Exception\DatabaseException;
 
-class StatusChange extends DataMapper
+class StatusChange extends AbstractDataMapper
 {
     public function save(StatusChangeModel $status)
     {

@@ -8,7 +8,7 @@ namespace jtl\Connector\Shopware\Mapper;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
-class ConfiguratorSet extends DataMapper
+class ConfiguratorSet extends AbstractDataMapper
 {
     public function find($id)
     {

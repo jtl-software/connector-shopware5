@@ -14,7 +14,7 @@ use \jtl\Connector\Shopware\Model\Linker\UnitI18n as UnitI18nSW;
 use \jtl\Connector\Model\Identity;
 use \Doctrine\Common\Collections\ArrayCollection;
 
-class Unit extends DataMapper
+class Unit extends AbstractDataMapper
 {
     public function find($id)
     {

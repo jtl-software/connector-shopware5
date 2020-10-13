@@ -17,7 +17,7 @@ use \Shopware\Models\Article\Detail as DetailSW;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Shopware\Models\Article\Price;
 
-class ProductPrice extends DataMapper
+class ProductPrice extends AbstractDataMapper
 {
     public function find($id)
     {

@@ -19,7 +19,7 @@ use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
 use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
 use Shopware\Models\Category\Category as SwCategory;
 
-class Category extends DataMapper
+class Category extends AbstractDataMapper
 {
     protected static $parentCategoryIds = array();
 

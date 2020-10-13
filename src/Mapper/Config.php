@@ -8,7 +8,7 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use \jtl\Connector\Core\Logger\Logger;
 
-class Config extends DataMapper
+class Config extends AbstractDataMapper
 {
     public function findOneBy(array $kv)
     {

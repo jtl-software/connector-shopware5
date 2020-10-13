@@ -13,7 +13,7 @@ use Noodlehaus\ConfigInterface;
 use Shopware\Components\Model\ModelManager;
 
 
-abstract class DataMapper extends Singleton
+abstract class AbstractDataMapper extends Singleton
 {
     /**
      * @var ConfigInterface

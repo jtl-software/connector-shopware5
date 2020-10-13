@@ -10,7 +10,7 @@ use \jtl\Connector\Model\TaxRate as TaxRateModel;
 use \Shopware\Models\Tax\Tax as TaxRateSW;
 use \jtl\Connector\Model\Identity;
 
-class TaxRate extends DataMapper
+class TaxRate extends AbstractDataMapper
 {
     public function find($id)
     {

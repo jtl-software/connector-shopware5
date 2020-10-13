@@ -14,7 +14,7 @@ use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
-class Manufacturer extends DataMapper
+class Manufacturer extends AbstractDataMapper
 {
     public function find($id)
     {

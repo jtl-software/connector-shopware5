@@ -14,7 +14,7 @@ use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\CrossSellingGroup as CrossSellingGroupUtil;
 
-class CrossSelling extends DataMapper
+class CrossSelling extends AbstractDataMapper
 {
     public function findAll($limit = 100)
     {

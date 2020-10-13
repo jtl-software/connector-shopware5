@@ -15,7 +15,7 @@ use \jtl\Connector\Model\Identity;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
-class DeliveryNote extends DataMapper
+class DeliveryNote extends AbstractDataMapper
 {
     public function find($id)
     {

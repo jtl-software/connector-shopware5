@@ -6,7 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-class Shipping extends DataMapper
+class Shipping extends AbstractDataMapper
 {
     public function find($id)
     {

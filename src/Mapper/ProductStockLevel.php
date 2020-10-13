@@ -11,7 +11,7 @@ use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Core\Exception\DatabaseException;
 
-class ProductStockLevel extends DataMapper
+class ProductStockLevel extends AbstractDataMapper
 {
     public function save(ProductStockLevelModel $stock)
     {

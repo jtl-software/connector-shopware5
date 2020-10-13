@@ -17,7 +17,7 @@ use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
-class ConfiguratorGroup extends DataMapper
+class ConfiguratorGroup extends AbstractDataMapper
 {
     public function find($id)
     {

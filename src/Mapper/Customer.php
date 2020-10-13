@@ -21,7 +21,7 @@ use Shopware\Models\Attribute\User;
 use Shopware\Models\Customer\Address as AddressSW;
 use Shopware\Models\Customer\Customer as CustomerSW;
 
-class Customer extends DataMapper
+class Customer extends AbstractAttributeMapperAbstract
 {
     public function find($id)
     {
@@ -161,8 +161,7 @@ class Customer extends DataMapper
             $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_user_attributes');
 
             foreach ($swAttributesList as $attribute) {
-                TranslatableAttributes::setAttribute($attribute, $swAttribute, $jtlAttributes,
-                    $nullUndefinedAttributes);
+                $this->setSwAttribute($attribute, $swAttribute, $jtlAttributes, $nullUndefinedAttributes);
             }
 
             $this->manager->persist($swAttribute);
