@@ -21,7 +21,7 @@ use Shopware\Models\Attribute\User;
 use Shopware\Models\Customer\Address as AddressSW;
 use Shopware\Models\Customer\Customer as CustomerSW;
 
-class Customer extends AbstractAttributeMapperAbstract
+class Customer extends AbstractAttributeMapper
 {
     public function find($id)
     {
@@ -119,6 +119,9 @@ class Customer extends AbstractAttributeMapperAbstract
         return $result;
     }
 
+    /**
+     * @param CustomerModel $customer
+     */
     protected function deleteCustomerData(CustomerModel &$customer)
     {
         $customerId = (strlen($customer->getId()->getEndpoint()) > 0) ? (int)$customer->getId()->getEndpoint() : null;

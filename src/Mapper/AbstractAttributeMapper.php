@@ -8,7 +8,7 @@ use Shopware\Bundle\AttributeBundle\Service\ConfigurationStruct;
 use Shopware\Bundle\AttributeBundle\Service\TypeMapping;
 use Shopware\Components\Model\ModelEntity;
 
-abstract class AbstractAttributeMapperAbstract extends AbstractDataMapper
+abstract class AbstractAttributeMapper extends AbstractDataMapper
 {
 
     /**
