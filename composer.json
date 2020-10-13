@@ -39,7 +39,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "jtl\\Connector\\Shopware\\": "tests/"
+            "jtl\\Connector\\Shopware\\Tests\\": "tests/"
         }
     }
 }
