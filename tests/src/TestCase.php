@@ -1,9 +1,9 @@
 <?php
 namespace jtl\Connector\Shopware\Tests\src;
 
-use PHPUnit\Framework\TestCase as PhpUnitTestCase;
+use Jtl\UnitTest\TestCase as JtlTestCase;
 
-abstract class TestCase extends PhpUnitTestCase
+abstract class TestCase extends JtlTestCase
 {
     public function setUp() : void
     {

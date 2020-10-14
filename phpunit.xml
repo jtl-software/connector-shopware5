@@ -5,10 +5,5 @@
             <directory suffix="Test.php">./tests/src</directory>
         </testsuite>
     </testsuites>
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">./src</directory>
-            <directory suffix=".php">./plugins</directory>
-        </include>
-    </coverage>
+
 </phpunit>

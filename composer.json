@@ -16,11 +16,6 @@
             "role": "Founder"
         }
     ],
-    "config": {
-        "platform": {
-            "php": "7.1.3"
-        }
-    },
     "require": {
         "php": ">=7.1.3",
         "jtl/connector": "^2.7",
@@ -29,7 +24,24 @@
         "theiconic/name-parser": "^0.1.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "5.7.*"
+        "phpunit/phpunit": "^7",
+        "jtl/unit-test": "^0.1.1",
+        "shopware/shopware": "^5.6"
+    },
+    "replace": {
+        "monolog/monolog": "*",
+        "doctrine/collections": "*",
+        "symfony/dependency-injection": "*",
+        "symfony/serializer": "*",
+        "symfony/form": "*",
+        "symfony/console": "*",
+        "symfony/validator": "*",
+        "symfony/yaml": "*",
+        "symfony/translation": "*",
+        "symfony/config": "*",
+        "symfony/http-kernel": "*",
+        "symfony/event-dispatcher": "*",
+        "symfony/finder": "*"
     },
     "autoload": {
         "psr-4": {

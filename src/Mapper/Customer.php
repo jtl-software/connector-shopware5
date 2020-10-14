@@ -14,7 +14,6 @@ use jtl\Connector\Model\Customer as CustomerModel;
 use jtl\Connector\Model\CustomerAttr;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\Salutation as SalutationUtil;
-use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
 use Shopware\Components\Api\Exception as ApiException;
 use Shopware\Models\Attribute\Customer as CustomerAttribute;
 use Shopware\Models\Attribute\User;
@@ -25,7 +24,7 @@ class Customer extends AbstractAttributeMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->manager->find('Shopware\Models\Customer\Customer', $id);
+        return (intval($id) == 0) ? null : $this->manager->find(CustomerSW::class, $id);
     }
 
     public function findAll($limit = 100, $count = false)
