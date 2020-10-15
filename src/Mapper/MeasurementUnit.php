@@ -19,12 +19,12 @@ class MeasurementUnit extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Unit')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Article\Unit')->find($id);
     }
     
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'unit'
             )
             ->from('Shopware\Models\Article\Unit', 'unit')
@@ -38,7 +38,7 @@ class MeasurementUnit extends AbstractDataMapper
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Article\Unit')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Article\Unit')->findOneBy($kv);
     }
 
     public function fetchCount($limit = 100)
@@ -66,7 +66,7 @@ class MeasurementUnit extends AbstractDataMapper
         //$name = $this->findName($unit);
         $this->prepareUnitAssociatedData($unit, $unitSW);
 
-        $this->Manager()->persist($unitSW);
+        $this->getManager()->persist($unitSW);
         $this->flush($unitSW);
 
         $this->saveTranslationData($unit, $unitSW);
@@ -81,8 +81,8 @@ class MeasurementUnit extends AbstractDataMapper
     {
         $unitSW = $this->findOneBy(array('unit' => $unit->getCode()));
         if ($unitSW !== null) {
-            $this->Manager()->remove($unitSW);
-            $this->Manager()->flush($unitSW);
+            $this->getManager()->remove($unitSW);
+            $this->getManager()->flush($unitSW);
         }
 
         /*

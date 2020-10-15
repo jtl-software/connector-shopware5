@@ -24,12 +24,12 @@ class Customer extends AbstractAttributeMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->manager->find(CustomerSW::class, $id);
+        return (intval($id) == 0) ? null : $this->getManager()->find(CustomerSW::class, $id);
     }
 
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->manager->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'customer',
                 'billing',
                 'shipping',
@@ -94,15 +94,15 @@ class Customer extends AbstractAttributeMapper
             $this->prepareCustomerGroupAssociatedData($customer, $customerSW);
             $this->prepareAttributeAssociatedData($customer, $customerSW);
 
-            $violations = $this->manager->validate($customerSW);
+            $violations = $this->getManager()->validate($customerSW);
             if ($violations->count() > 0) {
                 throw new ApiException\ValidationException($violations);
             }
     
             $this->prepareBillingAssociatedData($customer, $customerSW, $addressSW);
     
-            $this->manager->persist($customerSW);
-            $this->manager->persist($addressSW);
+            $this->getManager()->persist($customerSW);
+            $this->getManager()->persist($addressSW);
             $this->flush();
         } catch (\Exception $e) {
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
@@ -128,8 +128,8 @@ class Customer extends AbstractAttributeMapper
         if ($customerId !== null && $customerId > 0) {
             $customerSW = $this->find((int) $customerId);
             if ($customerSW !== null) {
-                $this->manager->remove($customerSW);
-                $this->manager->flush($customerSW);
+                $this->getManager()->remove($customerSW);
+                $this->getManager()->flush($customerSW);
             }
         }
     }
@@ -146,7 +146,7 @@ class Customer extends AbstractAttributeMapper
         if ($swAttribute === null) {
             $swAttribute = new \Shopware\Models\Attribute\Customer();
             $swAttribute->setCustomer($swCustomer);
-            $this->manager->persist($swAttribute);
+            $this->getManager()->persist($swAttribute);
         }
 
         $jtlAttributes = [];
@@ -159,14 +159,14 @@ class Customer extends AbstractAttributeMapper
 
         if (!empty($jtlAttributes)) {
 
-            $nullUndefinedAttributes = (bool)$this->config->get('customer.push.null_undefined_attributes', true);
+            $nullUndefinedAttributes = (bool)$this->getConfig()->get('customer.push.null_undefined_attributes', true);
             $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_user_attributes');
 
             foreach ($swAttributesList as $attribute) {
                 $this->setSwAttribute($attribute, $swAttribute, $jtlAttributes, $nullUndefinedAttributes);
             }
 
-            $this->manager->persist($swAttribute);
+            $this->getManager()->persist($swAttribute);
         }
     }
 
@@ -183,7 +183,7 @@ class Customer extends AbstractAttributeMapper
     
         // Try to find customer with email
         if (is_null($customerSW)) {
-            $customerSW = $this->manager->getRepository('Shopware\Models\Customer\Customer')->findOneBy(array('email' => $customer->getEMail()));
+            $customerSW = $this->getManager()->getRepository('Shopware\Models\Customer\Customer')->findOneBy(array('email' => $customer->getEMail()));
         }
         
         if (!is_null($customerSW)) {
@@ -203,7 +203,7 @@ class Customer extends AbstractAttributeMapper
             $customerSW->setDefaultBillingAddress($addressSW);
         }
 
-        $shopMapper = $this->factory->getMapper('Shop');
+        $shopMapper = $this->getMapperFactory()->create('Shop');
         $shops = $shopMapper->findByLocale(LanguageUtil::map($customer->getLanguageISO()));
         if (is_array($shops) && count($shops) > 0) {
             $customerSW->setLanguageSubShop($shops[0]);
@@ -231,7 +231,7 @@ class Customer extends AbstractAttributeMapper
     protected function prepareCustomerGroupAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW)
     {
         // CustomerGroup
-        $customerGroupMapper = $this->factory->getMapper('CustomerGroup');
+        $customerGroupMapper = $this->getMapperFactory()->create('CustomerGroup');
         $customerGroupSW = $customerGroupMapper->find($customer->getCustomerGroupId()->getEndpoint());
         if ($customerGroupSW) {
             $customerSW->setGroup($customerGroupSW);
@@ -266,7 +266,7 @@ class Customer extends AbstractAttributeMapper
         $prop->setValue($addressSW, $customerSW->getId());
         */
 
-        $stateSW = $this->manager->getRepository('Shopware\Models\Country\State')->findOneBy([
+        $stateSW = $this->getManager()->getRepository('Shopware\Models\Country\State')->findOneBy([
             'name' => $customer->getState(),
             'active' => true
         ]);
@@ -276,7 +276,7 @@ class Customer extends AbstractAttributeMapper
         }
         
         /** @var \Shopware\Models\Country\Country $countrySW */
-        $countrySW = $this->manager->getRepository('Shopware\Models\Country\Country')->findOneBy(['iso' => $customer->getCountryIso()]);
+        $countrySW = $this->getManager()->getRepository('Shopware\Models\Country\Country')->findOneBy(['iso' => $customer->getCountryIso()]);
         if ($countrySW) {
             $addressSW->setCountry($countrySW);
         }

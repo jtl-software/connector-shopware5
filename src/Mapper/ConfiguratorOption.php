@@ -19,12 +19,12 @@ class ConfiguratorOption extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Option')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Article\Configurator\Option')->find($id);
     }
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Option')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Article\Configurator\Option')->findOneBy($kv);
     }
 
     public function findOneByName($name, $forceObject = false)
@@ -79,7 +79,7 @@ class ConfiguratorOption extends AbstractDataMapper
 
         $configuratorOption->fromArray($params);
 
-        $violations = $this->Manager()->validate($configuratorOption);
+        $violations = $this->getManager()->validate($configuratorOption);
         if ($violations->count() > 0) {
             throw new ApiException\ValidationException($violations);
         }
@@ -100,12 +100,12 @@ class ConfiguratorOption extends AbstractDataMapper
 
         $configuratorOption->fromArray($params);
 
-        $violations = $this->Manager()->validate($configuratorOption);
+        $violations = $this->getManager()->validate($configuratorOption);
         if ($violations->count() > 0) {
             throw new ApiException\ValidationException($violations);
         }
 
-        $this->Manager()->persist($configuratorOption);
+        $this->getManager()->persist($configuratorOption);
         $this->flush();
 
         return $configuratorOption;

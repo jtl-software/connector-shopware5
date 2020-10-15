@@ -14,17 +14,17 @@ class TaxRate extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Tax\Tax')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Tax\Tax')->find($id);
     }
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Tax\Tax')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Tax\Tax')->findOneBy($kv);
     }
     
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'tax'
             )
             ->from('Shopware\Models\Tax\Tax', 'tax')
@@ -60,7 +60,7 @@ class TaxRate extends AbstractDataMapper
 
         $this->prepareTaxRateAssociatedData($taxRate, $taxRateSW);
 
-        $this->Manager()->persist($taxRateSW);
+        $this->getManager()->persist($taxRateSW);
         $this->flush($taxRateSW);
 
         // Result
@@ -76,8 +76,8 @@ class TaxRate extends AbstractDataMapper
         if ($taxRateId !== null && $taxRateId > 0) {
             $taxRateSW = $this->find((int) $taxRateId);
             if ($taxRateSW !== null) {
-                $this->Manager()->remove($taxRateSW);
-                $this->Manager()->flush($taxRateSW);
+                $this->getManager()->remove($taxRateSW);
+                $this->getManager()->flush($taxRateSW);
             }
         }
     }

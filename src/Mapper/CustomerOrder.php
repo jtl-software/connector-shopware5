@@ -32,17 +32,17 @@ class CustomerOrder extends AbstractDataMapper
      */
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Order\Order')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Order\Order')->find($id);
     }
 
     public function findStatus($id)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Order\Status')->find($id);
+        return $this->getManager()->getRepository('Shopware\Models\Order\Status')->find($id);
     }
 
     public function findAll($limit = 100, $count = false, $from = null, $until = null)
     {
-        $builder = $this->Manager()->createQueryBuilder()->select(array(
+        $builder = $this->getManager()->createQueryBuilder()->select(array(
             'orders',
             'customer',
             'customer_shipping',
@@ -142,8 +142,8 @@ class CustomerOrder extends AbstractDataMapper
         $this->prepareItemsAssociatedData($customerOrder, $orderSW);
 
         // Save Order
-        $this->Manager()->persist($orderSW);
-        $this->Manager()->flush();
+        $this->getManager()->persist($orderSW);
+        $this->getManager()->flush();
 
         // CustomerOrderAttr
 
@@ -163,8 +163,8 @@ class CustomerOrder extends AbstractDataMapper
                 $this->removeBilling($orderSW);
                 $this->removeShipping($orderSW);
 
-                $this->Manager()->remove($orderSW);
-                $this->Manager()->flush();
+                $this->getManager()->remove($orderSW);
+                $this->getManager()->flush();
             }
         }
     }
@@ -172,18 +172,18 @@ class CustomerOrder extends AbstractDataMapper
     protected function removeItems(OrderSW $orderSW)
     {
         foreach ($orderSW->getDetails() as $detailSW) {
-            $this->Manager()->remove($detailSW);
+            $this->getManager()->remove($detailSW);
         }
     }
 
     protected function removeBilling(OrderSW $orderSW)
     {
-        $this->Manager()->remove($orderSW->getBilling());
+        $this->getManager()->remove($orderSW->getBilling());
     }
 
     protected function removeShipping(OrderSW $orderSW)
     {
-        $this->Manager()->remove($orderSW->getShipping());
+        $this->getManager()->remove($orderSW->getShipping());
     }
 
     protected function prepareOrderAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW = null)
@@ -258,7 +258,7 @@ class CustomerOrder extends AbstractDataMapper
     protected function prepareCurrencyFactorAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
     {
         // CurrencyFactor
-        $currencySW = $this->Manager()->getRepository('Shopware\Models\Shop\Currency')->findOneBy(array('currency' => $customerOrder->getCurrencyIso()));
+        $currencySW = $this->getManager()->getRepository('Shopware\Models\Shop\Currency')->findOneBy(array('currency' => $customerOrder->getCurrencyIso()));
         if ($currencySW === null) {
             throw new \Exception(sprintf('Currency with iso (%s) not found', $customerOrder->getCurrencyIso()));
         }
@@ -274,7 +274,7 @@ class CustomerOrder extends AbstractDataMapper
             throw new \Exception(sprintf('Payment with code (%s) not found', $customerOrder->getPaymentModuleCode()));
         }
 
-        $paymentSW = $this->Manager()->getRepository('Shopware\Models\Payment\Payment')->findOneBy(array('name' => $paymentName));
+        $paymentSW = $this->getManager()->getRepository('Shopware\Models\Payment\Payment')->findOneBy(array('name' => $paymentName));
         if ($paymentSW === null) {
             throw new \Exception(sprintf('Payment with name (%s) not found', $paymentName));
         }
@@ -284,7 +284,7 @@ class CustomerOrder extends AbstractDataMapper
 
     protected function prepareDispatchAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
     {
-        $dispatchSW = $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($customerOrder->getShippingMethodName());
+        $dispatchSW = $this->getManager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($customerOrder->getShippingMethodName());
         if ($dispatchSW !== null) {
             $orderSW->setDispatch($dispatchSW);
         }
@@ -316,7 +316,7 @@ class CustomerOrder extends AbstractDataMapper
             throw new \Exception(sprintf('Order status with status (%s) not found', $customerOrder->getStatus()));
         }
 
-        $statusSW = $this->Manager()->getRepository('Shopware\Models\Order\Status')->findOneBy(array('id' => $statusId));
+        $statusSW = $this->getManager()->getRepository('Shopware\Models\Order\Status')->findOneBy(array('id' => $statusId));
         if ($statusSW === null) {
             throw new \Exception(sprintf('Order status with id (%s) not found', $statusId));
         }
@@ -327,7 +327,7 @@ class CustomerOrder extends AbstractDataMapper
             throw new \Exception(sprintf('Payment status with status (%s) not found', $customerOrder->getPaymentStatus()));
         }
 
-        $paymentStatusSW = $this->Manager()->getRepository('Shopware\Models\Order\Status')->findOneBy(array('id' => $paymentStatus));
+        $paymentStatusSW = $this->getManager()->getRepository('Shopware\Models\Order\Status')->findOneBy(array('id' => $paymentStatus));
         if ($paymentStatusSW === null) {
             throw new \Exception(sprintf('Payment status with id (%s) not found', $paymentStatus));
         }
@@ -343,14 +343,14 @@ class CustomerOrder extends AbstractDataMapper
             $id = (strlen($shippingAddress->getId()->getEndpoint()) > 0) ? (int)$shippingAddress->getId()->getEndpoint() : null;
 
             if (strlen($id) > 0) {
-                $shippingSW = $this->Manager()->getRepository('Shopware\Models\Order\Shipping')->find((int)$id);
+                $shippingSW = $this->getManager()->getRepository('Shopware\Models\Order\Shipping')->find((int)$id);
             }
 
             if ($shippingSW === null) {
                 $shippingSW = new \Shopware\Models\Order\Shipping;
             }
 
-            $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')->findOneBy(array('iso' => $shippingAddress->getCountryIso()));
+            $countrySW = $this->getManager()->getRepository('Shopware\Models\Country\Country')->findOneBy(array('iso' => $shippingAddress->getCountryIso()));
             if ($countrySW === null) {
                 throw new \Exception(sprintf('Country with iso (%s) not found', $shippingAddress->getCountryIso()));
             }
@@ -380,14 +380,14 @@ class CustomerOrder extends AbstractDataMapper
             $id = (strlen($billingAddress->getId()->getEndpoint()) > 0) ? (int)$billingAddress->getId()->getEndpoint() : null;
 
             if (strlen($id) > 0) {
-                $billingSW = $this->Manager()->getRepository('Shopware\Models\Order\Billing')->find((int)$id);
+                $billingSW = $this->getManager()->getRepository('Shopware\Models\Order\Billing')->find((int)$id);
             }
 
             if ($billingSW === null) {
                 $billingSW = new \Shopware\Models\Order\Billing;
             }
 
-            $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')->findOneBy(array('iso' => $billingAddress->getCountryIso()));
+            $countrySW = $this->getManager()->getRepository('Shopware\Models\Country\Country')->findOneBy(array('iso' => $billingAddress->getCountryIso()));
             if ($countrySW === null) {
                 throw new \Exception(sprintf('Country with iso (%s) not found', $billingAddress->getCountryIso()));
             }
@@ -413,7 +413,7 @@ class CustomerOrder extends AbstractDataMapper
     protected function prepareItemsAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
     {
         foreach ($orderSW->getDetails() as $detailSW) {
-            $this->Manager()->remove($detailSW);
+            $this->getManager()->remove($detailSW);
         }
 
         $taxFree = 1;
@@ -449,7 +449,7 @@ class CustomerOrder extends AbstractDataMapper
         $id = (strlen($item->getId()->getEndpoint()) > 0) ? (int)$item->getId()->getEndpoint() : null;
 
         if ($id !== null) {
-            $detailSW = $this->Manager()->getRepository('Shopware\Models\Order\Detail')->find($id);
+            $detailSW = $this->getManager()->getRepository('Shopware\Models\Order\Detail')->find($id);
         }
 
         if ($detailSW === null) {
@@ -511,7 +511,7 @@ class CustomerOrder extends AbstractDataMapper
         $prop->setAccessible(true);
         $prop->setValue($detailSW, $itemStatus);
 
-        $this->Manager()->persist($detailSW);
+        $this->getManager()->persist($detailSW);
 
         $detailsSW->add($detailSW);
     }

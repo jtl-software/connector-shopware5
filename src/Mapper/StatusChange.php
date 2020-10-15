@@ -35,8 +35,8 @@ class StatusChange extends AbstractDataMapper
                                 $customerOrder->setClearedDate(new \DateTime());
                             }
                             
-                            $this->Manager()->persist($customerOrder);
-                            $this->Manager()->flush();
+                            $this->getManager()->persist($customerOrder);
+                            $this->getManager()->flush();
                         }
                     }
                 }
@@ -49,8 +49,8 @@ class StatusChange extends AbstractDataMapper
                         $customerOrderStatusSW = $mapper->findStatus($statusId);
                         if ($customerOrderStatusSW !== null) {
                             $customerOrder->setOrderStatus($customerOrderStatusSW);
-                            $this->Manager()->persist($customerOrder);
-                            $this->Manager()->flush();
+                            $this->getManager()->persist($customerOrder);
+                            $this->getManager()->flush();
                         }
                     }
                 }

@@ -12,17 +12,17 @@ class Locale extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Shop\Locale', $id);
+        return (intval($id) == 0) ? null : $this->getManager()->find('Shopware\Models\Shop\Locale', $id);
     }
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Shop\Locale')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Shop\Locale')->findOneBy($kv);
     }
 
     public function findAll($count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'shop',
                 'locale'
             )

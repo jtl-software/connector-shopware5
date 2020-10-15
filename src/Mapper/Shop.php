@@ -12,12 +12,12 @@ class Shop extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Shop\Shop', $id);
+        return (intval($id) == 0) ? null : $this->getManager()->find('Shopware\Models\Shop\Shop', $id);
     }
 
     public function findByLocale($locale)
     {
-        return $this->Manager()->createQueryBuilder()->select(
+        return $this->getManager()->createQueryBuilder()->select(
                 'shop',
                 'locale'
             )
@@ -34,7 +34,7 @@ class Shop extends AbstractDataMapper
      */
     public function findByLanguageIso($languageIso)
     {
-        return $this->Manager()->createQueryBuilder()->select(
+        return $this->getManager()->createQueryBuilder()->select(
                 'shop',
                 'locale'
             )
@@ -47,7 +47,7 @@ class Shop extends AbstractDataMapper
 
     public function findAll($limit = 100, $count = false, $array_hydration = true)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'shop',
                 'locale',
                 'category',

@@ -48,7 +48,7 @@ class Image extends AbstractDataMapper
      */
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Media\Media')->find((int)$id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Media\Media')->find((int)$id);
     }
 
     /**
@@ -57,7 +57,7 @@ class Image extends AbstractDataMapper
      */
     public function findBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Media\Media')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Media\Media')->findOneBy($kv);
     }
 
     /**
@@ -370,7 +370,7 @@ class Image extends AbstractDataMapper
 
                 break;
             case ImageRelationType::TYPE_CATEGORY:
-                $categorySW = $this->Manager()->getRepository(Category::class)->find((int)$imageId);
+                $categorySW = $this->getManager()->getRepository(Category::class)->find((int)$imageId);
                 if ($categorySW !== null) {
                     $categorySW->setMedia(null);
 
@@ -382,7 +382,7 @@ class Image extends AbstractDataMapper
                 }
                 break;
             case ImageRelationType::TYPE_MANUFACTURER:
-                $supplierSW = $this->Manager()->getRepository(Supplier::class)->find((int)$imageId);
+                $supplierSW = $this->getManager()->getRepository(Supplier::class)->find((int)$imageId);
                 if ($supplierSW !== null) {
                     $supplierSW->setImage('');
 
@@ -664,7 +664,7 @@ class Image extends AbstractDataMapper
     protected function deleteMedia(Media $media)
     {
         ShopUtil::thumbnailManager()->removeMediaThumbnails($media);
-        $this->Manager()->remove($media);
+        $this->getManager()->remove($media);
         Logger::write(sprintf('Media (%s) deleted', $media->getId()), Logger::DEBUG, 'image');
     }
 

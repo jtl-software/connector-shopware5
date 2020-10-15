@@ -24,17 +24,17 @@ class CustomerGroup extends AbstractDataMapper
 
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Customer\Group')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Customer\Group')->find($id);
     }
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Customer\Group')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Customer\Group')->findOneBy($kv);
     }
 
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
             'customergroup',
             'attribute'
         )
@@ -74,8 +74,8 @@ class CustomerGroup extends AbstractDataMapper
         $this->prepareI18nAssociatedData($customerGroup, $customerGroupSW);
 
         // Save
-        $this->Manager()->persist($customerGroupSW);
-        $this->Manager()->flush();
+        $this->getManager()->persist($customerGroupSW);
+        $this->getManager()->flush();
 
         $result->setId(new Identity($customerGroupSW->getId(), $customerGroup->getId()->getHost()));
 
@@ -89,8 +89,8 @@ class CustomerGroup extends AbstractDataMapper
         if ($customerGroupId !== null && $customerGroupId > 0) {
             $customerGroupSW = $this->find((int) $customerGroupId);
             if ($customerGroupSW !== null) {
-                $this->Manager()->remove($customerGroupSW);
-                $this->Manager()->flush($customerGroupSW);
+                $this->getManager()->remove($customerGroupSW);
+                $this->getManager()->flush($customerGroupSW);
             }
         }
     }

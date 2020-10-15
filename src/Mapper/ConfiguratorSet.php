@@ -12,12 +12,12 @@ class ConfiguratorSet extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Configurator\Set', $id);
+        return (intval($id) == 0) ? null : $this->getManager()->find('Shopware\Models\Article\Configurator\Set', $id);
     }
 
     public function findByProductId($productId, $count = false)
     {
-        $builder = $this->Manager()->createQueryBuilder()->select(array(
+        $builder = $this->getManager()->createQueryBuilder()->select(array(
             'article',
             'configuratorSet',
             'groups',

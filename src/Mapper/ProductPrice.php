@@ -21,7 +21,7 @@ class ProductPrice extends AbstractDataMapper
 {
     public function find($id)
     {
-        return ((int)$id == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Price', $id);
+        return ((int)$id == 0) ? null : $this->getManager()->find('Shopware\Models\Article\Price', $id);
     }
 
     /**

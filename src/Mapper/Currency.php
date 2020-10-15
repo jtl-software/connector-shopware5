@@ -20,7 +20,7 @@ class Currency extends AbstractDataMapper
         }
         
         if ($array_hydration) {
-            return $this->Manager()->createQueryBuilder()->select(
+            return $this->getManager()->createQueryBuilder()->select(
                     'currency'
                 )
                 ->from('Shopware\Models\Shop\Currency', 'currency')
@@ -28,18 +28,18 @@ class Currency extends AbstractDataMapper
                 ->setParameter('id', $id)
                 ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY)->getSingleResult();
         } else {
-            return $this->Manager()->find('Shopware\Models\Shop\Currency', $id);
+            return $this->getManager()->find('Shopware\Models\Shop\Currency', $id);
         }
     }
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Shop\Currency')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Shop\Currency')->findOneBy($kv);
     }
 
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'currency'
             )
             ->from('Shopware\Models\Shop\Currency', 'currency')
@@ -75,7 +75,7 @@ class Currency extends AbstractDataMapper
 
         $this->prepareCurrencyAssociatedData($currency, $currencySW);
 
-        $this->Manager()->persist($currencySW);
+        $this->getManager()->persist($currencySW);
         $this->flush();
 
         // Result
@@ -89,8 +89,8 @@ class Currency extends AbstractDataMapper
         if (strlen($currency->getIso()) > 0) {
             $currencySW = $this->findOneBy(array('currency' => strtoupper($currency->getIso())));
             if ($currencySW !== null) {
-                $this->Manager()->remove($currencySW);
-                $this->Manager()->flush($currencySW);
+                $this->getManager()->remove($currencySW);
+                $this->getManager()->flush($currencySW);
             }
         }
     }

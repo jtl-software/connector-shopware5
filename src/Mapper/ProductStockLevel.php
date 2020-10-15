@@ -28,8 +28,8 @@ class ProductStockLevel extends AbstractDataMapper
                 if ($detailSW !== null) {
                     $detailSW->setInStock($stock->getStockLevel());
 
-                    $this->Manager()->persist($detailSW);
-                    $this->Manager()->flush();
+                    $this->getManager()->persist($detailSW);
+                    $this->getManager()->flush();
 
                     return $stock;
                 }

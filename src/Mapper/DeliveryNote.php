@@ -19,22 +19,22 @@ class DeliveryNote extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Order\Document\Document')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Order\Document\Document')->find($id);
     }
 
     public function findType($name)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Order\Document\Type')->findOneBy(array('name' => $name));
+        return $this->getManager()->getRepository('Shopware\Models\Order\Document\Type')->findOneBy(array('name' => $name));
     }
     
     public function findNewType($name)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Document\Document')->findOneBy(array('name' => $name));
+        return $this->getManager()->getRepository('Shopware\Models\Document\Document')->findOneBy(array('name' => $name));
     }
     
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(array(
+        $query = $this->getManager()->createQueryBuilder()->select(array(
                 'documents'
             ))
             //->from('Shopware\Models\Order\Document\Document', 'documents')
@@ -175,8 +175,8 @@ class DeliveryNote extends AbstractDataMapper
     
             if (count($codes) > 0) {
                 $orderSW->setTrackingCode($codes[0]);
-                $this->Manager()->persist($orderSW);
-                $this->Manager()->flush($orderSW);
+                $this->getManager()->persist($orderSW);
+                $this->getManager()->flush($orderSW);
             }
         }
 

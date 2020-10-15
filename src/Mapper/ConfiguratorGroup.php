@@ -21,12 +21,12 @@ class ConfiguratorGroup extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Group')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Article\Configurator\Group')->find($id);
     }
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Group')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Article\Configurator\Group')->findOneBy($kv);
     }
 
     public function findOneByName($name, $forceObject = false)
@@ -47,7 +47,7 @@ class ConfiguratorGroup extends AbstractDataMapper
     {
         $group = $this->find($id);
         if ($group) {
-            $this->Manager()->remove($group);
+            $this->getManager()->remove($group);
             $this->flush();
         }
 
@@ -92,7 +92,7 @@ class ConfiguratorGroup extends AbstractDataMapper
 
         $configuratorGroup->fromArray($params);
 
-        $violations = $this->Manager()->validate($configuratorGroup);
+        $violations = $this->getManager()->validate($configuratorGroup);
         if ($violations->count() > 0) {
             throw new ApiException\ValidationException($violations);
         }
@@ -113,12 +113,12 @@ class ConfiguratorGroup extends AbstractDataMapper
 
         $configuratorGroup->fromArray($params);
 
-        $violations = $this->Manager()->validate($configuratorGroup);
+        $violations = $this->getManager()->validate($configuratorGroup);
         if ($violations->count() > 0) {
             throw new ApiException\ValidationException($violations);
         }
 
-        $this->Manager()->persist($configuratorGroup);
+        $this->getManager()->persist($configuratorGroup);
         $this->flush();
 
         return $configuratorGroup;

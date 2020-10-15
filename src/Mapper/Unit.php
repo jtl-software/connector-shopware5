@@ -18,17 +18,17 @@ class Unit extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\Unit')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('jtl\Connector\Shopware\Model\Linker\Unit')->find($id);
     }
 
     public function findI18n($unitId, $languageIso)
     {
-        return $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\UnitI18n')->findOneBy(array('unit_id' => $unitId, 'languageIso' => $languageIso));
+        return $this->getManager()->getRepository('jtl\Connector\Shopware\Model\Linker\UnitI18n')->findOneBy(array('unit_id' => $unitId, 'languageIso' => $languageIso));
     }
     
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'unit'
             )
             ->from('jtl\Connector\Shopware\Model\Linker\Unit', 'unit')
@@ -42,7 +42,7 @@ class Unit extends AbstractDataMapper
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\Unit')->findOneBy($kv);
+        return $this->getManager()->getRepository('jtl\Connector\Shopware\Model\Linker\Unit')->findOneBy($kv);
     }
 
     public function fetchCount($limit = 100)
@@ -70,12 +70,12 @@ class Unit extends AbstractDataMapper
         $this->prepareUnitAssociatedData($unit, $unitSW);
         $this->prepareUnitI18nAssociatedData($unit, $unitSW);
 
-        $violations = $this->Manager()->validate($unitSW);
+        $violations = $this->getManager()->validate($unitSW);
         if ($violations->count() > 0) {
             throw new ApiException\ValidationException($violations);
         }
 
-        $this->Manager()->persist($unitSW);
+        $this->getManager()->persist($unitSW);
         $this->flush();
 
         // Result
@@ -89,8 +89,8 @@ class Unit extends AbstractDataMapper
         $unitSW = $this->findOneBy(array('hostId' => $unit->getId()->getHost()));
 
         if ($unitSW !== null) {
-            $this->Manager()->remove($unitSW);
-            $this->Manager()->flush($unitSW);
+            $this->getManager()->remove($unitSW);
+            $this->getManager()->flush($unitSW);
         }
     }
 
@@ -101,7 +101,7 @@ class Unit extends AbstractDataMapper
         if ($unitSW === null) {
             $unitSW = new UnitSW;
             $unitSW->setHostId($unit->getId()->getHost());
-            $this->Manager()->persist($unitSW);
+            $this->getManager()->persist($unitSW);
         }
     }
 
@@ -116,7 +116,7 @@ class Unit extends AbstractDataMapper
 
             if ($unitI18nSW === null) {
                 $unitI18nSW = new UnitI18nSW();
-                $this->Manager()->persist($unitI18nSW);
+                $this->getManager()->persist($unitI18nSW);
             }
 
             $unitI18nSW->setLanguageIso($i18n->getLanguageISO())

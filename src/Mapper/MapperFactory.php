@@ -12,7 +12,7 @@ class MapperFactory
      * @return string
      * @throws \Exception
      */
-    public function getMapper(string $class, bool $useNamespace = false)
+    public function create(string $class, bool $useNamespace = false)
     {
         if (class_exists(self::NAMESPACE_MAPPER . $class)) {
             if ($useNamespace) {

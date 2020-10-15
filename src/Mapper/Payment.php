@@ -13,12 +13,12 @@ class Payment extends AbstractDataMapper
 {
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\Payment')->findOneBy($kv);
+        return $this->getManager()->getRepository('jtl\Connector\Shopware\Model\Linker\Payment')->findOneBy($kv);
     }
 
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('jtl\Connector\Shopware\Model\Linker\Payment', $id);
+        return (intval($id) == 0) ? null : $this->getManager()->find('jtl\Connector\Shopware\Model\Linker\Payment', $id);
     }
 
     public function findAllNative($limit = 100)

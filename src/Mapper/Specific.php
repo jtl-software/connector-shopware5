@@ -21,27 +21,27 @@ class Specific extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Property\Option')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Property\Option')->find($id);
     }
 
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Property\Option')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Property\Option')->findOneBy($kv);
     }
 
     public function findValue($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Property\Value')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Property\Value')->find($id);
     }
 
     public function findValueBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Property\Value')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Property\Value')->findOneBy($kv);
     }
 
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'option',
                 'values'
             )
@@ -123,8 +123,8 @@ class Specific extends AbstractDataMapper
 		$this->prepareValueAssociatedData($specific, $optionSW);
 
         // Save
-		$this->Manager()->persist($optionSW);
-		$this->Manager()->flush();
+		$this->getManager()->persist($optionSW);
+		$this->getManager()->flush();
 
         $this->deleteTranslationData($optionSW);
         $this->saveTranslationData($specific, $optionSW);
@@ -157,22 +157,22 @@ class Specific extends AbstractDataMapper
             if ($optionSW !== null) {
                 foreach ($optionSW->getValues() as $valueSW) {
                     $this->deleteValueTranslationData($valueSW);
-                    $this->Manager()->remove($valueSW);
+                    $this->getManager()->remove($valueSW);
                 }
 
                 $this->deleteTranslationData($optionSW);
-                $this->Manager()->remove($optionSW);
+                $this->getManager()->remove($optionSW);
 
                 foreach ($optionSW->getGroups() as $groupSW) {
                     if (count($groupSW->getOptions()) == 1) {
                         $sql = "UPDATE s_articles SET filtergroupID = null WHERE filtergroupID = ?";
                         Shopware()->Db()->query($sql, array($groupSW->getId()));
                         
-                        $this->Manager()->remove($groupSW);
+                        $this->getManager()->remove($groupSW);
                     }
                 }
 
-                $this->Manager()->flush();
+                $this->getManager()->flush();
             }
         }
     }
@@ -201,7 +201,7 @@ class Specific extends AbstractDataMapper
 
         if ($optionSW === null) {
             $optionSW = new OptionSW;
-            $this->Manager()->persist($optionSW);
+            $this->getManager()->persist($optionSW);
         }
 
         $optionSW->setFilterable($specific->getIsGlobal());
@@ -258,7 +258,7 @@ class Specific extends AbstractDataMapper
             $valueSW->setPosition($specificValue->getSort())
                 ->setOption($optionSW);
 
-            $this->Manager()->persist($valueSW);
+            $this->getManager()->persist($valueSW);
             $optionSW->getValues()->add($valueSW);
         }
     }

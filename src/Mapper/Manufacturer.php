@@ -18,17 +18,17 @@ class Manufacturer extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Supplier', $id);
+        return (intval($id) == 0) ? null : $this->getManager()->find('Shopware\Models\Article\Supplier', $id);
     }
     
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Article\Supplier')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Article\Supplier')->findOneBy($kv);
     }
 
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'supplier',
                 'attribute'
             )
@@ -103,12 +103,12 @@ class Manufacturer extends AbstractDataMapper
         $this->prepareManufacturerAssociatedData($manufacturer, $manufacturerSW);
         $this->prepareI18nAssociatedData($manufacturer, $manufacturerSW);
 
-        $violations = $this->Manager()->validate($manufacturerSW);
+        $violations = $this->getManager()->validate($manufacturerSW);
         if ($violations->count() > 0) {
             throw new ApiException\ValidationException($violations);
         }
 
-        $this->Manager()->persist($manufacturerSW);
+        $this->getManager()->persist($manufacturerSW);
         $this->flush();
 
         $this->saveTranslatation($manufacturer, $manufacturerSW);
@@ -164,8 +164,8 @@ class Manufacturer extends AbstractDataMapper
             if ($manufacturerSW !== null) {
                 $this->deleteTranslation($manufacturerSW);
 
-                $this->Manager()->remove($manufacturerSW);
-                $this->Manager()->flush($manufacturerSW);
+                $this->getManager()->remove($manufacturerSW);
+                $this->getManager()->flush($manufacturerSW);
             }
         }
     }

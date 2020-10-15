@@ -10,12 +10,12 @@ class Shipping extends AbstractDataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($id);
+        return (intval($id) == 0) ? null : $this->getManager()->getRepository('Shopware\Models\Dispatch\Dispatch')->find($id);
     }
     
     public function findAll($limit = 100, $count = false)
     {
-        $query = $this->Manager()->createQueryBuilder()->select(
+        $query = $this->getManager()->createQueryBuilder()->select(
                 'dispatch'
             )
             ->from('Shopware\Models\Dispatch\Dispatch', 'dispatch')

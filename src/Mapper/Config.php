@@ -12,7 +12,7 @@ class Config extends AbstractDataMapper
 {
     public function findOneBy(array $kv)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Config\Element')->findOneBy($kv);
+        return $this->getManager()->getRepository('Shopware\Models\Config\Element')->findOneBy($kv);
     }
 
     public function get($key)
@@ -28,8 +28,8 @@ class Config extends AbstractDataMapper
                 if ($value->getShop()->getId() == $shopId) {
                     $value->setValue(serialize($data));
 
-                    $this->Manager()->persist($value);
-                    $this->Manager()->flush();
+                    $this->getManager()->persist($value);
+                    $this->getManager()->flush();
                 }
             }
         }
