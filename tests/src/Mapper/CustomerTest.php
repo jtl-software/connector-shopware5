@@ -1,9 +1,9 @@
 <?php
-namespace jtl\Connector\Shopware\Tests\src\Mapper;
+namespace jtl\Connector\Shopware\Tests\Mapper;
 
 use jtl\Connector\Shopware\Mapper\Customer;
 use jtl\Connector\Model\Customer as CustomerModel;
-use jtl\Connector\Shopware\Tests\src\TestCase;
+use jtl\Connector\Shopware\Tests\TestCase;
 use Shopware\Components\Model\ModelManager;
 
 class CustomerTest extends TestCase

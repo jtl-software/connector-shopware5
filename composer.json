@@ -1,57 +1,59 @@
 {
-    "name": "jtl/connector-shopware",
-    "type": "shopware-frontend-plugin",
-    "extra": {
-        "installer-name": "jtlconnector"
-    },
-    "description": "Shopware 5 Connector based on jtl/connector",
-    "keywords": ["jtl", "Shopware", "Connector"],
-    "homepage": "http://www.jtl-software.de",
-    "license": "LGPL-3.0-or-later",
-    "authors": [
-        {
-            "name": "JTL-Software GmbH",
-            "email": "info@jtl-software.de",
-            "homepage": "http://www.jtl-software.de",
-            "role": "Founder"
-        }
-    ],
-    "require": {
-        "php": ">=7.1.3",
-        "jtl/connector": "^2.7",
-        "symfony/yaml": "^3.4",
-        "phing/phing": "^2.16",
-        "theiconic/name-parser": "^0.1.1"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^7",
-        "jtl/unit-test": "^0.1.1",
-        "shopware/shopware": "^5.6"
-    },
-    "replace": {
-        "monolog/monolog": "*",
-        "doctrine/collections": "*",
-        "symfony/dependency-injection": "*",
-        "symfony/serializer": "*",
-        "symfony/form": "*",
-        "symfony/console": "*",
-        "symfony/validator": "*",
-        "symfony/yaml": "*",
-        "symfony/translation": "*",
-        "symfony/config": "*",
-        "symfony/http-kernel": "*",
-        "symfony/event-dispatcher": "*",
-        "symfony/finder": "*"
-    },
-    "autoload": {
-        "psr-4": {
-            "jtl\\Connector\\Shopware\\": "src/",
-            "\\": "plugins/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "jtl\\Connector\\Shopware\\Tests\\": "tests/"
-        }
+  "name": "jtl/connector-shopware",
+  "type": "shopware-frontend-plugin",
+  "extra": {
+    "installer-name": "jtlconnector"
+  },
+  "description": "Shopware 5 Connector based on jtl/connector",
+  "keywords": [
+    "jtl",
+    "Shopware",
+    "Connector"
+  ],
+  "homepage": "http://www.jtl-software.de",
+  "license": "LGPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "JTL-Software GmbH",
+      "email": "info@jtl-software.de",
+      "homepage": "http://www.jtl-software.de",
+      "role": "Founder"
     }
+  ],
+  "config": {
+    "platform": {
+      "php": "7.1.3"
+    }
+  },
+  "require": {
+    "php": ">=7.1.3",
+    "jtl/connector": "^2.7",
+    "symfony/yaml": "^3.4",
+    "phing/phing": "^2.16",
+    "theiconic/name-parser": "^0.1.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7",
+    "jtl/unit-test": "^0.1.1",
+    "doctrine/orm": "2.5.14"
+  },
+  "autoload": {
+    "psr-4": {
+      "jtl\\Connector\\Shopware\\": "src/",
+      "\\": "plugins/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "jtl\\Connector\\Shopware\\Tests\\": "tests/src/",
+      "jtl\\Connector\\Shopware\\Tests\\Utilities\\": "tests/Utilities/",
+      "Shopware\\": "vendor/shopware-dl/engine/Shopware/"
+    }
+  },
+  "scripts": {
+    "post-update-cmd": [
+      "[ $COMPOSER_DEV_MODE -eq 0 ] || [ -d vendor/shopware-dl ] || git clone -q --single-branch --depth 1 -b v5.5.10 https://github.com/shopware/shopware.git vendor/shopware-dl > /dev/null 2>&1",
+      "[ $COMPOSER_DEV_MODE -eq 1 ] || [ ! -d vendor/shopware-dl ] || rm vendor/shopware-dl -rf"
+    ]
+  }
 }
