@@ -77,6 +77,7 @@ class Category extends DataMapper
             ->leftJoin('category.attribute', 'attribute')
             ->leftJoin('category.customerGroups', 'customergroup')
             ->where('linker.hostId IS NULL')
+            ->orderBy('category.path', 'asc')
             ->setFirstResult(0)
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
