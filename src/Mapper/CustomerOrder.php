@@ -8,6 +8,7 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Payment\PaymentTypes;
+use jtl\Connector\Shopware\Utilities\Plugin;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use \jtl\Connector\Model\CustomerOrderItem;
@@ -84,6 +85,11 @@ class CustomerOrder extends DataMapper
             ->orderBy('details.id', 'ASC')
             ->setFirstResult(0)
             ->setMaxResults($limit);
+
+        if (Plugin::isCustomProductsActive()) {
+            $builder->addSelect('details_attribute')
+                ->leftJoin('details.attribute', 'details_attribute');
+        }
 
         // Customer Order pull start date
 
