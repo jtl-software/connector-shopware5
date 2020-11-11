@@ -43,40 +43,6 @@ class CustomerOrderItem extends CustomerOrderItemModel
     {
         //$obj->price = Money::AsNet($obj->price, $obj->taxRate);
 
-        if (Plugin::isCustomProductsActive() && $toWawi === true) {
-            $this->addCustomProductOptions($obj);
-        }
-
         return DataModel::map($toWawi, $obj, $this);
-    }
-
-    /**
-     * @param $swDetail
-     */
-    protected function addCustomProductOptions($swDetail)
-    {
-        $customProductsService = Shopware()->Container()->get('custom_products.custom_products_option_repository');
-
-        $configHash = $swDetail->attribute->swagCustomProductsConfigurationHash ?? null;
-        $productMode = $swDetail->attribute->swagCustomProductsMode ?? null;
-
-        if (!is_null($configHash) && $productMode == BasketManagerInterface::MODE_OPTION) {
-            $customProductsOptions = $customProductsService->getOptionsFromHash($configHash);
-            if (is_array($customProductsOptions)) {
-                foreach ($customProductsOptions as $customProductsOption) {
-                    if ($customProductsOption['label'] === $swDetail->articleName) {
-                        if (is_array($customProductsOption['value'])) {
-                            $note = join(', ', array_map(function ($singleValue) {
-                                return $singleValue['label'];
-                            }, $customProductsOption['value']));
-                        } else {
-                            $note = $customProductsOption['value'];
-                        }
-                        $this->setNote(sprintf("Custom Products: %s", $note));
-                        break;
-                    }
-                }
-            }
-        }
     }
 }

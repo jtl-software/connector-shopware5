@@ -2,6 +2,9 @@
 
 namespace jtl\Connector\Shopware\Utilities;
 
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use \Shopware\Models\Plugin\Plugin as SwPlugin;
+
 /**
  * Class Plugin
  * @package jtl\Connector\Shopware\Utilities
@@ -20,8 +23,8 @@ class Plugin
      */
     public static function isActive(string $pluginName): bool
     {
-        $pluginId = Shopware()->Db()->fetchOne('SELECT id FROM s_core_plugins WHERE active = 1 AND name = ?', [$pluginName]);
-        return !is_null($pluginId) && $pluginId !== false;
+        $plugin = ShopUtil::entityManager()->getRepository(SwPlugin::class)->findOneBy(['name' => $pluginName, 'active' => 1]);
+        return !is_null($plugin);
     }
 
     /**
