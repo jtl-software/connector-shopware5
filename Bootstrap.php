@@ -97,6 +97,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                         'start_date' => null,
                         'status_processing' => true,
                     ]
+                ],
+                'payment' => [
+                    'pull' => [
+                        'allowed_cleared_states' => []
+                    ]
                 ]
             ), JSON_PRETTY_PRINT));
         }
