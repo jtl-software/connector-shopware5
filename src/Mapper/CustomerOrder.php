@@ -511,7 +511,7 @@ class CustomerOrder extends DataMapper
     /**
      * @return string
      */
-    public static function createOrderPullStartDateWhereClause()
+    public static function createOrderPullStartDateWhereClause(): string
     {
         $where = 'orders.id IS NOT NULL';
         try {

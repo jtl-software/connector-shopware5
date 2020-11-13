@@ -212,7 +212,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.0.5':
             case '1.0.6':
             case '1.0.7':
-                $this->fillPaymentTable();
                 Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_image` ADD INDEX(`host_id`, `image_id`)');
             case '1.0.8':
                 Shopware()->Db()->query(
@@ -628,21 +627,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     array($parentCategoryId, LanguageUtil::map($shopCategory['locale']), $categoryId));
             }
         }
-    }
-
-    private function fillPaymentTable()
-    {
-        Logger::write('fill payment table...', Logger::INFO, 'install');
-
-        $sql = sprintf(
-            "INSERT INTO jtl_connector_payment
-             (
-                SELECT null, o.id, '', o.ordertime, '', o.invoice_amount, o.transactionID
-                FROM s_order o
-                WHERE LENGTH(o.transactionID) > 0 AND o.cleared IN (%s)
-             )", Payment::getAllowedPaymentClearedStates(true));
-
-        Shopware()->Db()->query($sql);
     }
 
     private function fillCrossSellingGroupTable()
