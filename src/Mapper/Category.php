@@ -5,7 +5,9 @@
  */
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Category as JtlCategory;
@@ -78,9 +80,9 @@ class Category extends DataMapper
             ->where('linker.hostId IS NULL')
             ->setFirstResult(0)
             ->setMaxResults($limit)
-            ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+            ->getQuery()->setHydrationMode(AbstractQuery::HYDRATE_ARRAY);
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
 
         if ($count) {
             return ($paginator->count() - 1);
