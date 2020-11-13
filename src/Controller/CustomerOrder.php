@@ -156,11 +156,11 @@ class CustomerOrder extends DataController
 
                         switch ((int)$swOrder['net']) {
                             case 0: // price is gross
-                                $swDetail['priceGross'] = $swDetail['price'];
-                                $swDetail['price'] = Money::AsNet($swDetail['price'], $swDetail['taxRate']);
+                                $swDetail['priceGross'] = round($swDetail['price'], 2);
+                                $swDetail['price'] = round(Money::AsNet($swDetail['price'], $swDetail['taxRate']), 2);
                                 break;
                             case 1: // price is net
-                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'], $swDetail['taxRate']), 4);
+                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'], $swDetail['taxRate']), 2);
                                 break;
                         }
 
@@ -274,7 +274,7 @@ class CustomerOrder extends DataController
 
                     $jtlOrder->addItem($item);
 
-                    $dhlWUnschpaketAttributes = [];
+                    $dhlWunschpaketAttributes = [];
 
                     // Attributes
                     $keyValueAttributes = new KeyValueAttributes(CustomerOrderAttr::class);
@@ -284,7 +284,7 @@ class CustomerOrder extends DataController
 
                         foreach ($swOrder['attribute'] as $key => $value) {
                             if (isset(self::$swDhlWunschpaketAttributes[$key]) && self::$swDhlWunschpaketAttributes[$key] === true && !empty($value)) {
-                                $dhlWUnschpaketAttributes[$key] = $value;
+                                $dhlWunschpaketAttributes[$key] = $value;
                                 continue;
                             }
 
@@ -292,16 +292,20 @@ class CustomerOrder extends DataController
                                 continue;
                             }
 
+                            if($value instanceof \DateTimeInterface) {
+                                $value = $value->format(\DateTime::ISO8601);
+                            }
+
                             if (is_null($value) || empty($value)) {
                                 continue;
                             }
 
-                            $keyValueAttributes->addAttribute($key,(string) $value);
+                            $keyValueAttributes->addAttribute($key, $value);
                         }
                     }
 
-                    if (count($dhlWUnschpaketAttributes) > 0) {
-                        $this->addWunschpaketAttributes($jtlOrder, $keyValueAttributes, $dhlWUnschpaketAttributes);
+                    if (count($dhlWunschpaketAttributes) > 0) {
+                        $this->addWunschpaketAttributes($jtlOrder, $keyValueAttributes, $dhlWunschpaketAttributes);
                     }
 
                     $jtlOrder->setAttributes($keyValueAttributes->getAttributes());
@@ -624,15 +628,14 @@ class CustomerOrder extends DataController
                         $nameParts['salutation'] = 'Herr';
                     }
 
-                    $nameAttributes = [];
-                    foreach ($nameParts as $part => $value) {
+                    foreach ($nameParts as $part => $partValue) {
                         if (isset($partsMapping[$part])) {
 
                             $key = $partsMapping[$part];
                             if ($oldValue = $keyValueAttributes->getValue($key) !== '') {
-                                $value = $oldValue . ' ' . $value;
+                                $partValue = $oldValue . ' ' . $partValue;
                             }
-                            $keyValueAttributes->addAttribute($key, $value);
+                            $keyValueAttributes->addAttribute($key, $partValue);
                         }
                     }
 

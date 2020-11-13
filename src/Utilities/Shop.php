@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Utilities;
 
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Service\Translation;
 use Shopware\Components\Thumbnail\Manager;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
@@ -27,6 +28,29 @@ final class Shop
     public static function locale()
     {
         return static::get()->Shop()->getLocale();
+    }
+
+    /**
+     * @param string $languageIsoCode2B
+     * @param string $localeCode
+     * @return bool
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    public static function areSameLanguages(string $languageIsoCode2B, string $localeCode): bool
+    {
+        return
+            Locale::extractLanguageIsoFromLocale(LanguageUtil::map(null, null, $languageIsoCode2B)) ===
+            Locale::extractLanguageIsoFromLocale($localeCode);
+    }
+
+    /**
+     * @param string $languageIsoCode2B
+     * @return bool
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     */
+    public static function isShopwareDefaultLanguage(string $languageIsoCode2B): bool
+    {
+        return self::areSameLanguages($languageIsoCode2B, Shopware()->Shop()->getLocale()->getLocale());
     }
 
     /**

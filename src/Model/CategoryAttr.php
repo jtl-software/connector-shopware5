@@ -16,6 +16,8 @@ class CategoryAttr extends CategoryAttrModel
 {
     const IS_ACTIVE = 'active';
     const CMS_HEADLINE = 'cms_headline';
+    const IS_BLOG = 'is_blog';
+    const LIMIT_TO_SHOPS = 'limit_to_shops';
 
     protected $fields = array(
         'id' => 'id',
@@ -23,7 +25,7 @@ class CategoryAttr extends CategoryAttrModel
         'isTranslated' => '',
         'isCustomProperty' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
@@ -43,6 +45,8 @@ class CategoryAttr extends CategoryAttrModel
             'isactive',
             self::CMS_HEADLINE,
             'cmsheadline',
+            self::IS_BLOG,
+            self::LIMIT_TO_SHOPS
         ];
     }
 

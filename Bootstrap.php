@@ -88,6 +88,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                         'enable_custom_properties' => false,
                         'null_undefined_attributes' => true,
                         'article_detail_preselection' => false,
+                        'use_handling_time_for_shipping' => false,
+                        'consider_supplier_inflow_date_for_shipping' => true,
                     ]
                 ],
                 'customer_order' => [
@@ -338,6 +340,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.4.0':
                 $this->migratePaymentLinkTable();
             case '2.4.1':
+            case '2.5.0':
+            case '2.5.1':
+            case '2.5.2':
+            case '2.5.3':
+            case '2.5.4':
+            case '2.6.0':
+            case '2.6.1':
                 break;
             default:
                 return false;

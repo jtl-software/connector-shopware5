@@ -9,6 +9,7 @@ namespace jtl\Connector\Shopware\Mapper;
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Customer as CustomerModel;
 use jtl\Connector\Model\CustomerAttr;
@@ -205,12 +206,6 @@ class Customer extends DataMapper
             $customerSW->setDefaultBillingAddress($addressSW);
         }
 
-        $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findByLocale(LanguageUtil::map($customer->getLanguageISO()));
-        if (is_array($shops) && count($shops) > 0) {
-            $customerSW->setLanguageSubShop($shops[0]);
-        }
-    
         /**
          * 0 => normal account ("don't create customer account" wasn't checked)<br>
          * 1 => hidden account ("don't create customer account" was checked)

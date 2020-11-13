@@ -21,7 +21,7 @@ class KeyValueAttributes extends Attributes
             $attribute->setKey($key);
         }
 
-        $attribute->setValue($value);
+        $attribute->setValue((string)$value);
         $this->attributes[$key] = $attribute;
     }
 

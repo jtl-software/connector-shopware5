@@ -1,3 +1,37 @@
+2.7.0
+------
+- CO-1170 - Added new payment method mapping hgw_ivb2b
+- CO-1167 - Added config option 'consider_supplier_inflow_date_for_shipping' (default: true) for calculation delivery time
+- CO-1010 - Set RRP only when it's greater than normal price
+
+2.6.1
+------
+- CO-1144 - Fixed import of DateTime attributes
+
+2.6.0
+------
+- CO-1037/CO-531 - Fixed packUnit translations
+- CO-1001 - Fixed language mapping (ex. translations for shops with a locale at_DE should be now saved)
+- CO-951 - Added attribute to control is_blog category attribute
+- CO-391 - Added attribute to assign product price group
+
+2.5.4
+------
+- CO-1106 Reverted using handling time as shipping time only
+          Added config flag "product.push.use_handling_time_for_shipping" for using handling time as shipping time only
+
+2.5.3
+------
+- Updated connector core due to compatiblity reasons with JTl-Wawi 1.5.27.0
+
+2.5.2
+------
+- Fixed set shipping time by handling time only
+
+2.5.1
+------
+- CO-1089 Fixed rounding differences when importing voucher code positions in orders
+
 2.5.0
 ------
 - CO-187 Added customer attributes support
