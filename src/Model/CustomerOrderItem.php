@@ -8,6 +8,8 @@ namespace jtl\Connector\Shopware\Model;
 
 use \jtl\Connector\Model\CustomerOrderItem as CustomerOrderItemModel;
 use \jtl\Connector\Core\Utilities\Money;
+use jtl\Connector\Shopware\Utilities\Plugin;
+use SwagCustomProducts\Components\Services\BasketManagerInterface;
 
 /**
  * CustomerOrderItem Model
@@ -32,7 +34,7 @@ class CustomerOrderItem extends CustomerOrderItemModel
         'unique' => '',
         'configItemId' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
