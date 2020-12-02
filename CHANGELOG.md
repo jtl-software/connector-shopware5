@@ -1,3 +1,12 @@
+2.8.0
+------
+- CO-1101 - Added support for individual texts in custom products  
+- CO-1019 - Added support for extending cleared states in config for payment import in JTL-Wawi
+- CO-1164 - Fixed/Refactored creating and updating images including name
+- Fixed order of categories during import in JTL-Wawi
+- Fixed error when importing customers in JTL-Wawi and no language was found
+
+
 2.7.0
 ------
 - CO-1170 - Added new payment method mapping hgw_ivb2b
