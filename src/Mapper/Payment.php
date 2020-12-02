@@ -37,7 +37,8 @@ class Payment extends DataMapper
             LEFT JOIN jtl_connector_link_payment pl ON pl.order_id = orders.id
             WHERE pl.order_id IS NULL
             AND lo.order_id IS NOT NULL
-            AND LENGTH(orders.transactionID) > 0 AND orders.cleared IN (%s)
+            AND orders.cleared IN (%s)
+            AND LENGTH(orders.transactionID) > 0
             AND %s                
             LIMIT %d',
             UtilPayment::getAllowedPaymentClearedStates(true),
@@ -57,11 +58,12 @@ class Payment extends DataMapper
         $sql = sprintf(
             'SELECT count(*) as count
              FROM s_order orders
-             JOIN jtl_connector_link_order lo ON lo.order_id = orders.id            
+             -- JOIN jtl_connector_link_order lo ON lo.order_id = orders.id            
              LEFT JOIN jtl_connector_link_payment pl ON pl.order_id = orders.id
              WHERE pl.order_id IS NULL
-             AND lo.order_id IS NOT NULL
-             AND orders.cleared IN (%s) AND LENGTH(orders.transactionID) > 0
+             -- AND lo.order_id IS NOT NULL
+             AND orders.cleared IN (%s) 
+             AND LENGTH(orders.transactionID) > 0
              AND %s',
             UtilPayment::getAllowedPaymentClearedStates(true),
             CustomerOrder::createOrderPullStartDateWhereClause()

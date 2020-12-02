@@ -6,7 +6,9 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Payment\PaymentTypes;
 use \Shopware\Components\Api\Exception as ApiException;
@@ -89,10 +91,8 @@ class CustomerOrder extends DataMapper
         // Customer Order pull start date
         $builder->andWhere(self::createOrderPullStartDateWhereClause());
 
-        $query = $builder->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
-        //$res = $query->getResult(\Doctrine\ORM\Query::HYDRATE_ARRAY);
-        //return $count ? count($res) : $res;
+        $query = $builder->getQuery()->setHydrationMode(AbstractQuery::HYDRATE_ARRAY);
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
 
         return $count ? ($paginator->count()) : iterator_to_array($paginator);
     }
