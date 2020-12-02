@@ -15,6 +15,11 @@
             "consider_supplier_inflow_date_for_shipping": true
         }
     },
+    "payment":{
+        "pull":{
+            "allowed_cleared_states": []
+        }
+    },
     "customer_order": {
         "pull": {
             "start_date": null,
