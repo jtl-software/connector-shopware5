@@ -1,3 +1,7 @@
+2.8.1
+------
+- Fixed image sending problems
+
 2.8.0
 ------
 - CO-1101 - Added support for individual texts in custom products  
