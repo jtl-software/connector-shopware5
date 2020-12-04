@@ -1003,25 +1003,6 @@ class Image extends DataMapper
     }
 
     /**
-     * @param Media $media
-     * @throws ORMException
-     * @throws OptimisticLockException
-     */
-    protected function renameMedia(Media $media): void
-    {
-        $mediaService = ShopUtil::mediaService();
-        for ($i = 0; $i < 2; $i++) {
-            try {
-                ShopUtil::entityManager()->persist($media);
-                ShopUtil::entityManager()->flush();
-                break;
-            } catch (FileExistsException $ex) {
-                $mediaService->delete($ex->getPath());
-            }
-        }
-    }
-
-    /**
      * @param JtlImage $jtlImage
      * @param string|null $fileName
      * @return Media
