@@ -736,10 +736,10 @@ class Image extends DataMapper
         /** @var \Shopware\Components\Api\Resource\Article $articleResource */
         $articleResource = ShopUtil::get()->Container()->get('shopware.api.article');
 
-        $mediaId = null;
         $existingImage = $this->findExistingImage($article, $jtlImage);
         $imageExists = !is_null($existingImage);
 
+        $mediaId = null;
         if ($imageExists) {
             $mediaId = $existingImage->getMedia()->getId();
         }
@@ -774,7 +774,7 @@ class Image extends DataMapper
         $imageDescription = '';
 
         $i18n = I18n::find(ShopUtil::locale()->getLocale(), $jtlImage->getI18ns());
-        if (!is_null($i18n) && $i18n->getAltText() !== '') {
+        if (!is_null($i18n)) {
             $imageDescription = $i18n->getAltText();
         }
 
@@ -794,9 +794,6 @@ class Image extends DataMapper
                 if ($aImage->getPosition() >= $swPos) {
                     $aImage->setPosition($aImage->getPosition() + 1);
                 }
-            }
-
-            if ($jtlImage->getName() !== '') {
             }
 
             $swImage->setPath($imageName);
@@ -967,7 +964,7 @@ class Image extends DataMapper
         $mediaChanged = false;
         /** @var ImageI18n $i18n */
         $i18n = I18n::find(ShopUtil::locale()->getLocale(), $jtlImage->getI18ns());
-        if (!is_null($i18n) && $i18n->getAltText() !== '' && $media->getDescription() !== $i18n->getAltText()) {
+        if (!is_null($i18n) && $media->getDescription() !== $i18n->getAltText()) {
             $media->setDescription($i18n->getAltText());
             $mediaChanged = true;
         }
