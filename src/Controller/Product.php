@@ -358,7 +358,15 @@ class Product extends DataController
                 $i++;
             }
         }
-        $product->setAttributes($translatableAttributes->getAttributes());
+        $productId = $product->getId();
+        $jtlProductAttributes = array_map(function (ProductAttr $productAttr) use ($productId) {
+            foreach ($productAttr->getI18ns() as $productAttrI18N) {
+                $productAttrI18N->setProductAttrId($productId);
+            }
+            return $productAttr;
+        }, $translatableAttributes->getAttributes());
+
+        $product->setAttributes($jtlProductAttributes);
 
         /** @var $product \jtl\Connector\Model\Product */
         if (!is_null($data['priceGroupId'])) {
