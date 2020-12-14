@@ -311,6 +311,8 @@ class Product extends DataController
         // Attributes
         $translatableAttributes = new TranslatableAttributes(ProductAttr::class, ProductAttrI18n::class);
 
+        $languageIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+
         if (isset($data['attribute']) && !is_null($data['attribute'])) {
             $exclusives = ['id', 'articleId', 'articleDetailId'];
             $i = 1;
@@ -348,7 +350,7 @@ class Product extends DataController
                     $attrId = IdConcatenator::link(array($data['attribute']['id'], $i));
 
                     $translatableAttributes->addAttribute($attrId, $isTranslated);
-                    $translatableAttributes->addAttributeTranslation($attrId, $key, $value);
+                    $translatableAttributes->addAttributeTranslation($attrId, $key, $value, $languageIso);
                     if(is_array($data['translations'])) {
                         $translatableAttributes->addTranslations($attrId, $key, $data['translations']);
                     }
@@ -357,8 +359,6 @@ class Product extends DataController
             }
         }
         $product->setAttributes($translatableAttributes->getAttributes());
-
-        $languageIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
 
         /** @var $product \jtl\Connector\Model\Product */
         if (!is_null($data['priceGroupId'])) {
