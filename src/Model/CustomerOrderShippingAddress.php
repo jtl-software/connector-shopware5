@@ -29,7 +29,7 @@ class CustomerOrderShippingAddress extends CustomerOrderShippingAddressModel
         'city' => 'city',
         'state' => '',
         'countryIso' => ['country', 'iso'],
-        'phone' => '',
+        'phone' => 'phone',
         'mobile' => '',
         'fax' => '',
         'eMail' => ''
