@@ -22,9 +22,7 @@ use jtl\Connector\Model\ImageI18n;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\I18n;
 use jtl\Connector\Shopware\Utilities\Sort;
-use League\Flysystem\FileExistsException;
 use Shopware\Bundle\MediaBundle\MediaReplaceService;
-use Shopware\Components\Api\Manager;
 use Shopware\Components\Random;
 use Shopware\Models\Category\Category;
 use Shopware\Models\Article\Article;
@@ -297,6 +295,8 @@ class Image extends DataMapper
                     $referencedModel = $this->savePropertyValueImage($foreignId, $media);
                     break;
             }
+
+            ShopUtil::thumbnailManager()->createMediaThumbnail($media, [], true);
 
             ShopUtil::entityManager()->persist($referencedModel);
             ShopUtil::entityManager()->flush();
@@ -959,6 +959,7 @@ class Image extends DataMapper
             }
         } else {
             $media = $this->createMedia($jtlImage);
+            ShopUtil::entityManager()->refresh($media);
         }
 
         $mediaChanged = false;
@@ -981,6 +982,7 @@ class Image extends DataMapper
                 if (!$mediaService->has($newPath)) {
                     break;
                 }
+
                 $newImageName = sprintf('%s-%s', $imageName, Random::getAlphanumericString(4));
             } while (true);
 
@@ -992,9 +994,6 @@ class Image extends DataMapper
             ShopUtil::entityManager()->persist($media);
             ShopUtil::entityManager()->flush();
         }
-
-        $media->removeThumbnails();
-        ShopUtil::thumbnailManager()->createMediaThumbnail($media, [], true);
 
         return $media;
     }
