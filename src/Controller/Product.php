@@ -358,10 +358,10 @@ class Product extends DataController
                 $i++;
             }
         }
-        $productId = $product->getId();
-        $jtlProductAttributes = array_map(function (ProductAttr $productAttr) use ($productId) {
+
+        $jtlProductAttributes = array_map(function (ProductAttr $productAttr) {
             foreach ($productAttr->getI18ns() as $productAttrI18N) {
-                $productAttrI18N->setProductAttrId($productId);
+                $productAttrI18N->setProductAttrId($productAttr->getId());
             }
             return $productAttr;
         }, $translatableAttributes->getAttributes());
