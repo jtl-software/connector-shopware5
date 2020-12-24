@@ -1,3 +1,7 @@
+2.8.3
+-----
+- Updated connector core version, due to issues during product import
+
 2.8.2
 -----
 - CO-1259 Added importing phone number in customer order delivery address
