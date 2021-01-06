@@ -1,3 +1,7 @@
+Unreleased
+----------
+- Added workaround for problem with empty lannguage iso properties
+
 2.8.3
 -----
 - Updated connector core version, due to issues during product import
