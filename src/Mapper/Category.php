@@ -10,6 +10,7 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\I18n;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Model\Category as JtlCategory;
 use jtl\Connector\Model\Identity;
@@ -294,55 +295,49 @@ class Category extends DataMapper
         }
 
         $attributes = [];
-        $mappings = [];
         $categoryAttributes = [];
         foreach ($jtlCategory->getAttributes() as $jtlAttribute) {
             if ($jtlAttribute->getIsCustomProperty()) {
                 continue;
             }
 
-            foreach ($jtlAttribute->getI18ns() as $attributeI18n) {
-                if (LanguageUtil::convert(null, $attributeI18n->getLanguageISO()) === $langIso) {
+            $attributeI18n = I18n::findByLanguageIso($langIso, ...$jtlAttribute->getI18ns());
 
-                    if (CategoryAttr::isSpecialAttribute($attributeI18n->getName())) {
+            if (CategoryAttr::isSpecialAttribute($attributeI18n->getName())) {
 
-                        // Active fix
-                        $allowedActiveValues = array('0', '1', 0, 1, false, true);
-                        if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::IS_ACTIVE, 'isactive'])
-                            && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                            $swCategory->setActive((bool)$attributeI18n->getValue());
-                        }
-
-                        // Cms Headline
-                        if (in_array(strtolower($attributeI18n->getName()),
-                            [CategoryAttr::CMS_HEADLINE, 'cmsheadline'])) {
-                            $swCategory->setCmsHeadline($attributeI18n->getValue());
-
-                            foreach ($jtlAttribute->getI18ns() as $i18n) {
-                                if (LanguageUtil::convert(null, $i18n->getLanguageISO()) === $langIso) {
-                                    continue;
-                                }
-                                $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
-                            }
-                        }
-
-                        if ($attributeI18n->getName() === CategoryAttr::IS_BLOG) {
-                            $swCategory->setBlog((bool)$attributeI18n->getValue());
-                        }
-
-                        if ($attributeI18n->getName() === CategoryAttr::LIMIT_TO_SHOPS) {
-                            $swCategory->setShops($attributeI18n->getValue());
-                        }
-
-                        continue;
-                    }
-
-                    $mappings[$attributeI18n->getName()] = $jtlAttribute->getId()->getHost();
-                    $attributes[$attributeI18n->getName()] = $jtlAttribute;
-
-                    $categoryAttributes[$attributeI18n->getName()] = $attributeI18n->getValue();
+                // Active fix
+                $allowedActiveValues = array('0', '1', 0, 1, false, true);
+                if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::IS_ACTIVE, 'isactive'])
+                    && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
+                    $swCategory->setActive((bool)$attributeI18n->getValue());
                 }
+
+                // Cms Headline
+                if (in_array(strtolower($attributeI18n->getName()),
+                    [CategoryAttr::CMS_HEADLINE, 'cmsheadline'])) {
+                    $swCategory->setCmsHeadline($attributeI18n->getValue());
+
+                    foreach ($jtlAttribute->getI18ns() as $i18n) {
+                        if (LanguageUtil::convert(null, $i18n->getLanguageISO()) === $langIso) {
+                            continue;
+                        }
+                        $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
+                    }
+                }
+
+                if ($attributeI18n->getName() === CategoryAttr::IS_BLOG) {
+                    $swCategory->setBlog((bool)$attributeI18n->getValue());
+                }
+
+                if ($attributeI18n->getName() === CategoryAttr::LIMIT_TO_SHOPS) {
+                    $swCategory->setShops($attributeI18n->getValue());
+                }
+
+                continue;
             }
+
+            $attributes[$attributeI18n->getName()] = $jtlAttribute;
+            $categoryAttributes[$attributeI18n->getName()] = $attributeI18n->getValue();
         }
 
         /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */

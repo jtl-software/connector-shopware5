@@ -773,10 +773,8 @@ class Image extends DataMapper
         $imageName = $jtlImage->getName();
         $imageDescription = '';
 
-        $i18n = I18n::find(ShopUtil::locale()->getLocale(), $jtlImage->getI18ns());
-        if (!is_null($i18n)) {
-            $imageDescription = $i18n->getAltText();
-        }
+        $i18n = I18n::findByLocale(ShopUtil::locale()->getLocale(), ...$jtlImage->getI18ns());
+        $imageDescription = $i18n->getAltText();
 
         $variantImage = null;
         if (!$isVariantChild) {
@@ -964,8 +962,8 @@ class Image extends DataMapper
 
         $mediaChanged = false;
         /** @var ImageI18n $i18n */
-        $i18n = I18n::find(ShopUtil::locale()->getLocale(), $jtlImage->getI18ns());
-        if (!is_null($i18n) && $media->getDescription() !== $i18n->getAltText()) {
+        $i18n = I18n::findByLocale(ShopUtil::locale()->getLocale(), ...$jtlImage->getI18ns());
+        if ($media->getDescription() !== $i18n->getAltText()) {
             $media->setDescription($i18n->getAltText());
             $mediaChanged = true;
         }

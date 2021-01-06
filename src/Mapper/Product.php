@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Shopware\Utilities\I18n;
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Model\ProductVariation;
@@ -837,130 +838,130 @@ class Product extends DataMapper
         $attrMappings = [];
 
         $customPropertySupport = (bool)Application()->getConfig()->get('product.push.enable_custom_properties', false);
+
+        $shopwareLocale = ShopUtil::locale()->getLocale();
         foreach ($product->getAttributes() as $attribute) {
             if (!$customPropertySupport && $attribute->getIsCustomProperty()) {
                 continue;
             }
 
-            foreach ($attribute->getI18ns() as $attributeI18n) {
-                if (ShopUtil::isShopwareDefaultLanguage($attributeI18n->getLanguageISO())) {
-                    $lcAttributeName = strtolower($attributeI18n->getName());
-                    $attributeValue = $attributeI18n->getValue();
+            $attributeI18n = I18n::findByLocale($shopwareLocale, ...$attribute->getI18ns());
 
-                    // active
-                    if (in_array($lcAttributeName, [ProductAttr::IS_ACTIVE, 'isactive'])) {
-                        $isActive = (strtolower($attributeValue) === 'false'
-                            || strtolower($attributeValue) === '0') ? 0 : 1;
-                        if ($isChild) {
-                            $detailSW->setActive($isActive);
-                        } else {
-                            /** @var DetailSW $detail */
-                            $article->setActive($isActive);
-                            $this->setMainDetailActive = true;
-                        }
+            $lcAttributeName = strtolower($attributeI18n->getName());
+            $attributeValue = $attributeI18n->getValue();
 
-                        continue;
+            // active
+            if (in_array($lcAttributeName, [ProductAttr::IS_ACTIVE, 'isactive'])) {
+                $isActive = (strtolower($attributeValue) === 'false'
+                    || strtolower($attributeValue) === '0') ? 0 : 1;
+                if ($isChild) {
+                    $detailSW->setActive($isActive);
+                } else {
+                    /** @var DetailSW $detail */
+                    $article->setActive($isActive);
+                    $this->setMainDetailActive = true;
+                }
+
+                continue;
+            }
+
+            // Notification
+            if (in_array($lcAttributeName, [ProductAttr::SEND_NOTIFICATION, 'sw_send_notification'])) {
+                $notification = (strtolower($attributeValue) === 'false'
+                    || strtolower($attributeValue) === '0') ? 0 : 1;
+
+                $article->setNotification($notification);
+
+                continue;
+            }
+
+            // Shipping free
+            if (in_array($lcAttributeName, [ProductAttr::SHIPPING_FREE, 'shippingfree'])) {
+                $shippingFree = (strtolower($attributeValue) === 'false'
+                    || strtolower($attributeValue) === '0') ? 0 : 1;
+
+                $detailSW->setShippingFree($shippingFree);
+
+                continue;
+            }
+
+            // Pseudo sales
+            if (in_array($lcAttributeName, [ProductAttr::PSEUDO_SALES, 'sw_pseudo_sales'])) {
+                $article->setPseudoSales((int)$attributeValue);
+
+                continue;
+            }
+
+            if ($lcAttributeName === ProductAttr::PRICE_GROUP_ID) {
+                if (empty($attributeValue)) {
+                    $article->setPriceGroupActive(false);
+                } else {
+                    $article->setPriceGroupActive(true);
+                    $priceGroupId = (int)$attributeValue;
+                    $priceGroupSW = Shopware()->Models()->getRepository(SwGroup::class)->find($priceGroupId);
+                    if ($priceGroupSW instanceof SwGroup) {
+                        $article->setPriceGroup($priceGroupSW);
                     }
+                }
+                continue;
+            }
 
-                    // Notification
-                    if (in_array($lcAttributeName, [ProductAttr::SEND_NOTIFICATION, 'sw_send_notification'])) {
-                        $notification = (strtolower($attributeValue) === 'false'
-                            || strtolower($attributeValue) === '0') ? 0 : 1;
+            // Image configuration ignores
+            if ($lcAttributeName === strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
+                && $this->isParent($product)) {
+                try {
+                    $productAttribute->setKey(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
+                        ->setValue($attributeValue)
+                        ->save(false);
+                } catch (\Exception $e) {
+                    Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
+                }
 
-                        $article->setNotification($notification);
+                continue;
+            }
 
-                        continue;
+            if (in_array($lcAttributeName, [ProductAttr::IS_MAIN, 'is_main']) && $isChild && (bool)$attributeValue === true) {
+                /** @var DetailSW $detail */
+                ShopUtil::entityManager()->refresh($article);
+                $details = $article->getDetails();
+                foreach ($details as $detail) {
+                    if ($detail->getKind() !== self::KIND_VALUE_PARENT) {
+                        $detail->setKind(self::KIND_VALUE_DEFAULT);
                     }
+                }
+                $article->setMainDetail($detailSW);
+                $this->setMainDetailActive = true;
 
-                    // Shipping free
-                    if (in_array($lcAttributeName, [ProductAttr::SHIPPING_FREE, 'shippingfree'])) {
-                        $shippingFree = (strtolower($attributeValue) === 'false'
-                            || strtolower($attributeValue) === '0') ? 0 : 1;
+                continue;
+            }
 
-                        $detailSW->setShippingFree($shippingFree);
+            if ($isChild && $lcAttributeName === ProductAttr::ADDITIONAL_TEXT) {
+                $detailSW->setAdditionalText($attributeValue);
+                continue;
+            }
 
-                        continue;
+            if (!$isChild && $lcAttributeName === ProductAttr::CUSTOM_PRODUCTS_TEMPLATE) {
+                $pluginName = "SwagCustomProducts";
+                /** @var Plugin $plugin */
+                $plugin = ShopUtil::entityManager()->getRepository(Plugin::class)->findOneByName($pluginName);
+                if ($plugin instanceof Plugin && $plugin->getActive()) {
+                    $result = ShopUtil::entityManager()->getConnection()->createQueryBuilder()
+                        ->delete('s_plugin_custom_products_template_product_relation')
+                        ->where('article_id = :articleId')
+                        ->setParameter('articleId', $article->getId())
+                        ->execute();
+
+                    /** @var Template|null $template */
+                    $template = ShopUtil::entityManager()->getRepository(Template::class)->findOneByInternalName($attributeValue);
+                    if ($template instanceof Template) {
+                        $template->getArticles()->add($article);
+                        ShopUtil::entityManager()->persist($template);
                     }
-
-                    // Pseudo sales
-                    if (in_array($lcAttributeName, [ProductAttr::PSEUDO_SALES, 'sw_pseudo_sales'])) {
-                        $article->setPseudoSales((int)$attributeValue);
-
-                        continue;
-                    }
-
-                    if ($lcAttributeName === ProductAttr::PRICE_GROUP_ID) {
-                        if (empty($attributeValue)) {
-                            $article->setPriceGroupActive(false);
-                        }else{
-                            $article->setPriceGroupActive(true);
-                            $priceGroupId = (int)$attributeValue;
-                            $priceGroupSW = Shopware()->Models()->getRepository(SwGroup::class)->find($priceGroupId);
-                            if ($priceGroupSW instanceof SwGroup) {
-                                $article->setPriceGroup($priceGroupSW);
-                            }
-                        }
-                        continue;
-                    }
-
-                    // Image configuration ignores
-                    if ($lcAttributeName === strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
-                        && $this->isParent($product)) {
-                        try {
-                            $productAttribute->setKey(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
-                                ->setValue($attributeValue)
-                                ->save(false);
-                        } catch (\Exception $e) {
-                            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
-                        }
-
-                        continue;
-                    }
-
-                    if (in_array($lcAttributeName, [ProductAttr::IS_MAIN, 'is_main']) && $isChild && (bool)$attributeValue === true) {
-                        /** @var DetailSW $detail */
-                        ShopUtil::entityManager()->refresh($article);
-                        $details = $article->getDetails();
-                        foreach ($details as $detail) {
-                            if ($detail->getKind() !== self::KIND_VALUE_PARENT) {
-                                $detail->setKind(self::KIND_VALUE_DEFAULT);
-                            }
-                        }
-                        $article->setMainDetail($detailSW);
-                        $this->setMainDetailActive = true;
-
-                        continue;
-                    }
-
-                    if ($isChild && $lcAttributeName === ProductAttr::ADDITIONAL_TEXT) {
-                        $detailSW->setAdditionalText($attributeValue);
-                        continue;
-                    }
-
-                    if (!$isChild && $lcAttributeName === ProductAttr::CUSTOM_PRODUCTS_TEMPLATE) {
-                        $pluginName = "SwagCustomProducts";
-                        /** @var Plugin $plugin */
-                        $plugin = ShopUtil::entityManager()->getRepository(Plugin::class)->findOneByName($pluginName);
-                        if ($plugin instanceof Plugin && $plugin->getActive()) {
-                            $result = ShopUtil::entityManager()->getConnection()->createQueryBuilder()
-                                ->delete('s_plugin_custom_products_template_product_relation')
-                                ->where('article_id = :articleId')
-                                ->setParameter('articleId', $article->getId())
-                                ->execute();
-
-                            /** @var Template|null $template */
-                            $template = ShopUtil::entityManager()->getRepository(Template::class)->findOneByInternalName($attributeValue);
-                            if ($template instanceof Template) {
-                                $template->getArticles()->add($article);
-                                ShopUtil::entityManager()->persist($template);
-                            }
-                        }
-                    }
-
-                    $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
-                    $attributes[$attributeI18n->getName()] = $attributeValue;
                 }
             }
+
+            $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
+            $attributes[$attributeI18n->getName()] = $attributeValue;
         }
 
         /* Save shopware attributes only from jtl products which are not a varvcombi parent */
