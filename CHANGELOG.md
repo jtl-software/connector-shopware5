@@ -1,5 +1,5 @@
-Unreleased
-----------
+2.8.4
+-----
 - Added workaround for problem with empty lannguage iso properties
 
 2.8.3
