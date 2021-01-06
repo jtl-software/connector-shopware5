@@ -35,6 +35,7 @@ use jtl\Connector\Linker\ChecksumLinker;
 use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use Shopware\Models\Attribute\Article;
 use Shopware\Models\Customer\PriceGroup;
 use \Shopware\Models\Price\Group as SwGroup;
 use Shopware\Models\Plugin\Plugin;
@@ -822,7 +823,7 @@ class Product extends DataMapper
         // Attribute
         $attributeSW = $detailSW->getAttribute();
         if ($attributeSW === null) {
-            $attributeSW = new \Shopware\Models\Attribute\Article();
+            $attributeSW = new Article();
             $attributeSW->setArticleDetail($detailSW);
             ShopUtil::entityManager()->persist($attributeSW);
         }

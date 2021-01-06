@@ -35,7 +35,7 @@ class I18n
      * @return mixed
      * @throws \Exception
      */
-    public static function findByLanguageIso($languageIso, ...$i18ns)
+    public static function findByLanguageIso(string $languageIso, ...$i18ns)
     {
         if (count($i18ns) > 0) {
             $isoGetter = 'getLanguageISO';

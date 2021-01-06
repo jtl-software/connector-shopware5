@@ -273,16 +273,14 @@ class Category extends DataMapper
      * @param JtlCategory $jtlCategory
      * @param SwCategory $swCategory
      * @param string[] $translations
-     * @param string|null $langIso
+     * @param string|null $languageIso
      * @throws LanguageException
      * @throws ORMException
      */
-    protected function prepareAttributeAssociatedData(JtlCategory $jtlCategory, SwCategory $swCategory, array &$translations, $langIso = null)
+    protected function prepareAttributeAssociatedData(JtlCategory $jtlCategory, SwCategory $swCategory, array &$translations, $languageIso = null)
     {
-        if (is_null($langIso)) {
-            $langIso = LocaleUtil::extractLanguageIsoFromLocale(Shopware()->Shop()->getLocale()->getLocale());
-        }else{
-            $langIso = LanguageUtil::convert(null, $langIso);
+        if (is_null($languageIso)) {
+            $languageIso = LanguageUtil::convert(LocaleUtil::extractLanguageIsoFromLocale(Shopware()->Shop()->getLocale()->getLocale()));
         }
 
         // Attribute
@@ -301,7 +299,7 @@ class Category extends DataMapper
                 continue;
             }
 
-            $attributeI18n = I18n::findByLanguageIso($langIso, ...$jtlAttribute->getI18ns());
+            $attributeI18n = I18n::findByLanguageIso($languageIso, ...$jtlAttribute->getI18ns());
 
             if (CategoryAttr::isSpecialAttribute($attributeI18n->getName())) {
 
@@ -318,9 +316,10 @@ class Category extends DataMapper
                     $swCategory->setCmsHeadline($attributeI18n->getValue());
 
                     foreach ($jtlAttribute->getI18ns() as $i18n) {
-                        if (LanguageUtil::convert(null, $i18n->getLanguageISO()) === $langIso) {
+                        if ($i18n->getLanguageISO() === $languageIso) {
                             continue;
                         }
+
                         $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
                     }
                 }
@@ -349,7 +348,7 @@ class Category extends DataMapper
         foreach ($swAttributesList as $tSwAttribute) {
             $result = TranslatableAttributes::setAttribute($tSwAttribute, $swAttribute, $categoryAttributes, $nullUndefinedAttributes);
             if ($result === true) {
-                $translations = self::createAttributeTranslations($attributes[$tSwAttribute->getColumnName()], $tSwAttribute->getColumnName(), $translations, [$langIso]);
+                $translations = self::createAttributeTranslations($attributes[$tSwAttribute->getColumnName()], $tSwAttribute->getColumnName(), $translations, [$languageIso]);
             }
         }
 
@@ -486,6 +485,7 @@ class Category extends DataMapper
             if (in_array($i18n->getLanguageISO(), $ignoreLanguages)) {
                 continue;
             }
+
             $data[$i18n->getLanguageISO()]['attributes']['__attribute_' . $swAttributeName] = $i18n->getValue();
         }
 
