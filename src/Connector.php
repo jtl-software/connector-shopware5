@@ -143,7 +143,7 @@ class Connector extends BaseConnector
 
                 $action->setHandled(true)
                     ->setResult($results)
-                    ->setError($result->getError());    // Todo: refactor to array of errors
+                    ->setError($result->getError());
             }
 
             return $action;

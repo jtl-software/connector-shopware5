@@ -18,6 +18,7 @@ use jtl\Connector\Shopware\Utilities\KeyValueAttributes;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Payment as PaymentUtil;
 use jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
+use jtl\Connector\Shopware\Utilities\Plugin;
 use jtl\Connector\Shopware\Utilities\Salutation;
 use jtl\Connector\Shopware\Utilities\Status as StatusUtil;
 use jtl\Connector\Core\Logger\Logger;
@@ -28,6 +29,7 @@ use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\IdConcatenator;
 use Shopware\Models\Order\Order;
 use Shopware\Models\Order\Status;
+use SwagCustomProducts\Components\Services\BasketManagerInterface;
 use TheIconic\NameParser\Parser;
 
 /**
@@ -88,6 +90,11 @@ class CustomerOrder extends DataController
 
             // Check if PayPal Unified is installed
             $usePaypalUnified = PaymentUtil::usePaypalUnified();
+
+            $customProductsService = null;
+            if (Plugin::isCustomProductsActive()) {
+                $customProductsService = Shopware()->Container()->get('custom_products.custom_products_option_repository');
+            }
 
             foreach ($swOrders as $swOrder) {
                 try {
@@ -205,6 +212,30 @@ class CustomerOrder extends DataController
                             $orderItem->setProductId(new Identity(sprintf('%s_%s', $detail->getId(), $detailSW['articleId'])));
                         }
                         */
+
+                        if(!is_null($customProductsService)) {
+                            $configHash = $swDetail['attribute']['swagCustomProductsConfigurationHash'] ?? null;
+                            $productMode = $swDetail['attribute']['swagCustomProductsMode'] ?? null;
+
+                            if (!is_null($configHash) && $productMode == BasketManagerInterface::MODE_OPTION) {
+                                $customProductsOptions = $customProductsService->getOptionsFromHash($configHash);
+                                if (is_array($customProductsOptions)) {
+                                    foreach ($customProductsOptions as $customProductsOption) {
+                                        if ($customProductsOption['label'] === $swDetail['articleName']) {
+                                            if (is_array($customProductsOption['value'])) {
+                                                $note = join(', ', array_map(function ($singleValue) {
+                                                    return $singleValue['label'];
+                                                }, $customProductsOption['value']));
+                                            } else {
+                                                $note = $customProductsOption['value'];
+                                            }
+                                            $jtlOrderItem->setNote($note);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         $jtlOrder->addItem($jtlOrderItem);
                     }

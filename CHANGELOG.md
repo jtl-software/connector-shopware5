@@ -1,113 +1,140 @@
+2.8.4
+-----
+- Added workaround for problem with empty lannguage iso properties
+
+2.8.3
+-----
+- Updated connector core version, due to issues during product import
+
+2.8.2
+-----
+- CO-1259 Added importing phone number in customer order delivery address
+- CO-1281 Fixed importing article attributes with language iso 
+- Revised image creation process in shop
+
+2.8.1
+-----
+- Fixed image sending problems
+
+2.8.0
+-----
+- CO-1101 - Added support for individual texts in custom products  
+- CO-1019 - Added support for extending cleared states in config for payment import in JTL-Wawi
+- CO-1164 - Fixed/Refactored creating and updating images including name
+- Fixed order of categories during import in JTL-Wawi
+- Fixed error when importing customers in JTL-Wawi and no language was found
+
+
 2.7.0
-------
+-----
 - CO-1170 - Added new payment method mapping hgw_ivb2b
 - CO-1167 - Added config option 'consider_supplier_inflow_date_for_shipping' (default: true) for calculation delivery time
 - CO-1010 - Set RRP only when it's greater than normal price
 
 2.6.1
-------
+-----
 - CO-1144 - Fixed import of DateTime attributes
 
 2.6.0
-------
+-----
 - CO-1037/CO-531 - Fixed packUnit translations
 - CO-1001 - Fixed language mapping (ex. translations for shops with a locale at_DE should be now saved)
 - CO-951 - Added attribute to control is_blog category attribute
 - CO-391 - Added attribute to assign product price group
 
 2.5.4
-------
+-----
 - CO-1106 Reverted using handling time as shipping time only
           Added config flag "product.push.use_handling_time_for_shipping" for using handling time as shipping time only
 
 2.5.3
-------
+-----
 - Updated connector core due to compatiblity reasons with JTl-Wawi 1.5.27.0
 
 2.5.2
-------
+-----
 - Fixed set shipping time by handling time only
 
 2.5.1
-------
+-----
 - CO-1089 Fixed rounding differences when importing voucher code positions in orders
 
 2.5.0
-------
+-----
 - CO-187 Added customer attributes support
 - CO-840 Refactored attributes handling
 - CO-1066 Fixed order items order during import in JTL-Wawi
 - CO-1086 Changed supplier delivery time to handling time
 
 2.4.1
-------
+-----
 ## Attention: Update process can take some time!
 - Removed alias in update query
 
 2.4.0
-------
+-----
 - CO-923 Fixed CrossSelling deletes in Shopware
 - CO-949 Removed payment trigger and payment table
 - CO-974 Changed logic when payment will be imported
 - CO-966 Fixed limiting customer group to 50 
 
 2.3.0.2
-------
+-------
 - CO-930 - Added if image name is not empty it's now set in backend 
 - CO-975 - DHL Wunschpaket: Added default salutation 'Herr' if no salutation is present
 - CO-961 - If 'additional_address_line2' is not empty it's now transferred to Wawi in extraAddressLine field
 
 2.3.0.1
-------
+-------
 - Hotfix skip monolog file deletion
 
 2.3.0
-------
+-----
 - CO-922 Increased connector core version to ^2.7, increased minimum PHP version to 7.1.3, removed fixed monolog version 
 - CO-924 Transfer full image tag url in product and category description 
 
 2.2.5.3
-------
+-------
 - Removed problematic monolog file
 
 2.2.5.2
-------
+-------
 - Removed phar dependencies
 - Switched to older monolog version due to compatiblity reasons
 
 2.2.5.1
-------
+-------
 - CO-496 Fixed missing image relations on variant children
 - CO-569 Removed not existent getter calls in customer order mapper
 - CO-849 Fixed Warning "Zahlung mit Transaktions-ID 'XYZ'..." when importing payment orders
 - CO-866 Keep dummy parents as well in case linking tables should be kept after deinstallation
 
 2.2.5
-------
+-----
 - CO-805 Fixed bug with shipping tax rate
 - CO-785 Added support for image alt attribute
 - CO-784 Added support for product SEO attributes title, keywords, description
 - CO-567 Delivery note creation can be now turned off in config
 
 2.2.4.4
-------
+-------
 - Fixed start_date for payment import
 
 2.2.4.3
-------
+-------
 - CO-711 Fixed primary key mapper
 - CO-730 Fixed problem with translation service override
 
 2.2.4.2
-------
+-------
 - Locked connector core version to 2.6.8
 
 2.2.4.1
-------
+-------
 - CO-704 Mapped paypal unified payment methods correcty during payment push
 
 2.2.4
-------
+-----
 - CO-417 Removed not needed category level table for performance optimisation
 - CO-540 Cleared date will be used as payment date if possible, existing payment entries only deleted if necessary 
 - CO-549 Assigned tax rate for shipping order items will be used if possible
@@ -115,15 +142,15 @@
 - CO-594 Connector tables can be kept after connector deinstallation if desired
 
 2.2.3.1
-------
+-------
 - Save product translations by language and not by locale
 
 2.2.3
-------
+-----
 - Added compatiblity to Shopware 5.6
 
 2.2.2
-------
+-----
 - CO-363 Save categories translations in shop (without category mappings)
 - CO-430 Set articles changed date during product price quicksync
 - CO-446 Attribute names normalised
@@ -133,29 +160,29 @@
 - Add custom products plugin template by using "custom_products_template" attribute (internal template name)
 
 2.2.1.4
-------
+-------
 - Problems with group based product prices during quicksync fixed
 
 2.2.1.3
-------
+-------
 - Problems with product price during push fixed
 
 2.2.1
-------
+-----
 - CO-447 Lower case to camel case transformation on product attributes during push fixed
 - CO-452 Product price quicksync fixed
 
 2.2.0.2
-------
+-------
 - Set configuratorOptions on article details fix
 - Class alias typo corrected
 
 2.2.0.1
-------
+-------
 - Hotfix for backward compatiblity with namespace aliases
 
 2.2.0
-------
+-----
 - CO-286 Custom properties support added
 - CO-310 Additional text support added
 - CO-354 Translations from product variation child attributes will be imported into JTL-Wawi

@@ -6,8 +6,12 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Payment\PaymentTypes;
+use jtl\Connector\Shopware\Utilities\Plugin;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use \jtl\Connector\Model\CustomerOrderItem;
@@ -85,27 +89,16 @@ class CustomerOrder extends AbstractDataMapper
             ->setFirstResult(0)
             ->setMaxResults($limit);
 
-        // Customer Order pull start date
-
-        /** @deprecated Will be removed in a future connector release $startDateOld */
-        $startDateOld = Application()->getConfig()->get('customer_order_pull_start_date', null);
-        $startDate = Application()->getConfig()->get('customer_order.pull.start_date', $startDateOld);
-        if (!is_null($startDate)) {
-            try {
-                $date_time = new \DateTime($startDate);
-                $builder->andWhere(sprintf('orders.orderTime >= \'%s\'', $date_time->format('Y-m-d H:i:s')));
-            } catch (\Exception $e) {
-                Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
-            }
+        if (Plugin::isCustomProductsActive()) {
+            $builder->addSelect('details_attribute')
+                ->leftJoin('details.attribute', 'details_attribute');
         }
 
-        $query = $builder->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+        // Customer Order pull start date
+        $builder->andWhere(self::createOrderPullStartDateWhereClause());
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
-
-        //$res = $query->getResult(\Doctrine\ORM\Query::HYDRATE_ARRAY);
-
-        //return $count ? count($res) : $res;
+        $query = $builder->getQuery()->setHydrationMode(AbstractQuery::HYDRATE_ARRAY);
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
 
         return $count ? ($paginator->count()) : iterator_to_array($paginator);
     }
@@ -519,5 +512,26 @@ class CustomerOrder extends AbstractDataMapper
     public function isChild(CustomerOrderItem &$customerOrderItem)
     {
         return (strlen($customerOrderItem->getProductId()->getEndpoint()) > 0 && strpos($customerOrderItem->getProductId()->getEndpoint(), '_') !== false);
+    }
+
+    /**
+     * @return string
+     */
+    public static function createOrderPullStartDateWhereClause(): string
+    {
+        $where = 'orders.id IS NOT NULL';
+        try {
+            /** @deprecated Will be removed in a future connector release $startDateOld */
+            $startDateOld = Application()->getConfig()->get('customer_order_pull_start_date', null);
+            $startDate = Application()->getConfig()->get('customer_order.pull.start_date', $startDateOld);
+            if (!is_null($startDate)) {
+                $dateTime = new \DateTime($startDate);
+                $where = sprintf('orders.orderTime >= \'%s\'', $dateTime->format('Y-m-d H:i:s'));
+            }
+        } catch (\Exception $e) {
+            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
+        }
+
+        return $where;
     }
 }
