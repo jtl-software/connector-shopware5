@@ -85,4 +85,4 @@ jobs:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: ftp-upload --host $FTP_SERVER --user $FTP_USER --password $FTP_PASSWORD --dir $FTP_DIR --passive ./${{ env.RELEASE_NAME }}
+        run: ftp-upload --host $FTP_SERVER --user $FTP_USER --password $FTP_PASSWORD --dir ./ --passive ./${{ env.RELEASE_NAME }}
