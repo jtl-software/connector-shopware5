@@ -43,7 +43,7 @@ jobs:
       - name: System praparation
         run: |
           sudo apt-get update -yqq
-          sudo apt-get install -yqq ftp-upload zip
+          sudo apt-get install -yqq ftp-upload
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -54,7 +54,7 @@ jobs:
           git checkout tags/$CONNECTOR_VERSION -b tmp
 
       - name: Run composer
-        uses: php-actions/composer@v2
+        uses: php-actions/composer@v5
         with:
           dev: no
           php_version: 7.1
@@ -63,15 +63,17 @@ jobs:
         run: |
           echo "RELEASE_NAME=jtl-connector-shopware5-$CONNECTOR_VERSION.zip" >> $GITHUB_ENV
           mkdir -p ./Frontend/jtlconnector
-
-      - name: Create release
-        run: |
           shopt -s extglob
           rm -R -f .git .github .gitignore build.sh build.xml composer.json composer.lock phpunit.xml
           cp -r ./!(Frontend) ./Frontend/jtlconnector
-          zip -r ${{ env.RELEASE_NAME }} ./Frontend/
 
-      - name: Create artifact
+      - name: Create release
+        uses: papeloto/action-zip@v1
+        with:
+          files: ./Frontend/
+          dest: ./${{ env.RELEASE_NAME }}
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: connector-build
