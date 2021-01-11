@@ -1,3 +1,7 @@
+2.8.5
+-----
+- Fixed problems with not existing image translations
+
 2.8.4
 -----
 - Added workaround for problem with empty lannguage iso properties
