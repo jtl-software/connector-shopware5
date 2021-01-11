@@ -773,8 +773,12 @@ class Image extends DataMapper
         $imageName = $jtlImage->getName();
         $imageDescription = '';
 
-        $i18n = I18n::findByLocale(ShopUtil::locale()->getLocale(), ...$jtlImage->getI18ns());
-        $imageDescription = $i18n->getAltText();
+        try {
+            $i18n = I18n::findByLocale(ShopUtil::locale()->getLocale(), ...$jtlImage->getI18ns());
+            $imageDescription = $i18n->getAltText();
+        } catch (\Throwable $ex) {
+
+        }
 
         $variantImage = null;
         if (!$isVariantChild) {
@@ -961,10 +965,18 @@ class Image extends DataMapper
         }
 
         $mediaChanged = false;
-        /** @var ImageI18n $i18n */
-        $i18n = I18n::findByLocale(ShopUtil::locale()->getLocale(), ...$jtlImage->getI18ns());
-        if ($media->getDescription() !== $i18n->getAltText()) {
-            $media->setDescription($i18n->getAltText());
+
+        $altText = '';
+        try {
+            /** @var ImageI18n $i18n */
+            $i18n = I18n::findByLocale(ShopUtil::locale()->getLocale(), ...$jtlImage->getI18ns());
+            $altText = $i18n->getAltText();
+        } catch (\Throwable $ex) {
+
+        }
+
+        if ($media->getDescription() !== $altText) {
+            $media->setDescription($altText);
             $mediaChanged = true;
         }
 
@@ -1123,7 +1135,7 @@ class Image extends DataMapper
         $translationService = ShopUtil::translationService();
         $translationService->deleteAll('articleimage', $swImage->getId());
 
-        /** @var \jtl\Connector\Shopware\Mapper\Shop $shopMapper */
+        /** @var Shop $shopMapper */
         $shopMapper = Mmc::getMapper('Shop');
         foreach ($jtlImage->getI18ns() as $i18n) {
             if (empty($i18n->getAltText())) {
