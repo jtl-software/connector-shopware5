@@ -45,7 +45,7 @@ jobs:
           sudo apt-get update -yqq
           sudo apt-get install -yqq ftp-upload
 
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Checkout release tag
@@ -53,36 +53,23 @@ jobs:
           git fetch --all --tags
           git checkout tags/$CONNECTOR_VERSION -b tmp
 
-      - name: Run composer
+      - name: Update composer dependencies
         uses: php-actions/composer@v5
         with:
           dev: no
           php_version: 7.1
 
-      - name: Prepare release
+      - name: Upload to FTP
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_DIRECTORY: ${{ secrets.FTP_DIRECTORY }}
         run: |
           echo "RELEASE_NAME=jtl-connector-shopware5-$CONNECTOR_VERSION.zip" >> $GITHUB_ENV
           mkdir -p ./Frontend/jtlconnector
           shopt -s extglob
           rm -R -f .git .github .gitignore build.sh build.xml composer.json composer.lock phpunit.xml
           cp -r ./!(Frontend) ./Frontend/jtlconnector
-
-      - name: Create release
-        uses: papeloto/action-zip@v1
-        with:
-          files: ./Frontend/
-          dest: ./${{ env.RELEASE_NAME }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: connector-build
-          path: ./${{ env.RELEASE_NAME }}
-          if-no-files-found: error
-
-      - name: FTP Deploy
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USER: ${{ secrets.FTP_USER }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: ftp-upload --host $FTP_SERVER --user $FTP_USER --password $FTP_PASSWORD --dir ./ --passive ./${{ env.RELEASE_NAME }}
+          zip -r ${{ env.RELEASE_NAME }} ./Frontend/
+          ftp-upload --host $FTP_SERVER --user $FTP_USER --dir $FTP_DIRECTORY --password $FTP_PASSWORD --passive ./${{ env.RELEASE_NAME }}
