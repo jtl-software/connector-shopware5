@@ -43,7 +43,7 @@ jobs:
       - name: System praparation
         run: |
           sudo apt-get update -yqq
-          sudo apt-get install -yqq ftp-upload
+          sudo apt-get install -yqq ftp-upload zip
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -65,10 +65,11 @@ jobs:
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_DIRECTORY: ${{ secrets.FTP_DIRECTORY }}
+          RELEASE_NAME: jtl-connector-shopware5-$CONNECTOR_VERSION.zip
         run: |
           mkdir -p ./Frontend/jtlconnector
           shopt -s extglob
           rm -R -f .git .github .gitignore build.sh build.xml composer.json composer.lock phpunit.xml
           cp -r ./!(Frontend) ./Frontend/jtlconnector
-          zip -r jtl-connector-shopware5-$CONNECTOR_VERSION.zip ./Frontend/
-          ftp-upload --host $FTP_SERVER --user $FTP_USER --dir $FTP_DIRECTORY --password $FTP_PASSWORD --passive ./${{ env.RELEASE_NAME }}
+          zip -r ./$RELEASE_NAME ./Frontend/
+          ftp-upload --host $FTP_SERVER --user $FTP_USER --dir $FTP_DIRECTORY --password $FTP_PASSWORD --passive ./$RELEASE_NAME
