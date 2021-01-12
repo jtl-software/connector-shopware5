@@ -66,10 +66,9 @@ jobs:
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
           FTP_DIRECTORY: ${{ secrets.FTP_DIRECTORY }}
         run: |
-          echo "RELEASE_NAME=jtl-connector-shopware5-$CONNECTOR_VERSION.zip" >> $GITHUB_ENV
           mkdir -p ./Frontend/jtlconnector
           shopt -s extglob
           rm -R -f .git .github .gitignore build.sh build.xml composer.json composer.lock phpunit.xml
           cp -r ./!(Frontend) ./Frontend/jtlconnector
-          zip -r ${{ env.RELEASE_NAME }} ./Frontend/
+          zip -r jtl-connector-shopware5-$CONNECTOR_VERSION.zip ./Frontend/
           ftp-upload --host $FTP_SERVER --user $FTP_USER --dir $FTP_DIRECTORY --password $FTP_PASSWORD --passive ./${{ env.RELEASE_NAME }}
