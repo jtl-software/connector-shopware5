@@ -163,7 +163,7 @@ class CustomerOrder extends DataController
 
                         switch ((int)$swOrder['net']) {
                             case 0: // price is gross
-                                $swDetail['priceGross'] = $swDetail['price'];
+                                $swDetail['priceGross'] = round($swDetail['price'], 4);
                                 $swDetail['price'] = round(Money::AsNet($swDetail['price'], $swDetail['taxRate']), 4);
                                 break;
                             case 1: // price is net
