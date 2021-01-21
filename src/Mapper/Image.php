@@ -904,7 +904,7 @@ class Image extends DataMapper
         /** @var Category $category */
         $category = ShopUtil::entityManager()->getRepository(Category::class)->find((int)$categoryId);
         if (is_null($category)) {
-            throw new \RuntimeException(sprintf('Can not find category (%s)!', $categoryId));
+            throw new \RuntimeException(sprintf('Cannot find category (%s)', $categoryId));
         }
 
         // Special category mapping
@@ -933,7 +933,7 @@ class Image extends DataMapper
         /** @var Value $propertyValue */
         $propertyValue = ShopUtil::entityManager()->getRepository(Value::class)->find((int)$propertyValueId);
         if ($propertyValue === null) {
-            throw new \RuntimeException(sprintf('Can not find specific value (%s)!', $propertyValueId));
+            throw new \RuntimeException(sprintf('Cannot find specific value (%s)', $propertyValueId));
         }
 
         $propertyValue->setMedia($media);
@@ -984,9 +984,10 @@ class Image extends DataMapper
             $imageName = $jtlImage->getName();
         }
 
-        if ($imageName !== '' && strpos($media->getName(), $imageName) !== 0) {
+        $newImageName = $this->sanitizeImageName($imageName);
+        $mediaNameCompare = substr($media->getName(), 0, -4);
+        if ($imageName !== '' && $media->getName() !== $newImageName && sprintf('%s-', $newImageName) !== $mediaNameCompare) {
             $mediaService = ShopUtil::mediaService();
-            $newImageName = $imageName;
             do {
                 $newPath = sprintf('%s/%s.%s', substr($media->getPath(), 0, strrpos($media->getPath(), '/')), $newImageName, $media->getExtension());
                 if (!$mediaService->has($newPath)) {
@@ -1161,5 +1162,20 @@ class Image extends DataMapper
                 }
             }
         }
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return string
+     */
+    private function sanitizeImageName($name)
+    {
+        $name = iconv('utf-8', 'ascii//translit', $name);
+        $name = preg_replace('#[^A-Za-z0-9\-_]#', '-', $name);
+        $name = preg_replace('#-{2,}#', '-', $name);
+        $name = trim($name, '-');
+
+        return mb_substr($name, 0, 180);
     }
 }
