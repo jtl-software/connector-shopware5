@@ -712,7 +712,7 @@ class Image extends DataMapper
         /** @var Article $article */
         $article = ShopUtil::entityManager()->find(Article::class, $articleId);
         if (is_null($article)) {
-            throw new \RuntimeException('Article (' . $articleId . ') not found!');
+            throw new \RuntimeException('Article (' . $articleId . ') not found');
         }
 
         $detail = null;
@@ -725,7 +725,7 @@ class Image extends DataMapper
         }
 
         if (is_null($detail)) {
-            throw new \RuntimeException('Article (' . $articleId . ') detail (' . $detailId . ') not found!');
+            throw new \RuntimeException('Article (' . $articleId . ') detail (' . $detailId . ') not found');
         }
 
         /** @var Product $productMapper */
@@ -735,6 +735,9 @@ class Image extends DataMapper
 
         /** @var \Shopware\Components\Api\Resource\Article $articleResource */
         $articleResource = ShopUtil::get()->Container()->get('shopware.api.article');
+        if(is_null($articleResource->getManager())) {
+            $articleResource->setManager(ShopUtil::entityManager());
+        }
 
         $existingImage = $this->findExistingImage($article, $jtlImage);
         $imageExists = !is_null($existingImage);
@@ -887,7 +890,7 @@ class Image extends DataMapper
         /** @var Supplier $supplier */
         $supplier = ShopUtil::entityManager()->getRepository(Supplier::class)->find((int)$supplierId);
         if ($supplier === null) {
-            throw new \RuntimeException(sprintf('Can not find manufacturer (%s)!', $supplierId));
+            throw new \RuntimeException(sprintf('Can not find manufacturer (%s)', $supplierId));
         }
 
         $supplier->setImage($media->getPath());
