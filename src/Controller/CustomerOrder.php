@@ -161,15 +161,7 @@ class CustomerOrder extends DataController
                             $swDetail['taxRate'] = 0.0;
                         }
 
-                        switch ((int)$swOrder['net']) {
-                            case 0: // price is gross
-                                $swDetail['priceGross'] = round($swDetail['price'], 4);
-                                $swDetail['price'] = round(Money::AsNet($swDetail['price'], $swDetail['taxRate']), 4);
-                                break;
-                            case 1: // price is net
-                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'], $swDetail['taxRate']), 4);
-                                break;
-                        }
+                        $precision = 4;
 
                         // Type (mode)
                         switch ((int)$swDetail['mode']) {
@@ -181,6 +173,7 @@ class CustomerOrder extends DataController
                             */
                             case 2:
                                 $swDetail['type'] = CustomerOrderItem::TYPE_COUPON;
+                                $precision = 2;
                                 break;
                             /*
                             case 3:
@@ -192,6 +185,16 @@ class CustomerOrder extends DataController
                                 break;
                             default:
                                 $swDetail['type'] = CustomerOrderItem::TYPE_PRODUCT;
+                                break;
+                        }
+
+                        switch ((int)$swOrder['net']) {
+                            case 0: // price is gross
+                                $swDetail['priceGross'] = round($swDetail['price'], $precision);
+                                $swDetail['price'] = round(Money::AsNet($swDetail['price'], $swDetail['taxRate']), $precision);
+                                break;
+                            case 1: // price is net
+                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'], $swDetail['taxRate']), 4);
                                 break;
                         }
 
