@@ -3,6 +3,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Mapper;
 
 use Doctrine\ORM\AbstractQuery;
@@ -73,14 +74,16 @@ class Category extends DataMapper
         $query = ShopUtil::entityManager()->createQueryBuilder()->select(
             'category',
             'attribute',
-            'customergroup'
+            'customergroup',
+            'LENGTH(category.path) - LENGTH(REPLACE(category.path, \'|\', \'\')) as pathLength'
         )
             ->from('jtl\Connector\Shopware\Model\Linker\Category', 'category')
             ->leftJoin('category.linker', 'linker')
             ->leftJoin('category.attribute', 'attribute')
             ->leftJoin('category.customerGroups', 'customergroup')
-            ->where('linker.hostId IS NULL')
-            ->orderBy('category.path', 'asc')
+            ->andWhere('linker.hostId IS NULL')
+            ->andWhere('category.parentId IS NOT NULL')
+            ->orderBy('pathLength, category.position', 'asc')
             ->setFirstResult(0)
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(AbstractQuery::HYDRATE_ARRAY);
@@ -88,10 +91,12 @@ class Category extends DataMapper
         $paginator = new Paginator($query, $fetchJoinCollection = true);
 
         if ($count) {
-            return ($paginator->count() - 1);
+            return ($paginator->count());
         }
 
-        $categories = iterator_to_array($paginator);
+        $categories = array_map(function(array $data) {
+            return $data[0] ?? null;
+        }, iterator_to_array($paginator));
 
         $shopMapper = Mmc::getMapper('Shop');
         $shops = $shopMapper->findAll(null, null);
