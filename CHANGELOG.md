@@ -1,3 +1,7 @@
+Unreleased
+----------
+- Switched rounding precision of order positions back to 4
+
 2.8.5
 -----
 - Fixed problems with not existing image translations
