@@ -363,6 +363,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.8.3.1':
             case '2.8.4':
             case '2.8.5':
+            case '2.8.5.1':
+            case '2.8.5.2':
+            case '2.8.5.3':
+            case '2.8.5.4':
+            case '2.8.5.5':
                 break;
         }
 

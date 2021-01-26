@@ -1,6 +1,8 @@
-Unreleased
-----------
-- Switched rounding precision of order positions back to 4
+2.8.6
+-----
+- Switched rounding precision of order positions back to 4 in customer order pull
+- Fixed categories order in category pull
+- Fixed problem with existing images in image push
 
 2.8.5
 -----
@@ -31,7 +33,6 @@ Unreleased
 - CO-1164 - Fixed/Refactored creating and updating images including name
 - Fixed order of categories during import in JTL-Wawi
 - Fixed error when importing customers in JTL-Wawi and no language was found
-
 
 2.7.0
 -----
