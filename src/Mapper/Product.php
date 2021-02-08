@@ -1459,7 +1459,7 @@ class Product extends DataMapper
             // Write non default translation values
             foreach ($product->getVariations() as $variation) {
                 foreach ($variation->getI18ns() as $variationI18n) {
-                    if (ShopUtil::isShopwareDefaultLanguage($variationI18n->getLanguageISO()) !== false) {
+                    if (ShopUtil::isShopwareDefaultLanguage($variationI18n->getLanguageISO()) === false) {
                         foreach ($confiSetSW->getGroups() as $groupSW) {
                             if (isset($variations[$groupSW->getName()]) && $variations[$groupSW->getName()] == $variation->getId()->getHost()) {
                                 try {
@@ -1474,7 +1474,7 @@ class Product extends DataMapper
 
                 foreach ($variation->getValues() as $value) {
                     foreach ($value->getI18ns() as $valueI18n) {
-                        if (ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO())) {
+                        if (ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO()) === false) {
                             foreach ($confiSetSW->getOptions() as $optionSW) {
                                 if (isset($values[$variation->getId()->getHost()][$optionSW->getName()])
                                     && $values[$variation->getId()->getHost()][$optionSW->getName()] == $value->getId()->getHost()) {
