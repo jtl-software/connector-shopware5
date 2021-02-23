@@ -3,11 +3,15 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\ORMException;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\I18n;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Model\Category as JtlCategory;
 use jtl\Connector\Model\Identity;
@@ -70,24 +74,29 @@ class Category extends DataMapper
         $query = ShopUtil::entityManager()->createQueryBuilder()->select(
             'category',
             'attribute',
-            'customergroup'
+            'customergroup',
+            'LENGTH(category.path) - LENGTH(REPLACE(category.path, \'|\', \'\')) as pathLength'
         )
             ->from('jtl\Connector\Shopware\Model\Linker\Category', 'category')
             ->leftJoin('category.linker', 'linker')
             ->leftJoin('category.attribute', 'attribute')
             ->leftJoin('category.customerGroups', 'customergroup')
-            ->where('linker.hostId IS NULL')
+            ->andWhere('linker.hostId IS NULL')
+            ->andWhere('category.parentId IS NOT NULL')
+            ->orderBy('pathLength, category.position', 'asc')
             ->setFirstResult(0)
             ->setMaxResults($limit)
-            ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+            ->getQuery()->setHydrationMode(AbstractQuery::HYDRATE_ARRAY);
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
 
         if ($count) {
-            return ($paginator->count() - 1);
+            return ($paginator->count());
         }
 
-        $categories = iterator_to_array($paginator);
+        $categories = array_map(function(array $data) {
+            return $data[0] ?? null;
+        }, iterator_to_array($paginator));
 
         $shopMapper = Mmc::getMapper('Shop');
         $shops = $shopMapper->findAll(null, null);
@@ -269,16 +278,14 @@ class Category extends DataMapper
      * @param JtlCategory $jtlCategory
      * @param SwCategory $swCategory
      * @param string[] $translations
-     * @param string|null $langIso
+     * @param string|null $languageIso
      * @throws LanguageException
      * @throws ORMException
      */
-    protected function prepareAttributeAssociatedData(JtlCategory $jtlCategory, SwCategory $swCategory, array &$translations, $langIso = null)
+    protected function prepareAttributeAssociatedData(JtlCategory $jtlCategory, SwCategory $swCategory, array &$translations, $languageIso = null)
     {
-        if (is_null($langIso)) {
-            $langIso = LocaleUtil::extractLanguageIsoFromLocale(Shopware()->Shop()->getLocale()->getLocale());
-        }else{
-            $langIso = LanguageUtil::convert(null, $langIso);
+        if (is_null($languageIso)) {
+            $languageIso = LanguageUtil::convert(LocaleUtil::extractLanguageIsoFromLocale(Shopware()->Shop()->getLocale()->getLocale()));
         }
 
         // Attribute
@@ -291,55 +298,50 @@ class Category extends DataMapper
         }
 
         $attributes = [];
-        $mappings = [];
         $categoryAttributes = [];
         foreach ($jtlCategory->getAttributes() as $jtlAttribute) {
             if ($jtlAttribute->getIsCustomProperty()) {
                 continue;
             }
 
-            foreach ($jtlAttribute->getI18ns() as $attributeI18n) {
-                if (LanguageUtil::convert(null, $attributeI18n->getLanguageISO()) === $langIso) {
+            $attributeI18n = I18n::findByLanguageIso($languageIso, ...$jtlAttribute->getI18ns());
 
-                    if (CategoryAttr::isSpecialAttribute($attributeI18n->getName())) {
+            if (CategoryAttr::isSpecialAttribute($attributeI18n->getName())) {
 
-                        // Active fix
-                        $allowedActiveValues = array('0', '1', 0, 1, false, true);
-                        if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::IS_ACTIVE, 'isactive'])
-                            && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
-                            $swCategory->setActive((bool)$attributeI18n->getValue());
-                        }
-
-                        // Cms Headline
-                        if (in_array(strtolower($attributeI18n->getName()),
-                            [CategoryAttr::CMS_HEADLINE, 'cmsheadline'])) {
-                            $swCategory->setCmsHeadline($attributeI18n->getValue());
-
-                            foreach ($jtlAttribute->getI18ns() as $i18n) {
-                                if (LanguageUtil::convert(null, $i18n->getLanguageISO()) === $langIso) {
-                                    continue;
-                                }
-                                $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
-                            }
-                        }
-
-                        if ($attributeI18n->getName() === CategoryAttr::IS_BLOG) {
-                            $swCategory->setBlog((bool)$attributeI18n->getValue());
-                        }
-
-                        if ($attributeI18n->getName() === CategoryAttr::LIMIT_TO_SHOPS) {
-                            $swCategory->setShops($attributeI18n->getValue());
-                        }
-
-                        continue;
-                    }
-
-                    $mappings[$attributeI18n->getName()] = $jtlAttribute->getId()->getHost();
-                    $attributes[$attributeI18n->getName()] = $jtlAttribute;
-
-                    $categoryAttributes[$attributeI18n->getName()] = $attributeI18n->getValue();
+                // Active fix
+                $allowedActiveValues = array('0', '1', 0, 1, false, true);
+                if (in_array(strtolower($attributeI18n->getName()), [CategoryAttr::IS_ACTIVE, 'isactive'])
+                    && in_array($attributeI18n->getValue(), $allowedActiveValues, true)) {
+                    $swCategory->setActive((bool)$attributeI18n->getValue());
                 }
+
+                // Cms Headline
+                if (in_array(strtolower($attributeI18n->getName()),
+                    [CategoryAttr::CMS_HEADLINE, 'cmsheadline'])) {
+                    $swCategory->setCmsHeadline($attributeI18n->getValue());
+
+                    foreach ($jtlAttribute->getI18ns() as $i18n) {
+                        if ($i18n->getLanguageISO() === $languageIso) {
+                            continue;
+                        }
+
+                        $translations[$i18n->getLanguageISO()]['category']['cmsheadline'] = $i18n->getValue();
+                    }
+                }
+
+                if ($attributeI18n->getName() === CategoryAttr::IS_BLOG) {
+                    $swCategory->setBlog((bool)$attributeI18n->getValue());
+                }
+
+                if ($attributeI18n->getName() === CategoryAttr::LIMIT_TO_SHOPS) {
+                    $swCategory->setShops($attributeI18n->getValue());
+                }
+
+                continue;
             }
+
+            $attributes[$attributeI18n->getName()] = $jtlAttribute;
+            $categoryAttributes[$attributeI18n->getName()] = $attributeI18n->getValue();
         }
 
         /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
@@ -351,7 +353,7 @@ class Category extends DataMapper
         foreach ($swAttributesList as $tSwAttribute) {
             $result = TranslatableAttributes::setAttribute($tSwAttribute, $swAttribute, $categoryAttributes, $nullUndefinedAttributes);
             if ($result === true) {
-                $translations = self::createAttributeTranslations($attributes[$tSwAttribute->getColumnName()], $tSwAttribute->getColumnName(), $translations, [$langIso]);
+                $translations = self::createAttributeTranslations($attributes[$tSwAttribute->getColumnName()], $tSwAttribute->getColumnName(), $translations, [$languageIso]);
             }
         }
 
@@ -488,6 +490,7 @@ class Category extends DataMapper
             if (in_array($i18n->getLanguageISO(), $ignoreLanguages)) {
                 continue;
             }
+
             $data[$i18n->getLanguageISO()]['attributes']['__attribute_' . $swAttributeName] = $i18n->getValue();
         }
 
