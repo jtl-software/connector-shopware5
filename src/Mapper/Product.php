@@ -47,13 +47,18 @@ use SwagCustomProducts\Models\Template;
 
 class Product extends DataMapper
 {
-    const KIND_VALUE_PARENT = 3;
-    const KIND_VALUE_DEFAULT = 2;
-    const KIND_VALUE_MAIN = 1;
+    public const
+        KIND_VALUE_PARENT = 3,
+        KIND_VALUE_DEFAULT = 2,
+        KIND_VALUE_MAIN = 1;
 
-    const SEARCH_KEYWORDS_ATTRIBUTE = 'search_keywords_attribute';
+    public const
+        ATTRIBUTE_ARTICLE_SEARCH_KEYWORDS = 'jtl_search_keywords';
 
-    protected static $masterProductIds = array();
+    /**
+     * @var array
+     */
+    protected static $masterProductIds = [];
 
     /**
      * @var boolean
@@ -978,24 +983,16 @@ class Product extends DataMapper
 
         $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
 
-        $jtlSearchKeywordsAttribute = null;
-
         foreach ($swAttributesList as $tSwAttribute) {
-
-            if ($tSwAttribute->getColumnName() === self::SEARCH_KEYWORDS_ATTRIBUTE) {
-                $jtlSearchKeywordsAttribute = $tSwAttribute;
-                continue;
+            if ($tSwAttribute->getColumnName() === self::ATTRIBUTE_ARTICLE_SEARCH_KEYWORDS) {
+                $keywordAttribute[self::ATTRIBUTE_ARTICLE_SEARCH_KEYWORDS] = $product->getKeywords();
+                TranslatableAttributes::setAttribute($tSwAttribute, $attributeSW, $keywordAttribute, false);
+            } else {
+                $result = TranslatableAttributes::setAttribute($tSwAttribute, $attributeSW, $attributes, $nullUndefinedAttributes);
+                if ($result === true) {
+                    $attrMappings[$tSwAttribute->getColumnName()] = $mappings[$tSwAttribute->getColumnName()];
+                }
             }
-
-            $result = TranslatableAttributes::setAttribute($tSwAttribute, $attributeSW, $attributes, $nullUndefinedAttributes);
-            if ($result === true) {
-                $attrMappings[$tSwAttribute->getColumnName()] = $mappings[$tSwAttribute->getColumnName()];
-            }
-        }
-
-        if (!is_null($jtlSearchKeywordsAttribute)) {
-            $keywordAttribute[self::SEARCH_KEYWORDS_ATTRIBUTE] = $product->getKeywords();
-            TranslatableAttributes::setAttribute($jtlSearchKeywordsAttribute, $attributeSW, $keywordAttribute, false);
         }
 
         ShopUtil::entityManager()->persist($attributeSW);

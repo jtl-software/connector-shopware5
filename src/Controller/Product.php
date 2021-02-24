@@ -337,7 +337,7 @@ class Product extends DataController
 
             foreach ($data['attribute'] as $key => $value) {
 
-                if ($key === ProductMapper::SEARCH_KEYWORDS_ATTRIBUTE) {
+                if ($key === ProductMapper::ATTRIBUTE_ARTICLE_SEARCH_KEYWORDS) {
                     $product->setKeywords($value);
                     continue;
                 }

@@ -103,7 +103,7 @@ class TranslatableAttributes extends Attributes
      * @param bool $nullUndefinedAttributes
      * @return bool
      */
-    public static function setAttribute(ConfigurationStruct $tSwAttribute, ModelEntity $swAttribute, array &$attributes, bool $nullUndefinedAttributes)
+    public static function setAttribute(ConfigurationStruct $tSwAttribute, ModelEntity $swAttribute, array &$attributes, bool $nullUndefinedAttributes): bool
     {
         if (!$tSwAttribute->isIdentifier()) {
             $setter = sprintf('set%s', ucfirst(Str::camel($tSwAttribute->getColumnName())));
