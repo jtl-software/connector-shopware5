@@ -242,7 +242,13 @@ class ProductPrice extends DataMapper
                 }
 
                 if ($itemCount > 0 && ($i + 1) < $itemCount && $priceItems[($i + 1)]->getQuantity() > 0) {
-                    $priceSW->setTo($priceItems[($i + 1)]->getQuantity() - 1);
+                    $to = (int)$priceItems[($i + 1)]->getQuantity() - 1;
+
+                    if ($to === 0) {
+                        continue;
+                    }
+
+                    $priceSW->setTo($to);
                 }
 
                 Logger::write(sprintf(
