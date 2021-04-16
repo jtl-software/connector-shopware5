@@ -295,9 +295,7 @@ class Image extends DataMapper
                     $referencedModel = $this->savePropertyValueImage($foreignId, $media);
                     break;
             }
-
-            ShopUtil::thumbnailManager()->createMediaThumbnail($media, [], true);
-
+            
             ShopUtil::entityManager()->persist($referencedModel);
             ShopUtil::entityManager()->flush();
 
