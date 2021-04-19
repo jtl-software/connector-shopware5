@@ -220,7 +220,7 @@ class ProductPrice extends DataMapper
                 }
 
                 $pseudoPrice = 0.;
-                if (!is_null($recommendedRetailPrice) && $recommendedRetailPrice > $priceItem->getNetPrice()) {
+                if (!is_null($recommendedRetailPrice) && $recommendedRetailPrice >= $priceItem->getNetPrice()) {
                     $pseudoPrice = $recommendedRetailPrice;
                 }
 
