@@ -13,5 +13,6 @@ use jtl\Connector\Shopware\Connector;
 
 $connector = Connector::getInstance();
 $application = Application::getInstance();
+$application->createFeaturesFileIfNecessary(sprintf('%s/config/features.json.example', CONNECTOR_DIR));
 $application->register($connector);
 $application->run();
