@@ -72,7 +72,7 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
     {
         $zipFilepath = $this->getZipFilepath();
 
-        $this->createZipFile($zipFilepath);
+        $this->compressLogFiles($zipFilepath);
 
         $response = $this->createDownloadResponse($zipFilepath);
         $response->headers->set('Content-Type', 'application/zip');
@@ -99,7 +99,7 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
      * @param string $zipFilepath
      * @throws Exception
      */
-    protected function createZipFile(string $zipFilepath): void
+    protected function compressLogFiles(string $zipFilepath): void
     {
         $zip = new ZipArchive();
         $logDirectory = $this->getLogDir();
