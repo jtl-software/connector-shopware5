@@ -13,9 +13,6 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
  */
 class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Action implements CSRFWhitelistAware
 {
-    public const
-        STATUS_OK = 'OK';
-
     /**
      * @return string[]
      */
@@ -50,7 +47,7 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
         foreach ($this->getLogFiles() as $logFile) {
             unlink($logFile);
         }
-        $this->sendJsonResponse(self::STATUS_OK, ['message' => 'Log files have been deleted.']);
+        $this->sendJsonResponse(['message' => 'Log files have been deleted.'], 200);
     }
 
     /**
@@ -58,11 +55,15 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
      */
     public function checkLogsAction(): void
     {
-        $logFilesAvailable = count($this->getLogFiles());
-        if ($logFilesAvailable === 0) {
-            $this->throwNoLogFilesException();
+        $message = [];
+        $status = 200;
+
+        if ($this->hasLogFiles() === false) {
+            $status = 404;
+            $message['message'] = $this->noLogFilesFoundMessage();
         }
-        $this->sendJsonResponse(self::STATUS_OK);
+
+        $this->sendJsonResponse($message, $status);
     }
 
     /**
@@ -72,11 +73,29 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
     {
         $zipFilepath = $this->getZipFilepath();
 
-        $this->compressLogFiles($zipFilepath);
+        $response = new Response($this->noLogFilesFoundMessage(), 404);
 
-        $response = $this->createDownloadResponse($zipFilepath);
-        $response->headers->set('Content-Type', 'application/zip');
+        if ($this->hasLogFiles()) {
+            $this->compressLogFiles($zipFilepath);
+            $response = $this->createDownloadResponse($zipFilepath)->setStatusCode(200);
+            $response->headers->set('Content-Type', 'application/zip');
+        }
+
         $response->send();
+    }
+
+    /**
+     * @param string $zipFilepath
+     * @throws Exception
+     */
+    protected function compressLogFiles(string $zipFilepath): void
+    {
+        $logDirectory = $this->getLogDir();
+
+        $zip = new ZipArchive();
+        $zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+        $zip->addGlob(sprintf('%s*.{log}', $logDirectory), GLOB_BRACE, ['remove_all_path' => true]);
+        $zip->close();
     }
 
     /**
@@ -88,31 +107,19 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
     }
 
     /**
+     * @return bool
+     */
+    protected function hasLogFiles(): bool
+    {
+        return count($this->getLogFiles()) > 0;
+    }
+
+    /**
      * @return string
      */
     protected function getZipFilepath(): string
     {
         return sys_get_temp_dir() . '/shopware5-connector-logs.zip';
-    }
-
-    /**
-     * @param string $zipFilepath
-     * @throws Exception
-     */
-    protected function compressLogFiles(string $zipFilepath): void
-    {
-        $zip = new ZipArchive();
-        $logDirectory = $this->getLogDir();
-
-        if ($result = $zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            throw new Exception(printf('Failed with code %d', $result));
-        } else {
-            $zip->addGlob(sprintf('%s*.{log}', $logDirectory), GLOB_BRACE, ['remove_all_path' => true]);
-            if ($zip->count() === 0) {
-                $this->throwNoLogFilesException();
-            }
-            $zip->close();
-        }
     }
 
     /**
@@ -124,20 +131,21 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
     }
 
     /**
+     * @return string
      * @throws Exception
      */
-    protected function throwNoLogFilesException(): void
+    protected function noLogFilesFoundMessage(): string
     {
-        throw new Exception(sprintf('There are no log files in %s directory. Cannot create zip archive.', $this->getLogDir()));
+        return sprintf('There are no log files in %s directory. Cannot create zip archive.', $this->getLogDir());
     }
 
     /**
-     * @param string $status
      * @param array $data
+     * @param int $status
      */
-    protected function sendJsonResponse(string $status, array $data = []): void
+    protected function sendJsonResponse(array $data = [], int $status = 200): void
     {
-        (new JsonResponse(['status' => $status, 'data' => $data]))->send();
+        (new JsonResponse($data, $status))->send();
     }
 
     /**
@@ -146,11 +154,7 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
      */
     protected function createDownloadResponse(string $tmpFile): Response
     {
-        $file = new File($tmpFile);
-
-        $response = new BinaryFileResponse($file);
-        $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT);
-
-        return $response;
+        return (new BinaryFileResponse(new File($tmpFile)))
+            ->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT);
     }
 }

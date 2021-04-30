@@ -209,39 +209,48 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'position' => 3
         ]);
 
+        $router = Shopware()->Front()->Router();
+
+        $checkLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'check-logs']);
+        $downloadLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'download-logs']);
+
         $this->Form()->setElement('button', self::DOWNLOAD_LOGS_BUTTON, [
             'label' => 'Logs herunterladen',
             'class'=>'foo',
-            'handler' => 'function() {
+            'handler' => sprintf('function() {
                 Ext.Ajax.request({
-                    url: "jtlconnector/check-logs",
-                    success: function (response) {                                                                 
-                      window.open("/backend/jtlconnector/download-logs");
+                    url: "%s",
+                    success: function (response) {
+                        window.open("%s");
                     },
                     failure: function (response) {
-                      Shopware.Msg.createGrowlMessage(response.statusText, response.responseText);
+                        let data = Ext.decode(response.responseText);
+                        Shopware.Msg.createGrowlMessage("Error", data.message);
                     }
-                });                                                
-             }',
+                });
+             }', $checkLogsUrl, $downloadLogsUrl),
             'position' => 4
         ]);
 
+        $deleteLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'delete-logs']);
+
         $this->Form()->setElement('button', self::DELETE_LOGS_BUTTON, [
             'label' => 'Logs löschen',
-            'handler' => 'function() {
+            'handler' => sprintf('function() {
                 if(confirm("Do you want to delete all connector logs?")){
                   Ext.Ajax.request({
-                    url: "jtlconnector/delete-logs",
-                    success: function (response) {                   
-                      let responseObj = Ext.JSON.decode(response.responseText);
-                      Shopware.Msg.createGrowlMessage(response.statusText, responseObj.data.message);
+                    url: "%s",
+                    success: function (response) {
+                        let data = Ext.decode(response.responseText);
+                        Shopware.Msg.createGrowlMessage("Success", data.message);
                     },
                     failure: function (response) {
-                      Shopware.Msg.createGrowlMessage(response.statusText, response.responseText);
+                        let data = Ext.decode(response.responseText);
+                        Shopware.Msg.createGrowlMessage("Error", data.message);
                     }
                   });
                 }                  
-             }',
+             }', $deleteLogsUrl),
             'position' => 5
         ]);
     }
@@ -417,7 +426,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.8.5.3':
             case '2.8.5.4':
             case '2.8.5.5':
-            case '2.9.0':
+            case '2.8.6':
+                $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
                 $this->setConfigFormElements();
                 break;
         }
