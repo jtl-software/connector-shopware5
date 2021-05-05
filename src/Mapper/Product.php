@@ -918,9 +918,14 @@ class Product extends DataMapper
             if ($lcAttributeName === strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
                 && $this->isParent($product)) {
                 try {
+                    $oldAttributeValue = $productAttribute->getKey();
                     $productAttribute->setKey(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
                         ->setValue($attributeValue)
                         ->save(false);
+
+                    if ($oldAttributeValue !== $attributeValue) {
+                        $this->rebuildArticleImagesMappings($article);
+                    }
                 } catch (\Exception $e) {
                     Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
                 }
