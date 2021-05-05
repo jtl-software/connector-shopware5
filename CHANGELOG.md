@@ -1,3 +1,16 @@
+2.9.0
+-----
+- CO-522 Added support for JTL product Onlineshop-Suchbegriffe as article search keywords in shop
+- CO-1090 Fixed updating sw_image_config_ignores attribute on parent product
+- CO-1260 Fixed sending article variation translations to shop
+- CO-1394 Fixed importing SEPA data from customer on order
+- CO-1477 Allowed that rrp can be equal to sales price
+- CO-1482 Added possibility to download connector logs and to de-/active developer-logging in plugin gui 
+- CO-1498 Removed overriding features file in update process
+- Added support for php8 (connector)
+- Removed duplicated thumbnail generation on image push
+- Revised shipping time handling on product push
+
 2.8.6
 -----
 - Switched rounding precision of order positions back to 4 in customer order pull
