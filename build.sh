@@ -4,7 +4,6 @@ printf "Hast du daran gedacht die Update Methode in der Bootstrap.php zu ergänz
 read -r cmd;
 
 if [[ $cmd = 'j' || $cmd = 'J' ]]; then
-    ulimit -n 100000;
     composer update --no-dev;
     php ./vendor/bin/phing release;
     composer update;

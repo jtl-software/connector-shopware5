@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['8.0']
+        php-versions: ['7.1', '7.2', '7.3', '7.4', '8.0']
     name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
     steps:
       - name: Checkout
@@ -41,7 +41,7 @@ jobs:
       - name: System preparation
         run: |
           sudo apt-get update -yqq
-          sudo apt-get install -yqq ftp-upload zip
+          sudo apt-get install -yqq ftp-upload
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -69,4 +69,4 @@ jobs:
           FTP_DIRECTORY: ${{ secrets.FTP_DIRECTORY }}
           RELEASE_NAME: jtl-connector-shopware5-$CONNECTOR_VERSION.zip
         run: |
-          ftp-upload --host $FTP_SERVER --user $FTP_USER --dir $FTP_DIRECTORY --password $FTP_PASSWORD --passive ./$RELEASE_NAME
+          ftp-upload --host $FTP_SERVER --user $FTP_USER --dir $FTP_DIRECTORY --password $FTP_PASSWORD --passive ./*.zip
