@@ -42,6 +42,7 @@
             <fileset dir="./">
                 <include name="Bootstrap.php" />
                 <include name="Connector.php" />
+                <include name="ConnectorBackend.php" />
                 <include name="LICENSE" />
                 <include name="CHANGELOG.md" />
                 <include name="plugin.png" />

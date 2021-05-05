@@ -34,7 +34,7 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
             define('CONNECTOR_DIR', __DIR__);
         }
 
-        if (in_array($this->Request()->getActionName(), ['deleteLogs', 'checkLogs'])) {
+        if (in_array($this->Request()->getActionName(), ['deleteLogs', 'checkLogs', 'downloadLogs'])) {
             Shopware()->Plugins()->Controller()->ViewRenderer()->setNoRender();
         }
     }
