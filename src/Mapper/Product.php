@@ -642,11 +642,12 @@ class Product extends DataMapper
                     }
 
                     $price = null;
-                    $priceCount = count($product->getPrices());
+                    $productPrices = $product->getPrices();
+                    $priceCount = count($productPrices);
                     if ($priceCount == 1) {
-                        $price = reset($product->getPrices());
+                        $price = reset($productPrices);
                     } elseif ($priceCount > 1) {
-                        foreach ($product->getPrices() as $productPrice) {
+                        foreach ($productPrices as $productPrice) {
                             if ($customerGroupSW->getId() == intval($productPrice->getCustomerGroupId()->getEndpoint())) {
                                 $price = $productPrice->getNetPrice();
 
