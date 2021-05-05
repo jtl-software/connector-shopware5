@@ -734,7 +734,7 @@ class Product extends DataMapper
             $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
             $today = new \DateTime((new \DateTime())->format('Y-m-d'));
             if ($inflow->getTimestamp() - $today->getTimestamp() > 0) {
-                $detailSW->setShippingTime(($product->getAdditionalHandlingTime() + $inflow->diff($today)->days));
+                $detailSW->setShippingTime(($product->getAdditionalHandlingTime() + (int)$inflow->diff($today)->days));
                 $exists = true;
             }
         }
@@ -754,8 +754,7 @@ class Product extends DataMapper
         }
 
         if (!$exists) {
-            $shippingTime = $product->calculateHandlingTime();
-            $detailSW->setShippingTime($shippingTime);
+            $detailSW->setShippingTime($product->getAdditionalHandlingTime() + $product->getSupplierDeliveryTime());
         }
 
         // Last stock
