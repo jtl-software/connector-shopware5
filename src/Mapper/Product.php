@@ -649,11 +649,12 @@ class Product extends DataMapper
                     }
 
                     $price = null;
-                    $priceCount = count($product->getPrices());
+                    $productPrices = $product->getPrices();
+                    $priceCount = count($productPrices);
                     if ($priceCount == 1) {
-                        $price = reset($product->getPrices());
+                        $price = reset($productPrices);
                     } elseif ($priceCount > 1) {
-                        foreach ($product->getPrices() as $productPrice) {
+                        foreach ($productPrices as $productPrice) {
                             if ($customerGroupSW->getId() == intval($productPrice->getCustomerGroupId()->getEndpoint())) {
                                 $price = $productPrice->getNetPrice();
 
@@ -735,8 +736,18 @@ class Product extends DataMapper
 
         // Delivery time
         $exists = false;
+        $considerNextAvailableInflowDate = (bool)Application()->getConfig()->get('product.push.consider_supplier_inflow_date_for_shipping', true);
+        if ($considerNextAvailableInflowDate && $product->getStockLevel()->getStockLevel() <= 0 && !is_null($product->getNextAvailableInflowDate())) {
+            $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
+            $today = new \DateTime((new \DateTime())->format('Y-m-d'));
+            if ($inflow->getTimestamp() - $today->getTimestamp() > 0) {
+                $detailSW->setShippingTime(($product->getAdditionalHandlingTime() + (int)$inflow->diff($today)->days));
+                $exists = true;
+            }
+        }
+
         $useHandlingTimeOnly = (bool)Application()->getConfig()->get('product.push.use_handling_time_for_shipping', false);
-        if(!$useHandlingTimeOnly) {
+        if (!$exists && !$useHandlingTimeOnly) {
             foreach ($product->getI18ns() as $i18n) {
                 if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
                     $deliveryStatus = trim(str_replace(['Tage', 'Days', 'Tag', 'Day'], '', $i18n->getDeliveryStatus()));
@@ -750,17 +761,7 @@ class Product extends DataMapper
         }
 
         if (!$exists) {
-            $shippingTime = $product->calculateHandlingTime();
-            $considerNextAvailableInflowDate = (bool)Application()->getConfig()->get('product.push.consider_supplier_inflow_date_for_shipping', true);
-            if($product->getStockLevel()->getStockLevel() <= 0 && $considerNextAvailableInflowDate && !is_null($product->getNextAvailableInflowDate())) {
-                $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
-                $today = new \DateTime((new \DateTime())->format('Y-m-d'));
-                if($inflow->getTimestamp() - $today->getTimestamp() > 0) {
-                    $shippingTime = $inflow->diff($today)->days;
-                }
-            }
-
-            $detailSW->setShippingTime($shippingTime);
+            $detailSW->setShippingTime($product->getAdditionalHandlingTime() + $product->getSupplierDeliveryTime());
         }
 
         // Last stock
