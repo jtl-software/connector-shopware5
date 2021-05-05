@@ -9,7 +9,6 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Service\Translation;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
-use jtl\Connector\Shopware\Utilities\Payment;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
 use Shopware\Components\Plugin\CachedConfigReader;
@@ -21,14 +20,19 @@ define('CONNECTOR_DIR', __DIR__);
 
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
-    const DELETE_USER_DATA = 'delete_user_data';
-    const CONNECTOR_URL = 'connector_url';
-    const AUTH_TOKEN = 'auth_token';
+    public const
+        DELETE_USER_DATA = 'delete_user_data',
+        CONNECTOR_URL = 'connector_url',
+        AUTH_TOKEN = 'auth_token',
+        DEVELOPER_LOGGING = 'developer_logging',
+
+        DOWNLOAD_LOGS_BUTTON = 'download_logs',
+        DELETE_LOGS_BUTTON = 'delete_logs';
 
     /**
      * @var Config
      */
-    protected $config;
+    protected $connectorConfig;
 
 
     public function __construct($name, Enlight_Config $info = null)
@@ -68,14 +72,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         );
     }
 
-    public function install()
+    protected function initConnectorConfig()
     {
-        Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
-
-        // Config
-        $config_file = Path::combine(__DIR__, 'config', 'config.json');
-        if (!file_exists($config_file)) {
-            file_put_contents($config_file, json_encode(array(
+        $configFile = Path::combine(__DIR__, 'config', 'config.json');
+        if (!file_exists($configFile)) {
+            file_put_contents($configFile, json_encode(array(
                 'developer_logging' => false,
                 'category' => [
                     'mapping' => false,
@@ -106,7 +107,15 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ), JSON_PRETTY_PRINT));
         }
 
-        $this->config = new Config($config_file);
+        if(is_null($this->connectorConfig)) {
+            $this->connectorConfig = new Config($configFile);
+        }
+    }
+    
+    public function install()
+    {
+        Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
+        $this->initConnectorConfig();
 
         Logger::write('Checking shopware version...', Logger::INFO, 'install');
 
@@ -133,10 +142,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         ini_set('max_execution_time', 0);
 
-        $this->subscribeEvent(
-            'Enlight_Controller_Dispatcher_ControllerPath_Frontend_Jtlconnector',
-            'onGetControllerPathFrontend'
-        );
+        $this->registerController('Frontend', 'Jtlconnector', 'onGetControllerPathFrontend');
+
+        $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
+
+        $this->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element','afterSaveConfigElement');
 
         $this->subscribeTranslationService();
 
@@ -195,10 +205,63 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'value' => true,
             'position' => 2
         ]);
+
+        $this->Form()->setElement('boolean', self::DEVELOPER_LOGGING, [
+            'label' => 'Developer-Logging aktivieren',
+            'required' => true,
+            'value' => $this->connectorConfig->get(self::DEVELOPER_LOGGING, false),
+            'position' => 3
+        ]);
+
+        $router = Shopware()->Front()->Router();
+
+        $checkLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'check-logs']);
+        $downloadLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'download-logs']);
+
+        $this->Form()->setElement('button', self::DOWNLOAD_LOGS_BUTTON, [
+            'label' => 'Logs herunterladen',
+            'class'=>'foo',
+            'handler' => sprintf('function() {
+                Ext.Ajax.request({
+                    url: "%s",
+                    success: function (response) {
+                        window.open("%s");
+                    },
+                    failure: function (response) {
+                        let data = Ext.decode(response.responseText);
+                        Shopware.Msg.createGrowlMessage("Info", data.message);
+                    }
+                });
+             }', $checkLogsUrl, $downloadLogsUrl),
+            'position' => 4
+        ]);
+
+        $deleteLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'delete-logs']);
+
+        $this->Form()->setElement('button', self::DELETE_LOGS_BUTTON, [
+            'label' => 'Logs löschen',
+            'handler' => sprintf('function() {
+                if(confirm("Do you want to delete all connector logs?")){
+                  Ext.Ajax.request({
+                    url: "%s",
+                    success: function (response) {
+                        let data = Ext.decode(response.responseText);
+                        Shopware.Msg.createGrowlMessage("Success", data.message);
+                    },
+                    failure: function (response) {
+                        let data = Ext.decode(response.responseText);
+                        Shopware.Msg.createGrowlMessage("Error", data.message);
+                    }
+                  });
+                }                  
+             }', $deleteLogsUrl),
+            'position' => 5
+        ]);
     }
 
     public function update($oldVersion)
     {
+        $this->initConnectorConfig();
         ini_set('max_execution_time', 0);
 
         switch ($oldVersion) {
@@ -368,6 +431,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.8.5.3':
             case '2.8.5.4':
             case '2.8.5.5':
+            case '2.8.6':
+                $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
+                $this->setConfigFormElements();
                 break;
         }
 
@@ -437,11 +503,27 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         if (!isset($pluginConfig[self::DELETE_USER_DATA]) || $pluginConfig[self::DELETE_USER_DATA] === true) {
             $this->dropMappingTable();
-            Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?",
-                [ProductMapper::KIND_VALUE_PARENT]);
+            Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
         }
 
         return true;
+    }
+
+    public function afterSaveConfigElement(Enlight_Event_EventArgs $data)
+    {
+        $formElement = $data->get('element');
+        if ($formElement->getName() === self::DEVELOPER_LOGGING && $formElement->getForm()->getPlugin()->getName() === $this->name) {
+
+            $value = $formElement->getValue();
+
+            $values = $formElement->getValues();
+            if (!empty($values->getValues()) && count($values->getValues()) === 1) {
+                $value = $values->getValues()[0]->getValue();
+            }
+
+            $config = new Config(Path::combine(sprintf('%s/config/config.json', __DIR__)));
+            $config->save(self::DEVELOPER_LOGGING, $value);
+        }
     }
 
     protected function subscribeTranslationService()
@@ -459,6 +541,15 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public static function onGetControllerPathFrontend(Enlight_Event_EventArgs $args)
     {
         return dirname(__FILE__) . '/Connector.php';
+    }
+
+    /**
+     * @param Enlight_Event_EventArgs $args
+     * @return string
+     */
+    public static function onGetControllerPathBackend(Enlight_Event_EventArgs $args)
+    {
+        return dirname(__FILE__) . '/ConnectorBackend.php';
     }
 
     /**
@@ -606,10 +697,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         }
 
         if ($l2cExists || $shopMapper->duplicateLocalizationsExist()) {
-            $this->config->save('category.mapping', false);
+            $this->connectorConfig->save('category.mapping', false);
             return;
         } else {
-            $this->config->save('category.mapping', true);
+            $this->connectorConfig->save('category.mapping', true);
         }
 
         $mainShopId = (int)Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops WHERE `default` = 1');
