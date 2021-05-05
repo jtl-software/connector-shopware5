@@ -60,7 +60,7 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
 
         if ($this->hasLogFiles() === false) {
             $status = 404;
-            $message['message'] = $this->noLogFilesFoundMessage();
+            $message['message'] = 'No log files found.';
         }
 
         $this->sendJsonResponse($message, $status);
@@ -71,9 +71,9 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
      */
     public function downloadLogsAction(): void
     {
-        $zipFilepath = $this->getZipFilepath();
-
-        $response = new Response($this->noLogFilesFoundMessage(), 404);
+        $zipFilepath = tempnam(sys_get_temp_dir(), 'jtl-connector-logs');
+        $noLogFilesMessage = sprintf('There are no log files in %s. Cannot create zip archive.', $this->getLogDir());
+        $response = new Response($noLogFilesMessage, 404);
 
         if ($this->hasLogFiles()) {
             $this->compressLogFiles($zipFilepath);
@@ -82,6 +82,10 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
         }
 
         $response->send();
+
+        if(is_file($zipFilepath)) {
+            unlink($zipFilepath);
+        }
     }
 
     /**
@@ -117,26 +121,9 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
     /**
      * @return string
      */
-    protected function getZipFilepath(): string
-    {
-        return sys_get_temp_dir() . '/shopware5-connector-logs.zip';
-    }
-
-    /**
-     * @return string
-     */
     protected function getLogDir(): string
     {
         return sprintf('%s/logs/', CONNECTOR_DIR);
-    }
-
-    /**
-     * @return string
-     * @throws Exception
-     */
-    protected function noLogFilesFoundMessage(): string
-    {
-        return sprintf('There are no log files in %s directory. Cannot create zip archive.', $this->getLogDir());
     }
 
     /**
@@ -155,6 +142,6 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
     protected function createDownloadResponse(string $tmpFile): Response
     {
         return (new BinaryFileResponse(new File($tmpFile)))
-            ->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+            ->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, 'shopware5-connector-logs.zip');
     }
 }

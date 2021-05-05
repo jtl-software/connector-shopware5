@@ -9,7 +9,6 @@ use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Service\Translation;
 use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
-use jtl\Connector\Shopware\Utilities\Payment;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use jtl\Connector\Shopware\Mapper\Product as ProductMapper;
 use Shopware\Components\Plugin\CachedConfigReader;
@@ -33,7 +32,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     /**
      * @var Config
      */
-    protected $config;
+    protected $connectorConfig;
 
 
     public function __construct($name, Enlight_Config $info = null)
@@ -73,14 +72,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         );
     }
 
-    public function install()
+    protected function initConnectorConfig()
     {
-        Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
-
-        // Config
-        $config_file = Path::combine(__DIR__, 'config', 'config.json');
-        if (!file_exists($config_file)) {
-            file_put_contents($config_file, json_encode(array(
+        $configFile = Path::combine(__DIR__, 'config', 'config.json');
+        if (!file_exists($configFile)) {
+            file_put_contents($configFile, json_encode(array(
                 'developer_logging' => false,
                 'category' => [
                     'mapping' => false,
@@ -111,7 +107,15 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ), JSON_PRETTY_PRINT));
         }
 
-        $this->config = new Config($config_file);
+        if(is_null($this->connectorConfig)) {
+            $this->connectorConfig = new Config($configFile);
+        }
+    }
+    
+    public function install()
+    {
+        Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
+        $this->initConnectorConfig();
 
         Logger::write('Checking shopware version...', Logger::INFO, 'install');
 
@@ -203,9 +207,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         ]);
 
         $this->Form()->setElement('boolean', self::DEVELOPER_LOGGING, [
-            'label' => 'Connector Entwickler-Logs',
+            'label' => 'Developer-Logging aktivieren',
             'required' => true,
-            'value' => $this->info->get(self::DEVELOPER_LOGGING, false),
+            'value' => $this->connectorConfig->get(self::DEVELOPER_LOGGING, false),
             'position' => 3
         ]);
 
@@ -225,7 +229,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     },
                     failure: function (response) {
                         let data = Ext.decode(response.responseText);
-                        Shopware.Msg.createGrowlMessage("Error", data.message);
+                        Shopware.Msg.createGrowlMessage("Info", data.message);
                     }
                 });
              }', $checkLogsUrl, $downloadLogsUrl),
@@ -257,6 +261,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
     public function update($oldVersion)
     {
+        $this->initConnectorConfig();
         ini_set('max_execution_time', 0);
 
         switch ($oldVersion) {
@@ -692,10 +697,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         }
 
         if ($l2cExists || $shopMapper->duplicateLocalizationsExist()) {
-            $this->config->save('category.mapping', false);
+            $this->connectorConfig->save('category.mapping', false);
             return;
         } else {
-            $this->config->save('category.mapping', true);
+            $this->connectorConfig->save('category.mapping', true);
         }
 
         $mainShopId = (int)Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops WHERE `default` = 1');
