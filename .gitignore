@@ -9,9 +9,9 @@ plugins/**
 logs/**
 !logs/.htaccess
 config/**
-!config/features.json
 !config/.htaccess
 !config/config.json.example
+!config/features.json.example
 db/**
 !db/.htaccess
 validation/**

@@ -18,9 +18,9 @@
         </copy>
         <copy todir="./dist/Frontend/jtlconnector/config">
             <fileset dir="./config">
-                <include name="features.json" />
                 <include name=".htaccess" />
                 <include name="config.json.example" />
+                <include name="features.json.example" />
             </fileset>
         </copy>
         <copy todir="./dist/Frontend/jtlconnector/logs">
