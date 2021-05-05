@@ -143,9 +143,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         ini_set('max_execution_time', 0);
 
         $this->registerController('Frontend', 'Jtlconnector', 'onGetControllerPathFrontend');
-
         $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
-
         $this->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element','afterSaveConfigElement');
 
         $this->subscribeTranslationService();
@@ -432,6 +430,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.8.5.4':
             case '2.8.5.5':
             case '2.8.6':
+                $this->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element','afterSaveConfigElement');
                 $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
                 $this->setConfigFormElements();
                 break;
@@ -509,20 +508,21 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         return true;
     }
 
+    /**
+     * @param Enlight_Event_EventArgs $data
+     */
     public function afterSaveConfigElement(Enlight_Event_EventArgs $data)
     {
         $formElement = $data->get('element');
         if ($formElement->getName() === self::DEVELOPER_LOGGING && $formElement->getForm()->getPlugin()->getName() === $this->name) {
-
             $value = $formElement->getValue();
-
             $values = $formElement->getValues();
             if (!empty($values->getValues()) && count($values->getValues()) === 1) {
                 $value = $values->getValues()[0]->getValue();
             }
 
-            $config = new Config(Path::combine(sprintf('%s/config/config.json', __DIR__)));
-            $config->save(self::DEVELOPER_LOGGING, $value);
+            $this->initConnectorConfig();
+            $this->connectorConfig->save(self::DEVELOPER_LOGGING, $value);
         }
     }
 
