@@ -358,10 +358,17 @@ class CustomerOrder extends DataController
                         }
 
                         foreach ($swOrder['customer']['paymentData'] as $dataSW) {
-                            if (isset($dataSW['bic']) && strlen($dataSW['bic']) > 0
-                                && isset($dataSW['iban']) && strlen($dataSW['iban']) > 0) {
-                                $customerOrderPaymentInfo->setBic($dataSW['bic'])
-                                    ->setIban($dataSW['iban']);
+                            if (isset($dataSW['paymentMeanId']) && isset($swOrder['payment']['id']) && $dataSW['paymentMeanId'] === $swOrder['payment']['id']) {
+                                $customerOrderPaymentInfo
+                                    ->setBic($dataSW['bic'] ?? '')
+                                    ->setBankName($dataSW['bankName'] ?? '')
+                                    ->setBankCode($dataSW['bankCode'] ?? '')
+                                    ->setIban($dataSW['iban'] ?? $dataSW['accountNumber'] ?? '')
+                                    ->setAccountNumber($dataSW['accountNumber'] ?? '');
+
+                                if ($customerOrderPaymentInfo->getAccountHolder() === '' || (isset($dataSW['accountHolder']) && !empty($dataSW['accountHolder']))) {
+                                    $customerOrderPaymentInfo->setAccountHolder($dataSW['accountHolder']);
+                                }
                                 break;
                             }
                         }
