@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['7.1', '7.2', '7.3', '7.4', '8.0']
+        php-versions: ['8.0']
     name: PHP ${{ matrix.php-versions }} Test on ${{ matrix.operating-system }}
     steps:
       - name: Checkout
@@ -24,40 +24,42 @@ jobs:
         with:
           php-version: ${{ matrix.php-versions }}
           extensions: mbstring, intl
-          tools: phpunit
+          tools: composer
 
       - name: Run composer
-        uses: php-actions/composer@v2
+        run: composer update
 
       - name: Run unit tests
-        uses: php-actions/phpunit@v7
-        with:
-          configuration: ./phpunit.xml
-          bootstrap: ./vendor/autoload.php
+        run: ./vendor/bin/phpunit
+
   deploy:
     needs: test
     runs-on: ubuntu-latest
     env:
       CONNECTOR_VERSION: ${{ github.event.inputs.tag }}
     steps:
-      - name: System praparation
+      - name: System preparation
         run: |
           sudo apt-get update -yqq
           sudo apt-get install -yqq ftp-upload zip
 
       - name: Checkout repository
         uses: actions/checkout@v2
-
-      - name: Checkout release tag
-        run: |
-          git fetch --all --tags
-          git checkout tags/$CONNECTOR_VERSION -b tmp
-
-      - name: Update composer dependencies
-        uses: php-actions/composer@v5
         with:
-          dev: no
-          php_version: 7.1
+          ref: ${{ github.event.inputs.tag }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+          extensions: mbstring, intl
+          tools: composer
+
+      - name: Run composer
+        run: composer update
+
+      - name: Build zip file
+        run: yes j | ./build.sh
 
       - name: Upload to FTP
         env:
@@ -67,9 +69,4 @@ jobs:
           FTP_DIRECTORY: ${{ secrets.FTP_DIRECTORY }}
           RELEASE_NAME: jtl-connector-shopware5-$CONNECTOR_VERSION.zip
         run: |
-          mkdir -p ./Frontend/jtlconnector
-          shopt -s extglob
-          rm -R -f .git .github .gitignore build.sh build.xml composer.json composer.lock phpunit.xml
-          cp -r ./!(Frontend) ./Frontend/jtlconnector
-          zip -r ./$RELEASE_NAME ./Frontend/
           ftp-upload --host $FTP_SERVER --user $FTP_USER --dir $FTP_DIRECTORY --password $FTP_PASSWORD --passive ./$RELEASE_NAME
