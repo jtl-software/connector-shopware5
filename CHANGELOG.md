@@ -1,3 +1,7 @@
+2.9.1
+-----
+- Added forgotten variations translations fix (CO-1260)
+
 2.9.0
 -----
 - CO-522 Added support for JTL product Onlineshop-Suchbegriffe as article search keywords in shop

@@ -433,6 +433,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element','afterSaveConfigElement');
                 $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
                 $this->setConfigFormElements();
+            case '2.9.0':
                 break;
         }
 
