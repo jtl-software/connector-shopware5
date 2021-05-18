@@ -706,7 +706,7 @@ class CustomerOrder extends DataController
                     break;
             }
         }
-        $keyValueAttributes->addAttribute('dhl_wunschpaket_feeder_system','shopware5');
+        $keyValueAttributes->addAttribute('dhl_wunschpaket_feeder_system','sw5');
     }
 
     public static function calcShippingVat(CustomerOrderModel $order)
