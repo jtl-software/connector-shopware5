@@ -434,6 +434,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
                 $this->setConfigFormElements();
             case '2.9.0':
+            case '2.9.1':
+                $this->createTaxClassMappingTable();
                 break;
         }
 
@@ -443,6 +445,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     private function createMappingTables()
     {
         $this->createParentDummies();
+        $this->createTaxClassMappingTable();
         $this->createCategoryMappingTable();
         $this->createDetailMappingTable();
         $this->createCustomerMappingTable();
@@ -475,6 +478,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_specific`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_specific_value`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_payment`');
+        Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_link_tax_class`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_unit_i18n`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_unit`');
         Shopware()->Db()->query('DROP TABLE IF EXISTS `jtl_connector_payment`');
@@ -889,6 +893,24 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ALTER TABLE `jtl_connector_link_category`
             ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`category_id`) REFERENCES `s_categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_category` ADD INDEX(`host_id`);
+        ';
+
+        Shopware()->Db()->query($sql);
+    }
+
+    private function createTaxClassMappingTable()
+    {
+        Logger::write('Create tax class mapping table...', Logger::INFO, 'install');
+
+        $sql = '
+            CREATE TABLE IF NOT EXISTS `jtl_connector_link_tax_class` (
+              `tax_id` int(11) unsigned NOT NULL,
+              `host_id` int(10) unsigned NOT NULL,
+              PRIMARY KEY (`tax_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+            ALTER TABLE `jtl_connector_link_tax_class`
+            ADD CONSTRAINT `jtl_connector_link_tax_class_1` FOREIGN KEY (`tax_id`) REFERENCES `s_core_tax` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ALTER TABLE `jtl_connector_link_tax_class` ADD INDEX(`host_id`);
         ';
 
         Shopware()->Db()->query($sql);

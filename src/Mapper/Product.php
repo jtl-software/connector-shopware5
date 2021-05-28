@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Model\TaxRate;
 use jtl\Connector\Shopware\Utilities\I18n;
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
 use jtl\Connector\Shopware\Utilities\Str;
@@ -43,6 +44,8 @@ use Shopware\Models\Property\Group;
 use Shopware\Models\Property\Option;
 use Shopware\Models\Property\Value;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use Shopware\Models\Tax\Rule;
+use Shopware\Models\Tax\Tax;
 use SwagCustomProducts\Models\Template;
 
 class Product extends DataMapper
@@ -588,13 +591,69 @@ class Product extends DataMapper
 
     protected function prepareTaxAssociatedData(JtlProduct $product, ArticleSW &$productSW)
     {
-        // Tax
-        $taxSW = Shopware()->Models()->getRepository('Shopware\Models\Tax\Tax')->findOneBy(array('tax' => $product->getVat()));
-        if ($taxSW) {
-            $productSW->setTax($taxSW);
+        $taxId = $product->getTaxClassId()->getEndpoint();
+        $taxRepository = Shopware()->Models()->getRepository(Tax::class);
+
+        if (empty($taxId)) {
+            $swTax = $this->findSwTaxByTaxRates(...$product->getTaxRates());
+            if(is_null($swTax)){
+                $swTax = $taxRepository->findOneBy(['tax' => $product->getVat()]);
+            }
         } else {
-            throw new DatabaseException(sprintf('Could not find any Tax entity for value (%s)', $product->getVat()));
+            $swTax = $taxRepository->findOneBy(['id' => $taxId]);
         }
+
+        if (!$swTax instanceof Tax) {
+            throw new DatabaseException('Could not find any matching Tax entity');
+        }
+
+        $productSW->setTax($swTax);
+    }
+
+    /**
+     * @param TaxRate ...$jtlTaxRates
+     * @return Tax|null
+     */
+    protected function findSwTaxByTaxRates(TaxRate ...$jtlTaxRates): ?Tax
+    {
+        $em = ShopUtil::entityManager();
+
+        $swTaxes = $em->createQueryBuilder()->select(['country.iso','rule.tax'])
+            ->from(Rule::class, 'rule')
+            ->leftJoin('rule.country', 'country')
+            ->where('rule.active = 1')
+            ->getQuery()
+            ->getResult();
+        $swTaxes = array_combine(array_column($swTaxes, 'iso'), $swTaxes);
+
+        $jtlTaxRates = array_combine(array_map(function (TaxRate $taxRate) {
+            return $taxRate->getCountryIso();
+        }, $jtlTaxRates), $jtlTaxRates);
+
+        $conditions = [];
+        $commonTaxRates = array_values(array_intersect_key($jtlTaxRates, $swTaxes));
+        foreach ($commonTaxRates as $taxRate) {
+            $conditions[] = sprintf("(country.iso = '%s' AND rule.tax='%s')", $taxRate->getCountryIso(), number_format($taxRate->getRate(), 2));
+        }
+
+        $qb = $em->createQueryBuilder();
+        $foundTaxes = $qb->select(['rule.groupId'])
+            ->from(Rule::class, 'rule')
+            ->leftJoin('rule.country', 'country')
+            ->where('rule.active = 1')
+            ->andWhere(join(' OR ',$conditions))
+            ->orderBy($qb->expr()->count('rule.groupId'),'DESC')
+            ->groupBy('rule.groupId')
+            ->getQuery()
+            ->getResult();
+
+        $taxRepository = Shopware()->Models()->getRepository(Tax::class);
+        $swTax = null;
+        if (!empty($foundTaxes)) {
+            $swTax = $taxRepository->findOneBy(['id' => $foundTaxes[0]['groupId']]);
+        }
+
+        return $swTax;
     }
 
     protected function prepareManufacturerAssociatedData(JtlProduct $product, ArticleSW &$productSW)
