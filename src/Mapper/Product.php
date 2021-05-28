@@ -595,7 +595,7 @@ class Product extends DataMapper
         $taxRepository = Shopware()->Models()->getRepository(Tax::class);
 
         if (empty($taxId)) {
-            $swTax = $this->findSwTaxByTaxRates(...$product->getTaxRates());
+            $swTax = $this->findSwTaxByTaxRates($product->getVat(), ...$product->getTaxRates());
             if(is_null($swTax)){
                 $swTax = $taxRepository->findOneBy(['tax' => $product->getVat()]);
             }
@@ -611,46 +611,61 @@ class Product extends DataMapper
     }
 
     /**
+     * @param float $vat
      * @param TaxRate ...$jtlTaxRates
      * @return Tax|null
      */
-    protected function findSwTaxByTaxRates(TaxRate ...$jtlTaxRates): ?Tax
+    protected function findSwTaxByTaxRates(float $vat, TaxRate ...$jtlTaxRates): ?Tax
     {
-        $em = ShopUtil::entityManager();
-
-        $swTaxes = $em->createQueryBuilder()->select(['country.iso','rule.tax'])
-            ->from(Rule::class, 'rule')
-            ->leftJoin('rule.country', 'country')
-            ->where('rule.active = 1')
-            ->getQuery()
-            ->getResult();
-        $swTaxes = array_combine(array_column($swTaxes, 'iso'), $swTaxes);
-
-        $jtlTaxRates = array_combine(array_map(function (TaxRate $taxRate) {
-            return $taxRate->getCountryIso();
-        }, $jtlTaxRates), $jtlTaxRates);
-
-        $conditions = [];
-        $commonTaxRates = array_values(array_intersect_key($jtlTaxRates, $swTaxes));
-        foreach ($commonTaxRates as $taxRate) {
-            $conditions[] = sprintf("(country.iso = '%s' AND rule.tax='%s')", $taxRate->getCountryIso(), number_format($taxRate->getRate(), 2));
-        }
-
-        $qb = $em->createQueryBuilder();
-        $foundTaxes = $qb->select(['rule.groupId'])
-            ->from(Rule::class, 'rule')
-            ->leftJoin('rule.country', 'country')
-            ->where('rule.active = 1')
-            ->andWhere(join(' OR ',$conditions))
-            ->orderBy($qb->expr()->count('rule.groupId'),'DESC')
-            ->groupBy('rule.groupId')
-            ->getQuery()
-            ->getResult();
-
-        $taxRepository = Shopware()->Models()->getRepository(Tax::class);
         $swTax = null;
-        if (!empty($foundTaxes)) {
-            $swTax = $taxRepository->findOneBy(['id' => $foundTaxes[0]['groupId']]);
+        $em = ShopUtil::entityManager();
+        $taxRepository = Shopware()->Models()->getRepository(Tax::class);
+
+        $swUniqueTaxes = $taxRepository->findBy(['tax'=>$vat]);
+        if (count($swUniqueTaxes) === 1) {
+            $swTax = $swUniqueTaxes[0];
+        } else {
+            $taxGroups = array_map(function (Tax $tax) {
+                return $tax->getId();
+            }, $swUniqueTaxes);
+
+            $swTaxes = $em->createQueryBuilder()->select(['country.iso', 'rule.tax'])
+                ->from(Rule::class, 'rule')
+                ->leftJoin('rule.country', 'country')
+                ->where('rule.active = 1');
+
+            if (!empty($taxGroups)) {
+                $swTaxes->where(sprintf('rule.groupId IN (%s)', join(',', $taxGroups)));
+            }
+
+            $swTaxes = $swTaxes->getQuery()->getResult();
+            $swTaxes = array_combine(array_column($swTaxes, 'iso'), $swTaxes);
+
+            $jtlTaxRates = array_combine(array_map(function (TaxRate $taxRate) {
+                return $taxRate->getCountryIso();
+            }, $jtlTaxRates), $jtlTaxRates);
+
+            $commonTaxRates = array_values(array_intersect_key($jtlTaxRates, $swTaxes));
+
+            $conditions = [];
+            foreach ($commonTaxRates as $taxRate) {
+                $conditions[] = sprintf("(country.iso = '%s' AND rule.tax='%s')", $taxRate->getCountryIso(), number_format($taxRate->getRate(), 2));
+            }
+
+            $qb = $em->createQueryBuilder();
+            $foundTaxes = $qb->select(['rule.groupId'])
+                ->from(Rule::class, 'rule')
+                ->leftJoin('rule.country', 'country')
+                ->where('rule.active = 1')
+                ->andWhere(join(' OR ', $conditions))
+                ->orderBy($qb->expr()->count('rule.groupId'), 'DESC')
+                ->groupBy('rule.groupId')
+                ->getQuery()
+                ->getResult();
+
+            if (!empty($foundTaxes)) {
+                $swTax = $taxRepository->findOneBy(['id' => $foundTaxes[0]['groupId']]);
+            }
         }
 
         return $swTax;
