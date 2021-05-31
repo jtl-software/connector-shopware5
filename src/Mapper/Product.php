@@ -184,7 +184,9 @@ class Product extends DataMapper
 
                 if (!empty($translation)) {
                     $translation['shopId'] = $shop['id'];
-                    $products[$i]['translations'][$shop['locale']['locale']] = $translation;
+                    if (!isset($products[$i]['translations'][$shop['locale']['locale']])) {
+                        $products[$i]['translations'][$shop['locale']['locale']] = $translation;
+                    }
                 }
             }
         }
