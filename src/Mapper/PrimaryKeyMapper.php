@@ -340,65 +340,70 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     {
         switch ($type) {
             case IdentityLinker::TYPE_CATEGORY:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_category',
                     'pk' => 'category_id'
-                );
+                ];
             case IdentityLinker::TYPE_CUSTOMER:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_customer',
                     'pk' => 'customer_id'
-                );
+                ];
             case IdentityLinker::TYPE_PRODUCT:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_detail',
                     'pk' => 'product_id'
-                );
+                ];
             case IdentityLinker::TYPE_IMAGE:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_image',
                     'pk' => 'media_id'
-                );
+                ];
             case IdentityLinker::TYPE_MANUFACTURER:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_manufacturer',
                     'pk' => 'manufacturer_id'
-                );
+                ];
             case IdentityLinker::TYPE_DELIVERY_NOTE:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_note',
                     'pk' => 'note_id'
-                );
+                ];
             case IdentityLinker::TYPE_CUSTOMER_ORDER:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_order',
                     'pk' => 'order_id'
-                );
+                ];
             case IdentityLinker::TYPE_SPECIFIC:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_specific',
                     'pk' => 'specific_id'
-                );
+                ];
             case IdentityLinker::TYPE_SPECIFIC_VALUE:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_specific_value',
                     'pk' => 'specific_value_id'
-                );
+                ];
             case IdentityLinker::TYPE_PAYMENT:
-                return array(
+                return [
                     'table' => 'jtl_connector_link_payment',
                     'pk' => 'order_id'
-                );
+                ];
             case IdentityLinker::TYPE_CROSSSELLING:
-                return array(
+                return [
                     'table' => 'jtl_connector_crossselling',
                     'pk' => 'product_id'
-                );
+                ];
             case IdentityLinker::TYPE_CROSSSELLING_GROUP:
-                return array(
+                return [
                     'table' => 'jtl_connector_crosssellinggroup',
                     'pk' => 'id'
-                );
+                ];
+            case IdentityLinker::TYPE_TAX_CLASS:
+                return [
+                    'table' => 'jtl_connector_link_tax_class',
+                    'pk' => 'tax_id'
+                ];
         }
 
         return null;

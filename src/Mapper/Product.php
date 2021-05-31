@@ -591,16 +591,17 @@ class Product extends DataMapper
 
     protected function prepareTaxAssociatedData(JtlProduct $product, ArticleSW &$productSW)
     {
-        $taxId = $product->getTaxClassId()->getEndpoint();
         $taxRepository = Shopware()->Models()->getRepository(Tax::class);
-
-        if (empty($taxId)) {
-            $swTax = $this->findSwTaxByTaxRates($product->getVat(), ...$product->getTaxRates());
-            if(is_null($swTax)){
-                $swTax = $taxRepository->findOneBy(['tax' => $product->getVat()]);
-            }
-        } else {
+        if (!is_null($product->getTaxClassId()) && !empty($taxId = $product->getTaxClassId()->getEndpoint())) {
             $swTax = $taxRepository->findOneBy(['id' => $taxId]);
+        } else {
+            $swTax = $taxRepository->findOneBy(['tax' => $product->getVat()]);
+            if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
+                $swTax = $this->findSwTaxByTaxRates($product->getVat(), ...$product->getTaxRates());
+                if ($swTax instanceof Tax) {
+                    $product->getTaxClassId()->setEndpoint((string) $swTax->getId());
+                }
+            }
         }
 
         if (!$swTax instanceof Tax) {
@@ -621,7 +622,7 @@ class Product extends DataMapper
         $em = ShopUtil::entityManager();
         $taxRepository = Shopware()->Models()->getRepository(Tax::class);
 
-        $swUniqueTaxes = $taxRepository->findBy(['tax'=>$vat]);
+        $swUniqueTaxes = $taxRepository->findBy(['tax' => $vat]);
         if (count($swUniqueTaxes) === 1) {
             $swTax = $swUniqueTaxes[0];
         } else {
