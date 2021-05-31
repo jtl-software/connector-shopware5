@@ -30,7 +30,8 @@ class Payment extends DataMapper
                 IF(orders.cleareddate IS NULL, now(), orders.cleareddate) as creationDate,
                 orders.invoice_amount as totalSum,
                 orders.transactionID as transactionId,
-                m.name AS paymentModuleCode
+                m.name AS paymentModuleCode,
+                m.description AS description
             FROM s_order orders
             JOIN jtl_connector_link_order lo ON lo.order_id = orders.id
             JOIN s_core_paymentmeans m ON m.id = orders.paymentID

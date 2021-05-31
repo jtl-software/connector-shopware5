@@ -26,7 +26,7 @@ final class Payment
         ]
     );
 
-    public static function map($paymentModuleCode = null, $swCode = null)
+    public static function map(string $paymentModuleCode = null, string $swCode = null, string $fallbackDescription = '')
     {
         if ($paymentModuleCode !== null && isset(self::$_mappings[$paymentModuleCode])) {
             return self::$_mappings[$paymentModuleCode];
@@ -44,7 +44,7 @@ final class Payment
             }
         }
 
-        return null;
+        return !empty($fallbackDescription) ? $fallbackDescription : null;
     }
 
     /**

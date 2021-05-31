@@ -40,7 +40,7 @@ class Payment extends DataController
             $customerOrderMapper = Mmc::getMapper('CustomerOrder');
 
             foreach ($payments as $paymentSW) {
-                $paymentModuleCode = PaymentUtil::map(null, $paymentSW['paymentModuleCode']);
+                $paymentModuleCode = PaymentUtil::map(null, $paymentSW['paymentModuleCode'], $paymentSW['description']);
                 $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $paymentSW['paymentModuleCode'];
 
                 if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode)) {

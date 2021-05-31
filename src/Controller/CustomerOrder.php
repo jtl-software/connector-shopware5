@@ -109,7 +109,7 @@ class CustomerOrder extends DataController
                         ->findOneById($jtlOrder->getId()->getEndpoint());
 
                     // PaymentModuleCode
-                    $paymentModuleCode = PaymentUtil::map(null, $swOrder['payment']['name']);
+                    $paymentModuleCode = PaymentUtil::map(null, $swOrder['payment']['name'], $swOrder['payment']['description']);
                     $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $swOrder['payment']['name'];
                     $jtlOrder->setPaymentModuleCode($paymentModuleCode);
 
