@@ -589,6 +589,11 @@ class Product extends DataMapper
         $productSW->setCustomerGroups($collection);
     }
 
+    /**
+     * @param JtlProduct $product
+     * @param ArticleSW $productSW
+     * @throws DatabaseException
+     */
     protected function prepareTaxAssociatedData(JtlProduct $product, ArticleSW &$productSW)
     {
         $taxRepository = Shopware()->Models()->getRepository(Tax::class);
@@ -597,9 +602,9 @@ class Product extends DataMapper
         } else {
             $swTax = $taxRepository->findOneBy(['tax' => $product->getVat()]);
             if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
-                $swTax = $this->findSwTaxByTaxRates($product->getVat(), ...$product->getTaxRates());
+                $swTax = $this->findSwTaxByTaxRates($product->getVat(), ...$product->getTaxRates()) ?? $swTax;
                 if ($swTax instanceof Tax) {
-                    $product->getTaxClassId()->setEndpoint((string) $swTax->getId());
+                    $product->getTaxClassId()->setEndpoint((string)$swTax->getId());
                 }
             }
         }
@@ -619,54 +624,45 @@ class Product extends DataMapper
     protected function findSwTaxByTaxRates(float $vat, TaxRate ...$jtlTaxRates): ?Tax
     {
         $swTax = null;
-        $em = ShopUtil::entityManager();
         $taxRepository = Shopware()->Models()->getRepository(Tax::class);
+        /** @var Tax[] $swTaxGroups */
+        $swTaxGroups = [];
+        foreach ($taxRepository->findBy(['tax' => $vat]) as $swTaxGroup) {
+            $swTaxGroups[$swTaxGroup->getId()] = $swTaxGroup;
+        }
 
-        $swUniqueTaxes = $taxRepository->findBy(['tax' => $vat]);
-        if (count($swUniqueTaxes) === 1) {
-            $swTax = $swUniqueTaxes[0];
-        } else {
-            $taxGroups = array_map(function (Tax $tax) {
-                return $tax->getId();
-            }, $swUniqueTaxes);
+        switch (count($swTaxGroups)) {
+            case 0:
+                return null;
+                break;
+            case 1:
+                return reset($swTaxGroups);
+                break;
+            default:
+                $commonTaxRates = [];
+                foreach ($swTaxGroups as $swTaxGroup) {
+                    /** @var Rule[] $swGroupRules */
+                    $swGroupRules = array_combine(array_map(function (Rule $swTaxRule) {
+                        return $swTaxRule->getCountry()->getIso();
+                    }, $swTaxGroup->getRules()->toArray()), $swTaxGroup->getRules()->toArray());
 
-            $swTaxes = $em->createQueryBuilder()->select(['country.iso', 'rule.tax'])
-                ->from(Rule::class, 'rule')
-                ->leftJoin('rule.country', 'country')
-                ->where('rule.active = 1');
+                    $commonTaxRates[$swTaxGroup->getId()] = 0;
+                    foreach ($jtlTaxRates as $jtlTaxRate) {
+                        if (isset($swGroupRules[$jtlTaxRate->getCountryIso()]) && $swGroupRules[$jtlTaxRate->getCountryIso()]->getTax() === $jtlTaxRate->getRate()) {
+                            $commonTaxRates[$swTaxGroup->getId()]++;
+                        }
+                    }
+                }
 
-            if (!empty($taxGroups)) {
-                $swTaxes->where(sprintf('rule.groupId IN (%s)', join(',', $taxGroups)));
-            }
+                $actualMatches = 0;
+                foreach ($commonTaxRates as $swTaxGroupId => $matches) {
+                    if ($matches > $actualMatches) {
+                        $actualMatches = $matches;
+                        $swTax = $swTaxGroups[$swTaxGroupId];
+                    }
+                }
 
-            $swTaxes = $swTaxes->getQuery()->getResult();
-            $swTaxes = array_combine(array_column($swTaxes, 'iso'), $swTaxes);
-
-            $jtlTaxRates = array_combine(array_map(function (TaxRate $taxRate) {
-                return $taxRate->getCountryIso();
-            }, $jtlTaxRates), $jtlTaxRates);
-
-            $commonTaxRates = array_values(array_intersect_key($jtlTaxRates, $swTaxes));
-
-            $conditions = [];
-            foreach ($commonTaxRates as $taxRate) {
-                $conditions[] = sprintf("(country.iso = '%s' AND rule.tax='%s')", $taxRate->getCountryIso(), number_format($taxRate->getRate(), 2));
-            }
-
-            $qb = $em->createQueryBuilder();
-            $foundTaxes = $qb->select(['rule.groupId'])
-                ->from(Rule::class, 'rule')
-                ->leftJoin('rule.country', 'country')
-                ->where('rule.active = 1')
-                ->andWhere(join(' OR ', $conditions))
-                ->orderBy($qb->expr()->count('rule.groupId'), 'DESC')
-                ->groupBy('rule.groupId')
-                ->getQuery()
-                ->getResult();
-
-            if (!empty($foundTaxes)) {
-                $swTax = $taxRepository->findOneBy(['id' => $foundTaxes[0]['groupId']]);
-            }
+                break;
         }
 
         return $swTax;
@@ -1227,7 +1223,7 @@ class Product extends DataMapper
                 var_dump($item->getNetPrice());
             }
         }
-        
+
         die();
         */
 
@@ -1606,7 +1602,7 @@ class Product extends DataMapper
             Shopware()->Db()->query($sql, array($confiSet->getId(), $groupSW->getId()));
         }
 
-        // Options            
+        // Options
         foreach ($confiSet->getOptions() as $optionSW) {
             $sql = "INSERT INTO s_article_configurator_set_option_relations (set_id, option_id) VALUES (?,?)";
             Shopware()->Db()->query($sql, array($confiSet->getId(), $optionSW->getId()));
