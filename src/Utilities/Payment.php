@@ -26,25 +26,36 @@ final class Payment
         ]
     );
 
-    public static function map(string $paymentModuleCode = null, string $swCode = null, string $fallbackDescription = '')
+    /**
+     * @param string|null $jtlModuleCode
+     * @param string|null $swModuleCode
+     * @param string|null $paymentName
+     * @return string
+     * @throws \Exception
+     */
+    public static function map(string $jtlModuleCode = null, string $swModuleCode = null, string $paymentName = null): string
     {
-        if ($paymentModuleCode !== null && isset(self::$_mappings[$paymentModuleCode])) {
-            return self::$_mappings[$paymentModuleCode];
-        } elseif ($swCode !== null) {
+        if(is_null($jtlModuleCode) && is_null($swModuleCode) && is_null($paymentName)) {
+            throw new \Exception('All three method arguments are null. At least of the arguments has to be a non empty string.');
+        }
+
+        if ($jtlModuleCode !== null && isset(self::$_mappings[$jtlModuleCode])) {
+            return self::$_mappings[$jtlModuleCode];
+        } elseif ($swModuleCode !== null) {
             foreach (self::$_mappings as $key => $value) {
                 if (is_array($value)) {
-                    if (array_search($swCode, $value, true) !== false) {
+                    if (array_search($swModuleCode, $value, true) !== false) {
                         return $key;
                     }
                 }
 
-                if ($value === $swCode) {
+                if ($value === $swModuleCode) {
                     return $key;
                 }
             }
         }
 
-        return !empty($fallbackDescription) ? $fallbackDescription : null;
+        return $paymentName ?? $jtlModuleCode ?? $swModuleCode;
     }
 
     /**

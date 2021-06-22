@@ -33,32 +33,32 @@ class Payment extends DataController
             $result = array();
             $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
+            /** @var \jtl\Connector\Shopware\Mapper\Payment $mapper */
             $mapper = Mmc::getMapper('Payment');
-            $payments = $mapper->findAllNative($limit);
+            $swPayments = $mapper->findAllNative($limit);
 
             /** @var \jtl\Connector\Shopware\Mapper\CustomerOrder $customerOrderMapper */
             $customerOrderMapper = Mmc::getMapper('CustomerOrder');
 
-            foreach ($payments as $paymentSW) {
-                $paymentModuleCode = PaymentUtil::map(null, $paymentSW['paymentModuleCode'], $paymentSW['description']);
-                $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $paymentSW['paymentModuleCode'];
+            foreach ($swPayments as $swPayment) {
+                $paymentModuleCode = PaymentUtil::map(null, $swPayment['name'], $swPayment['description']);
 
                 if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode)) {
 
-                    $orderSW = $customerOrderMapper->find($paymentSW['customerOrderId']);
-                    if (!is_null($orderSW)) {
-                        $orderAttributes = $orderSW->getAttribute();
+                    $swOrder = $customerOrderMapper->find($swPayment['customerOrderId']);
+                    if (!is_null($swOrder)) {
+                        $orderAttributes = $swOrder->getAttribute();
                         if (method_exists($orderAttributes,'getSwagPaypalUnifiedPaymentType') === true) {
                             $paymentModuleCode = PaymentUtil::mapPayPalUnified($orderAttributes->getSwagPaypalUnifiedPaymentType());
                         }
                     }
                 }
 
-                $payment = Mmc::getModel('Payment');
-                $payment->map(true, DataConverter::toObject($paymentSW, true));
-                $payment->setPaymentModuleCode($paymentModuleCode);
+                $jtlPayment = Mmc::getModel('Payment');
+                $jtlPayment->map(true, DataConverter::toObject($swPayment, true));
+                $jtlPayment->setPaymentModuleCode($paymentModuleCode);
 
-                $result[] = $payment;
+                $result[] = $jtlPayment;
             }
 
             $action->setResult($result);

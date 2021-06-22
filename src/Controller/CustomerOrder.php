@@ -110,7 +110,6 @@ class CustomerOrder extends DataController
 
                     // PaymentModuleCode
                     $paymentModuleCode = PaymentUtil::map(null, $swOrder['payment']['name'], $swOrder['payment']['description']);
-                    $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $swOrder['payment']['name'];
                     $jtlOrder->setPaymentModuleCode($paymentModuleCode);
 
                     // Billsafe
