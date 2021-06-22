@@ -98,7 +98,6 @@ class CustomerOrder extends DataController
 
             foreach ($swOrders as $swOrder) {
                 try {
-
                     // CustomerOrders
                     /** @var CustomerOrderModel $jtlOrder */
                     $jtlOrder = Mmc::getModel('CustomerOrder');
@@ -109,9 +108,10 @@ class CustomerOrder extends DataController
                         ->findOneById($jtlOrder->getId()->getEndpoint());
 
                     // PaymentModuleCode
+                    $jtlOrder->setPaymentModuleCode(PaymentUtil::map(null, $swOrder['payment']['name'], $swOrder['payment']['description']));
+
+                    //To preserve old payment module logic
                     $paymentModuleCode = PaymentUtil::map(null, $swOrder['payment']['name']);
-                    $paymentModuleCode = ($paymentModuleCode !== null) ? $paymentModuleCode : $swOrder['payment']['name'];
-                    $jtlOrder->setPaymentModuleCode($paymentModuleCode);
 
                     // Billsafe
                     $this->addBillsafe($paymentModuleCode, $swOrder, $jtlOrder);
