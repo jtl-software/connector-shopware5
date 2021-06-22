@@ -43,8 +43,7 @@ class Payment extends DataController
             foreach ($swPayments as $swPayment) {
                 $paymentModuleCode = PaymentUtil::map(null, $swPayment['name'], $swPayment['description']);
 
-                if (PaymentUtil::isPayPalUnifiedType($paymentModuleCode)) {
-
+                if (PaymentUtil::isPayPalUnifiedType($swPayment['name'])) {
                     $swOrder = $customerOrderMapper->find($swPayment['customerOrderId']);
                     if (!is_null($swOrder)) {
                         $orderAttributes = $swOrder->getAttribute();
