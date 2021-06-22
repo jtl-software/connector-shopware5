@@ -1,3 +1,10 @@
+2.10.2
+------
+- CO-994  Added payment description as fallback for payment module code during order and payment pull
+- CO-1459 Added product tax class guessing on product push
+- CO-1538 Fixed replacing images instead of adding them on image push
+- CO-1540 Added importing only one product translation per language during product pull
+
 2.9.1
 -----
 - Added forgotten variations translations fix (CO-1260)
