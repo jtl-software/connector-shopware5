@@ -295,7 +295,7 @@ class Image extends DataMapper
                     $referencedModel = $this->savePropertyValueImage($foreignId, $media);
                     break;
             }
-            
+
             ShopUtil::entityManager()->persist($referencedModel);
             ShopUtil::entityManager()->flush();
 
@@ -612,22 +612,29 @@ class Image extends DataMapper
 
         /** @var \Shopware\Components\Api\Resource\Article $articleResource */
         $articleResource = ShopUtil::get()->Container()->get('shopware.api.article');
-        if(is_null($articleResource->getManager())) {
+        if (is_null($articleResource->getManager())) {
             $articleResource->setManager(ShopUtil::entityManager());
         }
 
-        $existingImage = $this->findExistingImage($article, $jtlImage);
+        $existingImage = $this->findExistingArticleImage($article, $jtlImage);
         $imageExists = !is_null($existingImage);
 
         $mediaId = null;
         if ($imageExists) {
             $mediaId = $existingImage->getMedia()->getId();
+        } elseif ($jtlImage->getId()->getEndpoint() !== '') {
+            list($type, $imageId, $mediaId) = IdConcatenator::unlink($jtlImage->getId()->getEndpoint());
         }
 
-        $fileName = null;
+        $isImageReplacement = !$imageExists && !is_null($mediaId);
+
         if (!$isVariantChild || !$imageExists) {
             $fileName = $this->createArticleImageName($jtlImage, $article, $detail);
             $media = $this->createOrUpdateMedia($jtlImage, $mediaId, $fileName);
+            if ($isImageReplacement) {
+                $existingImage = $this->findExistingArticleImage($article, $jtlImage);
+                $imageExists = !is_null($existingImage);
+            }
         } else {
             $media = $this->find($mediaId);
         }
@@ -975,7 +982,7 @@ class Image extends DataMapper
      * @param JtlImage $jtlImage
      * @return null|ArticleImage
      */
-    protected function findExistingImage(Article $article, JtlImage $jtlImage)
+    protected function findExistingArticleImage(Article $article, JtlImage $jtlImage)
     {
         if (count($article->getImages()) > 0) {
             clearstatcache();

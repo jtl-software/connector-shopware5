@@ -63,7 +63,7 @@ class Image extends DataController
 
             /** @var MediaService $mediaServie */
             $mediaServie = ShopUtil::mediaService();
-            
+
             //$proto = ShopUtil::getProtocol();
             foreach ($modelContainer as $relationType => $models) {
                 foreach ($models as $modelSW) {
@@ -72,13 +72,13 @@ class Image extends DataController
                             $model = Mmc::getModel('Image');
 
                             //Clean unused files
-                            if(is_null($modelSW['articleID']) || is_null($modelSW['detailId'])) {
+                            if (is_null($modelSW['articleID']) || is_null($modelSW['detailId'])) {
                                 $imageSW = Shopware()->Models()->find(\Shopware\Models\Article\Image::class, $modelSW['id']);
                                 Shopware()->Models()->remove($imageSW);
                                 break;
                             }
 
-                            $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int) $modelSW['cId'], (int) $modelSW['media_id']);
+                            $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int)$modelSW['cId'], (int)$modelSW['media_id']);
                             $foreignKey = IdConcatenator::link(array($modelSW['detailId'], $modelSW['articleID']));
 
                             $model->setId(new Identity($id));
@@ -86,7 +86,7 @@ class Image extends DataController
                                 ->setForeignKey(new Identity($foreignKey))
                                 ->setFilename($mediaServie->getUrl($modelSW['path']))
                                 ->setRemoteUrl($mediaServie->getUrl($modelSW['path']))
-                                ->setSort((int) $modelSW['position']);
+                                ->setSort((int)$modelSW['position']);
 
                             $this->addPos($model, 'addI18n', 'ImageI18n', $modelSW);
                             if (isset($modelSW['translations'])) {
@@ -103,7 +103,7 @@ class Image extends DataController
                             break;
                         case ImageRelationType::TYPE_CATEGORY:
                             $model = Mmc::getModel('Image');
-                            
+
                             $model->setId(new Identity(ImageModel::generateId(ImageRelationType::TYPE_CATEGORY, $modelSW['id'], $modelSW['mediaId'])));
 
                             $model->setRelationType($relationType)
@@ -119,7 +119,7 @@ class Image extends DataController
                             $model = Mmc::getModel('Image');
 
                             $model->setId(new Identity(ImageModel::generateId(ImageRelationType::TYPE_MANUFACTURER, $modelSW['id'], $modelSW['mediaId'])));
-                            
+
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
                                 ->setFilename($mediaServie->getUrl($modelSW['path']))
@@ -200,7 +200,7 @@ class Image extends DataController
             $err->setMessage($exc->getMessage());
             $action->setError($err);
         }
-        
+
         return $action;
     }
 }
