@@ -77,19 +77,9 @@ abstract class DataController extends CoreController
 
             $mapper = Mmc::getMapper($class);
             $res = $mapper->save($model);
-            
-            //$action->setResult($res->getPublic());
+
             $action->setResult($res);
         } catch (\Exception $exc) {
-            /*
-            if (!Shopware()->Models()->isOpen()) {
-                $conn = Shopware()->Models()->getConnection();
-                $config = Shopware()->Models()->getConfiguration();
-
-                Shopware()->Container()->Models = \Shopware\Components\Model\ModelManager::createInstance($conn, $config, null);
-            }
-            */
-
             $action->setError($this->handleException($exc));
         }
 
