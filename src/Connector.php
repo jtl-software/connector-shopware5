@@ -29,7 +29,8 @@ use Shopware\Components\CacheManager;
 class Connector extends BaseConnector
 {
     public const
-        SESSION_CLEAR_CACHE = 'clearCache';
+        SESSION_INDEX_CLEAR_CACHE = 'clear_cache',
+        METHOD_NAME_CLEAR_TEMPLATE_CACHE = 'clearTemplateCache';
 
     /**
      * Current Controller
@@ -149,7 +150,7 @@ class Connector extends BaseConnector
                 }
 
                 if ($this->getMethod()->getController() === 'product') {
-                    $_SESSION[self::SESSION_CLEAR_CACHE][CacheManager::CACHE_TAG_SEARCH] = true;
+                    $_SESSION[self::SESSION_INDEX_CLEAR_CACHE][] = self::METHOD_NAME_CLEAR_TEMPLATE_CACHE;
                 }
             }
 
