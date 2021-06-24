@@ -467,7 +467,7 @@ class Image extends DataMapper
 
         /** @var Product $productMapper */
         $productMapper = Mmc::getMapper('Product');
-        if ($productMapper->isChildSW($article, $detail)) {
+        if ($productMapper->isSwChild($article, $detail)) {
             $imageId = $this->deletePseudoArticleImage($detail, $imageId);
         }
 
@@ -608,7 +608,7 @@ class Image extends DataMapper
         /** @var Product $productMapper */
         $productMapper = Mmc::getMapper('Product');
 
-        $isVariantChild = $productMapper->isChildSW($article, $detail);
+        $isVariantChild = $productMapper->isSwChild($article, $detail);
 
         /** @var \Shopware\Components\Api\Resource\Article $articleResource */
         $articleResource = ShopUtil::get()->Container()->get('shopware.api.article');
