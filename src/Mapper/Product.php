@@ -588,19 +588,19 @@ class Product extends DataMapper
     }
 
     /**
-     * @param JtlProduct $product
+     * @param JtlProduct $jtlProduct
      * @param SwArticle $swProduct
      * @throws DatabaseException
      */
-    protected function prepareTaxAssociatedData(JtlProduct $product, SwArticle $swProduct)
+    protected function prepareTaxAssociatedData(JtlProduct $jtlProduct, SwArticle $swProduct)
     {
         $taxRepository = Shopware()->Models()->getRepository(Tax::class);
-        if (!is_null($product->getTaxClassId()) && !empty($taxId = $product->getTaxClassId()->getEndpoint())) {
+        if (!is_null($jtlProduct->getTaxClassId()) && !empty($taxId = $jtlProduct->getTaxClassId()->getEndpoint())) {
             $swTax = $taxRepository->findOneBy(['id' => $taxId]);
         } else {
-            $swTax = $taxRepository->findOneBy(['tax' => $product->getVat()]);
-            if (count($product->getTaxRates()) > 0 && !is_null($product->getTaxClassId())) {
-                $swTax = $this->findSwTaxByJtlTaxRates($product->getVat(), ...$product->getTaxRates()) ?? $swTax;
+            $swTax = $taxRepository->findOneBy(['tax' => $jtlProduct->getVat()]);
+            if (count($jtlProduct->getTaxRates()) > 0 && !is_null($jtlProduct->getTaxClassId())) {
+                $swTax = $this->findSwTaxByJtlTaxRates($jtlProduct->getVat(), ...$jtlProduct->getTaxRates()) ?? $swTax;
                 if ($swTax instanceof Tax) {
                     //$product->getTaxClassId()->setEndpoint((string)$swTax->getId());
                 }
@@ -610,6 +610,9 @@ class Product extends DataMapper
         if (!$swTax instanceof Tax) {
             throw new DatabaseException('Could not find any matching Tax entity');
         }
+
+        $logMessage = sprintf('SKU = %s | Tax (%d) [name = "%s", default rate = %f] selected', $jtlProduct->getSku(), $swTax->getId(), $swTax->getName(), $swTax->getTax());
+        Logger::write($logMessage, Logger::DEBUG);
 
         $swProduct->setTax($swTax);
     }
