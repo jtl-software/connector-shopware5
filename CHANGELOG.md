@@ -1,3 +1,11 @@
+2.11.0
+------
+- CO-1380 Added support for states on customer order pull
+- fixed payment mapping on unknown payment module code 
+- fixed monolog library compatibility issue with shopware 5.7
+- fixed setSize method compatibility issue
+- updated features.json
+
 2.10.2
 ------
 - CO-994  Added payment description as fallback for payment module code during order and payment pull
