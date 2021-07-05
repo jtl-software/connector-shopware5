@@ -58,7 +58,9 @@ class CustomerOrder extends DataMapper
             'billing',
             'shipping',
             'countryS',
+            'stateS',
             'countryB',
+            'stateB',
             'history',
             'payment',
             'dispatch'
@@ -78,7 +80,9 @@ class CustomerOrder extends DataMapper
             ->leftJoin('orders.billing', 'billing')
             ->leftJoin('orders.shipping', 'shipping')
             ->leftJoin('billing.country', 'countryS')
+            ->leftJoin('billing.state', 'stateB')
             ->leftJoin('shipping.country', 'countryB')
+            ->leftJoin('shipping.state', 'stateS')
             ->leftJoin('orders.history', 'history')
             ->leftJoin('orders.payment', 'payment')
             ->leftJoin('orders.dispatch', 'dispatch')
