@@ -447,7 +447,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                         ]
                     ]
                 ]);
-                break;
+
+                (new \Symfony\Component\Filesystem\Filesystem())->remove(sprintf('%s/vendor/monolog', CONNECTOR_DIR));
+            break;
         }
 
         return true;
