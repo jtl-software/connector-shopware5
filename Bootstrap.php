@@ -1,5 +1,6 @@
 <?php
 
+use jtl\Connector\Application\Application;
 use jtl\Connector\Core\Config\Config;
 use jtl\Connector\Core\IO\Path;
 use jtl\Connector\Core\Logger\Logger;
@@ -438,6 +439,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 $this->createTaxClassMappingTable();
             case '2.10.0':
             case '2.10.1':
+            case '2.10.2':
+                Application::getInstance()->updateFeaturesFile([
+                    'entities' => [
+                        'CustomerOrder' => [
+                            'delete' => false
+                        ]
+                    ]
+                ]);
                 break;
         }
 

@@ -1659,7 +1659,7 @@ class Product extends DataMapper
             } else {
                 $downloadSW = new SwDownload();
                 $downloadSW->setFile($mediaFile->getUrl())
-                    ->setSize(0)
+//                    ->setSize(0)
                     ->setName($name);
 
                 ShopUtil::entityManager()->persist($downloadSW);

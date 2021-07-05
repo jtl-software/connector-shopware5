@@ -31,12 +31,11 @@ final class Payment
      * @param string|null $swModuleCode
      * @param string|null $paymentName
      * @return string
-     * @throws \Exception
      */
     public static function map(string $jtlModuleCode = null, string $swModuleCode = null, string $paymentName = null): string
     {
         if(is_null($jtlModuleCode) && is_null($swModuleCode) && is_null($paymentName)) {
-            throw new \Exception('All three method arguments are null. At least of the arguments has to be a non empty string.');
+            return 'unknown';
         }
 
         if ($jtlModuleCode !== null && isset(self::$_mappings[$jtlModuleCode])) {

@@ -103,7 +103,7 @@
         "CustomerOrder": {
             "pull": true,
             "push": false,
-            "delete": true
+            "delete": false
         },
         "CustomerOrderAttr": {
             "pull": true,
