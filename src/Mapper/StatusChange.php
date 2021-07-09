@@ -6,6 +6,9 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\EntityNotFoundException;
+use jtl\Connector\Core\Logger\Logger;
+use \jtl\Connector\Shopware\Utilities\Shop;
 use \jtl\Connector\Model\StatusChange as StatusChangeModel;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Status as StatusUtil;
@@ -16,52 +19,56 @@ class StatusChange extends DataMapper
 {
     public function save(StatusChangeModel $status)
     {
-        $customerOrderId = (int) $status->getCustomerOrderId()->getEndpoint();
-        if ($customerOrderId > 0) {
-            /** @var CustomerOrder $mapper */
-            $mapper = Mmc::getMapper('CustomerOrder');
-            $customerOrder = $mapper->find($customerOrderId);
-            if (!is_null($customerOrder)) {
+        try {
+            $customerOrderId = (int)$status->getCustomerOrderId()->getEndpoint();
+            if ($customerOrderId > 0) {
+                /** @var CustomerOrder $mapper */
+                $mapper = Mmc::getMapper('CustomerOrder');
+                $customerOrder = $mapper->find($customerOrderId);
+                if (!is_null($customerOrder)) {
 
-                // Payment Status
-                if ($status->getPaymentStatus() !== null && strlen($status->getPaymentStatus()) > 0) {
-                    $statusId = PaymentStatusUtil::map($status->getPaymentStatus());
-                    if (!is_null($statusId)) {
-                        $customerOrderStatusSW = $mapper->findStatus($statusId);
-                        if ($customerOrderStatusSW !== null) {
-                            $customerOrder->setPaymentStatus($customerOrderStatusSW);
-    
-                            if ($status->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED) {
-                                $customerOrder->setClearedDate(new \DateTime());
+                    // Payment Status
+                    if ($status->getPaymentStatus() !== null && strlen($status->getPaymentStatus()) > 0) {
+                        $statusId = PaymentStatusUtil::map($status->getPaymentStatus());
+                        if (!is_null($statusId)) {
+                            $customerOrderStatusSW = $mapper->findStatus($statusId);
+                            if ($customerOrderStatusSW !== null) {
+                                $customerOrder->setPaymentStatus($customerOrderStatusSW);
+
+                                if ($status->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED) {
+                                    $customerOrder->setClearedDate(new \DateTime());
+                                }
+
+                                $this->Manager()->persist($customerOrder);
+                                $this->Manager()->flush();
                             }
-                            
-                            $this->Manager()->persist($customerOrder);
-                            $this->Manager()->flush();
                         }
                     }
-                }
 
-                // Order Status
-                if ($status->getOrderStatus() !== null && strlen($status->getOrderStatus()) > 0) {
-                    $statusId = StatusUtil::map($status->getOrderStatus());
+                    // Order Status
+                    if ($status->getOrderStatus() !== null && strlen($status->getOrderStatus()) > 0) {
+                        $statusId = StatusUtil::map($status->getOrderStatus());
 
-                    if ($statusId !== null) {
-                        $customerOrderStatusSW = $mapper->findStatus($statusId);
-                        if ($customerOrderStatusSW !== null) {
-                            $customerOrder->setOrderStatus($customerOrderStatusSW);
-                            $this->Manager()->persist($customerOrder);
-                            $this->Manager()->flush();
+                        if ($statusId !== null) {
+                            $customerOrderStatusSW = $mapper->findStatus($statusId);
+                            if ($customerOrderStatusSW !== null) {
+                                $customerOrder->setOrderStatus($customerOrderStatusSW);
+                                $this->Manager()->persist($customerOrder);
+                                $this->Manager()->flush();
+                            }
                         }
                     }
-                }
 
-                return $status;
+                    return $status;
+                }
             }
-
-            //throw new DatabaseException(sprintf('Customer Order with Endpoint Id (%s) cannot be found', $customerOrderId));
+        } catch (EntityNotFoundException $ex) {
+            if (Shop::isCustomerNotFoundException($ex->getMessage())) {
+                Logger::write($ex->getMessage(), Logger::ERROR, Logger::CHANNEL_DATABASE);
+            } else {
+                throw $ex;
+            }
         }
-
-        //throw new DatabaseException('Customer Order Endpoint Id cannot be empty');
 
         return $status;
     }
