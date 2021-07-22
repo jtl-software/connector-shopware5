@@ -102,8 +102,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 ],
                 'payment' => [
                     'pull' => [
-                        'allowed_cleared_states' => []
-                    ]
+                        'allowed_cleared_states' => [],
+                        'payment_type_custom_mapping' => new stdClass()
+                    ],
                 ]
             ), JSON_PRETTY_PRINT));
         }

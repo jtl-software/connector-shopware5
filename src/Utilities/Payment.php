@@ -11,7 +11,7 @@ use Shopware\Models\Order\Status;
 
 final class Payment
 {
-    private static $_mappings = array(
+    private static $_mappings = [
         PaymentTypes::TYPE_DIRECT_DEBIT => 'debit',
         PaymentTypes::TYPE_CASH_ON_DELIVERY => 'cash',
         PaymentTypes::TYPE_INVOICE => 'invoice',
@@ -24,7 +24,7 @@ final class Payment
             'hgw_papg',
             'hgw_ivb2b'
         ]
-    );
+    ];
 
     /**
      * @param string|null $jtlModuleCode
@@ -38,10 +38,12 @@ final class Payment
             return 'unknown';
         }
 
-        if ($jtlModuleCode !== null && isset(self::$_mappings[$jtlModuleCode])) {
-            return self::$_mappings[$jtlModuleCode];
+        $mapping = self::getMapping();
+
+        if ($jtlModuleCode !== null && isset($mapping[$jtlModuleCode])) {
+            return $mapping[$jtlModuleCode];
         } elseif ($swModuleCode !== null) {
-            foreach (self::$_mappings as $key => $value) {
+            foreach ($mapping as $key => $value) {
                 if (is_array($value)) {
                     if (array_search($swModuleCode, $value, true) !== false) {
                         return $key;
@@ -151,5 +153,16 @@ final class Payment
         ));
 
         return $asString === true ? join(',', $allowedClearedStates) : $allowedClearedStates;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getMapping(): array
+    {
+        return array_merge_recursive(
+            Application()->getConfig()->get('payment.pull.customPaymentTypeMapping', []),
+            self::$_mappings
+        );
     }
 }
