@@ -1,3 +1,7 @@
+2.11.1
+------
+- CO-1723 - Hotfix tax class guessing
+
 2.11.0
 ------
 - CO-1380 Added support for states on customer order pull

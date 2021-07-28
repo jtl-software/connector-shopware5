@@ -634,18 +634,22 @@ class Product extends DataMapper
 
         switch (count($swTaxGroups)) {
             case 0:
-                return null;
+                $swTax = null;
                 break;
             case 1:
-                return reset($swTaxGroups);
+                $swTax = reset($swTaxGroups);
                 break;
             default:
                 $commonTaxRates = [];
                 foreach ($swTaxGroups as $swTaxGroup) {
+                    $swCountryRelatedTaxRules = array_filter($swTaxGroup->getRules()->toArray(), function (Rule $swTaxRule) {
+                        return $swTaxRule->getCountry() !== null;
+                    });
+
                     /** @var Rule[] $swGroupRules */
                     $swGroupRules = array_combine(array_map(function (Rule $swTaxRule) {
                         return $swTaxRule->getCountry()->getIso();
-                    }, $swTaxGroup->getRules()->toArray()), $swTaxGroup->getRules()->toArray());
+                    }, $swCountryRelatedTaxRules), $swCountryRelatedTaxRules);
 
                     $commonTaxRates[$swTaxGroup->getId()] = 0;
                     foreach ($jtlTaxRates as $jtlTaxRate) {
