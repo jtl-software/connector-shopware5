@@ -169,7 +169,6 @@ class DeliveryNote extends DataMapper
         $deliveryNote->getCustomerOrderId()->setEndpoint($orderSW->getId());
 
         $trackingCodes = explode(',', $orderSW->getTrackingCode());
-        $trackingCodes = is_array($trackingCodes) ? $trackingCodes : [];
 
         foreach ($deliveryNote->getTrackingLists() as $trackingList) {
             $trackingCodes = array_merge($trackingCodes, array_map(function (string $trackingCode) {
