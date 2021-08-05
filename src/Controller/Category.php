@@ -128,6 +128,7 @@ class Category extends DataController
                                     ->setValue($categorySW['blog'] === true ? '1' : '0')
                             )
                     );
+
                     $category->addAttribute(
                         (new CategoryAttr())
                             ->setId(new Identity(CategoryAttr::LIMIT_TO_SHOPS))
@@ -138,6 +139,19 @@ class Category extends DataController
                                     ->setValue($categorySW['shops'])
                             )
                     );
+
+                    if(!empty($categorySW['externalTarget'])) {
+                        $category->addAttribute(
+                            (new CategoryAttr())
+                                ->setId(new Identity(CategoryAttr::LINK_TARGET))
+                                ->addI18n(
+                                    (new CategoryAttrI18n())
+                                        ->setLanguageISO($languageIso)
+                                        ->setName(CategoryAttr::LINK_TARGET)
+                                        ->setValue($categorySW['externalTarget'])
+                                )
+                        );
+                    }
 
                     // Invisibility
                     if (isset($categorySW['customerGroups']) && is_array($categorySW['customerGroups'])) {

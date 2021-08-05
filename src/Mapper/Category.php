@@ -337,6 +337,10 @@ class Category extends DataMapper
                     $swCategory->setShops($attributeI18n->getValue());
                 }
 
+                if ($attributeI18n->getName() === CategoryAttr::LINK_TARGET) {
+                    $swCategory->setExternalTarget($attributeI18n->getValue());
+                }
+
                 continue;
             }
 
