@@ -140,7 +140,7 @@ class Category extends DataController
                             )
                     );
 
-                    if(!empty($categorySW['externalTarget'])) {
+                    if(isset($categorySW['externalTarget']) && !empty($categorySW['externalTarget'])) {
                         $category->addAttribute(
                             (new CategoryAttr())
                                 ->setId(new Identity(CategoryAttr::LINK_TARGET))
