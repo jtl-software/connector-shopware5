@@ -47,7 +47,8 @@ class CategoryAttr extends CategoryAttrModel
             self::CMS_HEADLINE,
             'cmsheadline',
             self::IS_BLOG,
-            self::LIMIT_TO_SHOPS
+            self::LIMIT_TO_SHOPS,
+            self::LINK_TARGET
         ];
     }
 
