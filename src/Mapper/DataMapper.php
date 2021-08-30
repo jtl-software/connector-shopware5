@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Core\Utilities\Singleton;
@@ -50,9 +51,34 @@ abstract class DataMapper extends Singleton
 
     /**
      * @param Article $article
-     * @throws ORMException
+     * @return array<string>
+     * @throws Exception
      */
-    protected function rebuildArticleImagesMappings(Article $article)
+    protected function getIgnoreGroups(Article $article): array
+    {
+        $qb = ShopUtil::entityManager()->getDBALQueryBuilder()
+            ->select('cpa.value')
+            ->from('jtl_connector_product_attributes', 'cpa')
+            ->andWhere('cpa.product_id = :productId')
+            ->andWhere('cpa.key = :key')
+            ->setParameters(['productId' => $article->getId(), 'key' => ProductAttr::IMAGE_CONFIGURATION_IGNORES]);
+
+        $stmt = $qb->execute();
+
+        $result = $stmt->fetchColumn();
+        if (is_string($result) && strlen($result) > 0) {
+            $delimiter = str_contains($result, '|||') ? '|||' : ',';
+            return explode($delimiter, $result);
+        }
+
+        return [];
+    }
+
+    /**
+     * @param Article $article
+     * @throws ORMException|Exception
+     */
+    protected function rebuildArticleImagesMappings(Article $article): void
     {
         $this->removeArticleImagesMappings($article);
         $this->createArticleImagesMappings($article);
@@ -68,31 +94,9 @@ abstract class DataMapper extends Singleton
 
     /**
      * @param Article $article
-     * @return array|false|string[]
+     * @throws ORMException|Exception
      */
-    protected function getIgnoreGroups(Article $article)
-    {
-        $qb = ShopUtil::entityManager()->getDBALQueryBuilder()
-            ->select('cpa.value')
-            ->from('jtl_connector_product_attributes', 'cpa')
-            ->andWhere('cpa.product_id = :productId')
-            ->andWhere('cpa.key = :key')
-            ->setParameters(['productId' => $article->getId(), 'key' => ProductAttr::IMAGE_CONFIGURATION_IGNORES]);
-
-        $stmt = $qb->execute();
-
-        $result = $stmt->fetchColumn();
-        if (is_string($result) && strlen($result) > 0) {
-            return explode('|||', $result);
-        }
-        return [];
-    }
-
-    /**
-     * @param Article $article
-     * @throws ORMException
-     */
-    protected function createArticleImagesMappings(Article $article)
+    protected function createArticleImagesMappings(Article $article): void
     {
         $ignoreGroups = $this->getIgnoreGroups($article);
 
@@ -117,6 +121,7 @@ abstract class DataMapper extends Singleton
                     $rule->setOption($option);
                     $mapping->getRules()->add($rule);
                 }
+
                 $image->getParent()->getMappings()->add($mapping);
                 ShopUtil::entityManager()->persist($image->getParent());
             }
@@ -127,7 +132,7 @@ abstract class DataMapper extends Singleton
      * @param Article $article
      * @throws ORMException
      */
-    protected function removeArticleImagesMappings(Article $article)
+    protected function removeArticleImagesMappings(Article $article): void
     {
         /** @var ArticleImage $image */
         foreach ($article->getImages() as $image) {
