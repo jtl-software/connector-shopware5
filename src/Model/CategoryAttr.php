@@ -14,10 +14,11 @@ use \jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
  */
 class CategoryAttr extends CategoryAttrModel
 {
-    const IS_ACTIVE = 'active';
-    const CMS_HEADLINE = 'cms_headline';
-    const IS_BLOG = 'is_blog';
-    const LIMIT_TO_SHOPS = 'limit_to_shops';
+    public const
+        IS_ACTIVE = 'active',
+        CMS_HEADLINE = 'cms_headline',
+        IS_BLOG = 'blog',
+        LIMIT_TO_SHOPS = 'limit_to_shops';
 
     protected $fields = array(
         'id' => 'id',
@@ -46,6 +47,7 @@ class CategoryAttr extends CategoryAttrModel
             self::CMS_HEADLINE,
             'cmsheadline',
             self::IS_BLOG,
+            'is_blog',
             self::LIMIT_TO_SHOPS
         ];
     }

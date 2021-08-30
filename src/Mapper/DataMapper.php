@@ -60,8 +60,8 @@ abstract class DataMapper extends Singleton
             ->select('cpa.value')
             ->from('jtl_connector_product_attributes', 'cpa')
             ->andWhere('cpa.product_id = :productId')
-            ->andWhere('cpa.key = :key')
-            ->setParameters(['productId' => $article->getId(), 'key' => ProductAttr::IMAGE_CONFIGURATION_IGNORES]);
+            ->andWhere('cpa.key IN (:keys)')
+            ->setParameters(['productId' => $article->getId(), 'keys' => [ProductAttr::IMAGE_CONFIGURATION_IGNORES, 'sw_image_config_ignores']]);
 
         $stmt = $qb->execute();
 

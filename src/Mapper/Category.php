@@ -94,7 +94,7 @@ class Category extends DataMapper
             return ($paginator->count());
         }
 
-        $categories = array_map(function(array $data) {
+        $categories = array_map(function (array $data) {
             return $data[0] ?? null;
         }, iterator_to_array($paginator));
 
@@ -329,7 +329,7 @@ class Category extends DataMapper
                     }
                 }
 
-                if ($attributeI18n->getName() === CategoryAttr::IS_BLOG) {
+                if (in_array($attributeI18n->getName(), [CategoryAttr::IS_BLOG, 'is_blog'], true)) {
                     $swCategory->setBlog((bool)$attributeI18n->getValue());
                 }
 

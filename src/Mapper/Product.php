@@ -992,11 +992,11 @@ class Product extends DataMapper
             }
 
             // Image configuration ignores
-            if ($lcAttributeName === strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
+            if (in_array($lcAttributeName, [ProductAttr::IMAGE_CONFIGURATION_IGNORES, 'sw_image_config_ignores'], true)
                 && $this->isParent($product)) {
                 try {
                     $oldAttributeValue = $productAttribute->getKey();
-                    $productAttribute->setKey(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
+                    $productAttribute->setKey($lcAttributeName)
                         ->setValue($attributeValue)
                         ->save(false);
 

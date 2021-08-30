@@ -13,15 +13,16 @@ use \jtl\Connector\Model\ProductAttr as ProductAttrModel;
  */
 class ProductAttr extends ProductAttrModel
 {
-    const ADDITIONAL_TEXT = 'additional_text';
-    const IMAGE_CONFIGURATION_IGNORES = 'sw_image_config_ignores';
-    const IS_ACTIVE = 'active';
-    const IS_MAIN = 'main';
-    const PSEUDO_SALES = 'pseudo_sales';
-    const SEND_NOTIFICATION = 'send_notification';
-    const SHIPPING_FREE = 'shipping_free';
-    const CUSTOM_PRODUCTS_TEMPLATE = 'custom_products_template';
-    const PRICE_GROUP_ID = 'price_group_id';
+    public const
+        ADDITIONAL_TEXT = 'additional_text',
+        IMAGE_CONFIGURATION_IGNORES = 'image_config_ignores',
+        IS_ACTIVE = 'active',
+        IS_MAIN = 'main',
+        PSEUDO_SALES = 'pseudo_sales',
+        SEND_NOTIFICATION = 'send_notification',
+        SHIPPING_FREE = 'shipping_free',
+        CUSTOM_PRODUCTS_TEMPLATE = 'custom_products_template',
+        PRICE_GROUP_ID = 'price_group_id';
 
     protected $fields = array(
         'id' => 'id',
@@ -47,6 +48,7 @@ class ProductAttr extends ProductAttrModel
         return [
             self::ADDITIONAL_TEXT,
             self::IMAGE_CONFIGURATION_IGNORES,
+            'sw_image_config_ignores',
             self::IS_ACTIVE,
             'isactive',
             self::IS_MAIN,
