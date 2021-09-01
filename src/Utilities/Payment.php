@@ -11,7 +11,7 @@ use Shopware\Models\Order\Status;
 
 final class Payment
 {
-    private static $_mappings = array(
+    private static $paymentTypeMappings = [
         PaymentTypes::TYPE_DIRECT_DEBIT => 'debit',
         PaymentTypes::TYPE_CASH_ON_DELIVERY => 'cash',
         PaymentTypes::TYPE_INVOICE => 'invoice',
@@ -24,7 +24,7 @@ final class Payment
             'hgw_papg',
             'hgw_ivb2b'
         ]
-    );
+    ];
 
     /**
      * @param string|null $jtlModuleCode
@@ -34,14 +34,16 @@ final class Payment
      */
     public static function map(string $jtlModuleCode = null, string $swModuleCode = null, string $paymentName = null): string
     {
-        if(is_null($jtlModuleCode) && is_null($swModuleCode) && is_null($paymentName)) {
+        if (is_null($jtlModuleCode) && is_null($swModuleCode) && is_null($paymentName)) {
             return 'unknown';
         }
 
-        if ($jtlModuleCode !== null && isset(self::$_mappings[$jtlModuleCode])) {
-            return self::$_mappings[$jtlModuleCode];
+        $paymentTypeMappings = self::getPaymentTypeMappings();
+
+        if ($jtlModuleCode !== null && isset($paymentTypeMappings[$jtlModuleCode])) {
+            return $paymentTypeMappings[$jtlModuleCode];
         } elseif ($swModuleCode !== null) {
-            foreach (self::$_mappings as $key => $value) {
+            foreach ($paymentTypeMappings as $key => $value) {
                 if (is_array($value)) {
                     if (array_search($swModuleCode, $value, true) !== false) {
                         return $key;
@@ -151,5 +153,16 @@ final class Payment
         ));
 
         return $asString === true ? join(',', $allowedClearedStates) : $allowedClearedStates;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getPaymentTypeMappings(): array
+    {
+        return array_replace_recursive(
+            self::$paymentTypeMappings,
+            Application()->getConfig()->get('payment_type_mappings', [])
+        );
     }
 }

@@ -30,5 +30,12 @@
         "push": {
             "create_document": true
         }
+    },
+    "payment_type_mappings": {
+        "example_pm_jtl_type_1": "example_shopware_type_2",
+        "example_pm_jtl_type_2": [
+            "example_shopware_type_1",
+            "example_shopware_type_3"
+        ]
     }
 }
