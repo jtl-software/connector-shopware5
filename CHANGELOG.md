@@ -1,3 +1,10 @@
+2.12.0
+------
+- CO-1367 - Extended saving many tracking numbers in delivery note 
+- CO-1320 - Added config property 'payment_type_mappings' for specifying custom payment type mapping
+- CO-327 - Added support for category 'Link target' property
+- CO-1590/CO-1242 - Fixed error if customer do not exists
+
 2.11.1
 ------
 - CO-1723 - Hotfix tax class guessing
