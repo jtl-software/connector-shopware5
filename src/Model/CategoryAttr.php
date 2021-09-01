@@ -18,6 +18,7 @@ class CategoryAttr extends CategoryAttrModel
     const CMS_HEADLINE = 'cms_headline';
     const IS_BLOG = 'is_blog';
     const LIMIT_TO_SHOPS = 'limit_to_shops';
+    const LINK_TARGET = 'link_target';
 
     protected $fields = array(
         'id' => 'id',
@@ -46,7 +47,8 @@ class CategoryAttr extends CategoryAttrModel
             self::CMS_HEADLINE,
             'cmsheadline',
             self::IS_BLOG,
-            self::LIMIT_TO_SHOPS
+            self::LIMIT_TO_SHOPS,
+            self::LINK_TARGET
         ];
     }
 
