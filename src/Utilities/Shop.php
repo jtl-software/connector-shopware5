@@ -138,4 +138,14 @@ final class Shop
         return $url;
     }
 
+    /**
+     * @param $message
+     * @return bool
+     */
+    public static function isCustomerNotFoundException($message): bool
+    {
+        $pattern = "/Entity of type 'Shopware\\\Models\\\Customer\\\Customer' for IDs id\([0-9]+\) was not found/";
+        return (int)preg_match($pattern, $message) > 0;
+    }
+
 }

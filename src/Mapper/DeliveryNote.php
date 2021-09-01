@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\EntityNotFoundException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use \Shopware\Components\Api\Exception as ApiException;
@@ -79,13 +80,21 @@ class DeliveryNote extends DataMapper
     {
         //$deliveryNoteSW = null;
         $result = $deliveryNote;
-    
-        $endpointId = 0;
-        $hostId = $deliveryNote->getId()->getHost();
-        $this->prepareDeliveryNoteAssociatedData($deliveryNote, $endpointId);
 
-        // Result
-        $result->setId(new Identity($endpointId, $hostId));
+        try {
+            $endpointId = 0;
+            $hostId = $deliveryNote->getId()->getHost();
+            $this->prepareDeliveryNoteAssociatedData($deliveryNote, $endpointId);
+
+            // Result
+            $result->setId(new Identity($endpointId, $hostId));
+        } catch(EntityNotFoundException $ex){
+            if (ShopUtil::isCustomerNotFoundException($ex->getMessage())) {
+                Logger::write($ex->getMessage(), Logger::ERROR, Logger::CHANNEL_DATABASE);
+            } else {
+                throw $ex;
+            }
+        }
 
         return $result;
     }
