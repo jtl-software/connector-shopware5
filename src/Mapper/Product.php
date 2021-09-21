@@ -1640,16 +1640,23 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareMediaFileAssociatedData(JtlProduct $product, SwArticle &$productSW)
+    protected function prepareMediaFileAssociatedData(JtlProduct $product, SwArticle &$swProduct)
     {
-        $linkCollection = array();
-        $downloadCollection = array();
+        $linkCollection = [];
+        $downloadCollection = [];
+        $existingDownloads = [];
+
+        /** @var SwDownload $download */
+        foreach ($swProduct->getDownloads() as $download) {
+            $existingDownloads[$download->getName()] = $download;
+        }
 
         foreach ($product->getMediaFiles() as $mediaFile) {
             $name = '';
             foreach ($mediaFile->getI18ns() as $i18n) {
                 if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageIso())) {
                     $name = $i18n->getName();
+                    break;
                 }
             }
 
@@ -1661,18 +1668,26 @@ class Product extends DataMapper
                 ShopUtil::entityManager()->persist($linkSW);
                 $linkCollection[] = $linkSW;
             } else {
-                $downloadSW = new SwDownload();
-                $downloadSW->setFile($mediaFile->getUrl())
-//                    ->setSize(0)
-                    ->setName($name);
+                $downloadSW = $existingDownloads[$name] ?? null;
+                if ($downloadSW === null) {
+                    $downloadSW = (new SwDownload())
+                        ->setFile($mediaFile->getUrl())
+                        ->setName($name);
 
-                ShopUtil::entityManager()->persist($downloadSW);
-                $downloadCollection[] = $downloadSW;
+                    ShopUtil::entityManager()->persist($downloadSW);
+                }
+                $downloadCollection[$name] = $downloadSW;
             }
         }
 
-        $productSW->setLinks($linkCollection);
-        $productSW->setDownloads($downloadCollection);
+        $deleteUnknownDownloadLinks = (bool)Application()->getConfig()->get('product.push.delete_unknown_download_links', true);
+        if ($deleteUnknownDownloadLinks === false) {
+            $downloadCollection = array_merge($existingDownloads, $downloadCollection);
+        }
+        $downloadCollection = array_values($downloadCollection);
+
+        $swProduct->setLinks($linkCollection);
+        $swProduct->setDownloads($downloadCollection);
     }
 
     protected function deleteTranslationData(SwArticle $productSW)

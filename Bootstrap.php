@@ -92,6 +92,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                         'article_detail_preselection' => false,
                         'use_handling_time_for_shipping' => false,
                         'consider_supplier_inflow_date_for_shipping' => true,
+                        'delete_unknown_download_links' => true,
                     ]
                 ],
                 'customer_order' => [
