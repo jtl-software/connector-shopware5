@@ -1661,22 +1661,22 @@ class Product extends DataMapper
             }
 
             if (preg_match('/^http|ftp{1}/i', $mediaFile->getUrl())) {
-                $linkSW = new SwLink();
-                $linkSW->setLink($mediaFile->getUrl())
+                $swLink = new SwLink();
+                $swLink->setLink($mediaFile->getUrl())
                     ->setName($name);
 
-                ShopUtil::entityManager()->persist($linkSW);
-                $linkCollection[] = $linkSW;
+                ShopUtil::entityManager()->persist($swLink);
+                $linkCollection[] = $swLink;
             } else {
-                $downloadSW = $existingDownloads[$name] ?? null;
-                if ($downloadSW === null) {
-                    $downloadSW = (new SwDownload())
+                $swDownload = $existingDownloads[$name] ?? null;
+                if ($swDownload === null) {
+                    $swDownload = (new SwDownload())
                         ->setFile($mediaFile->getUrl())
                         ->setName($name);
 
-                    ShopUtil::entityManager()->persist($downloadSW);
+                    ShopUtil::entityManager()->persist($swDownload);
                 }
-                $downloadCollection[$name] = $downloadSW;
+                $downloadCollection[$name] = $swDownload;
             }
         }
 
