@@ -16,7 +16,7 @@ use \jtl\Connector\Model\StatusChange as StatusChangeModel;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Status as StatusUtil;
 use \jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
-use \jtl\Connector\Core\Exception\DatabaseException;
+use \jtl\Connector\Shopware\Model\CustomerOrder;
 
 class StatusChange extends DataMapper
 {
@@ -44,13 +44,13 @@ class StatusChange extends DataMapper
                             $customerOrderStatusSW = $mapper->findStatus($statusId);
                             if ($customerOrderStatusSW !== null) {
 
-                                if($status->getPaymentStatus() === \jtl\Connector\Shopware\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED){
+                                if($status->getPaymentStatus() === CustomerOrder::PAYMENT_STATUS_COMPLETED){
                                     $this->linkPaymentIfNotLinked($status);
                                 }
 
                                 $customerOrder->setPaymentStatus($customerOrderStatusSW);
 
-                                if ($status->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED) {
+                                if ($status->getPaymentStatus() === CustomerOrder::PAYMENT_STATUS_COMPLETED) {
                                     $customerOrder->setClearedDate(new \DateTime());
                                 }
 
