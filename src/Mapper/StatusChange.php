@@ -45,7 +45,7 @@ class StatusChange extends DataMapper
                             if ($customerOrderStatusSW !== null) {
 
                                 if($status->getPaymentStatus() === CustomerOrder::PAYMENT_STATUS_COMPLETED){
-                                    $this->linkPaymentIfNotLinked($status);
+                                    $this->createMappingIfNotLinked($status);
                                 }
 
                                 $customerOrder->setPaymentStatus($customerOrderStatusSW);
@@ -92,7 +92,7 @@ class StatusChange extends DataMapper
      * @param StatusChangeModel $statusChange
      * @throws \Exception
      */
-    protected function linkPaymentIfNotLinked(StatusChangeModel $statusChange)
+    protected function createMappingIfNotLinked(StatusChangeModel $statusChange)
     {
         /** @var PrimaryKeyMapper $primaryKeyMapper */
         $primaryKeyMapper = Mmc::getMapper('PrimaryKeyMapper');
