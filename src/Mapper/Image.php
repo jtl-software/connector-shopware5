@@ -656,7 +656,6 @@ class Image extends DataMapper
             );
         }
 
-        $imageName = !empty($jtlImage->getName()) ? $jtlImage->getName() : $media->getName();
         $imageDescription = '';
 
         try {
@@ -684,7 +683,7 @@ class Image extends DataMapper
                 }
             }
 
-            $swImage->setPath($imageName);
+            $swImage->setPath($media->getName());
             $swImage->setDescription($imageDescription);
             $swImage->setMain($swMain);
             $swImage->setPosition($swPos);
@@ -726,7 +725,7 @@ class Image extends DataMapper
                 }
             }
 
-            $variantImage->setPath($imageName);
+            $variantImage->setPath($media->getName());
             $variantImage->setDescription($imageDescription);
             $variantImage->setMain($variantMain);
             $variantImage->setPosition($jtlImage->getSort());
