@@ -94,8 +94,7 @@ class StatusChange extends DataMapper
      */
     protected function createMappingIfNotLinked(StatusChangeModel $statusChange)
     {
-        /** @var PrimaryKeyMapper $primaryKeyMapper */
-        $primaryKeyMapper = Mmc::getMapper('PrimaryKeyMapper');
+        $primaryKeyMapper = new PrimaryKeyMapper();
         $endpointId = $statusChange->getCustomerOrderId()->getEndpoint();
 
         $paymentLink = $primaryKeyMapper->getHostId($endpointId, IdentityLinker::TYPE_PAYMENT);
