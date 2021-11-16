@@ -254,9 +254,8 @@ class Image extends DataMapper
     public function save(JtlImage $jtlImage)
     {
         try {
-            $foreignId = (strlen($jtlImage->getForeignKey()->getEndpoint()) > 0) ? $jtlImage->getForeignKey()->getEndpoint() : null;
-            if ($foreignId === null) {
-                //throw new \RuntimeException('Foreign key can not be null!');
+            $foreignId = $jtlImage->getForeignKey()->getEndpoint();
+            if ($foreignId === '') {
                 throw new \RuntimeException(sprintf('Foreign key can not be null (%s image: %s)!', $jtlImage->getRelationType(), $jtlImage->getId()->getHost()));
             }
 
@@ -268,9 +267,9 @@ class Image extends DataMapper
             $imageId = null;
             $mediaId = null;
 
-            $endpointId = (strlen($jtlImage->getId()->getEndpoint()) > 0) ? $jtlImage->getId()->getEndpoint() : null;
-            if ($endpointId !== null) {
-                list($type, $imageId, $mediaId) = IdConcatenator::unlink($jtlImage->getId()->getEndpoint());
+            $endpointId = $jtlImage->getId()->getEndpoint();
+            if ($endpointId !== '') {
+                list($type, $imageId, $mediaId) = IdConcatenator::unlink($endpointId);
             }
 
             if ($jtlImage->getRelationType() !== ImageRelationType::TYPE_PRODUCT) {
@@ -657,7 +656,6 @@ class Image extends DataMapper
             );
         }
 
-        $imageName = $jtlImage->getName();
         $imageDescription = '';
 
         try {
@@ -685,7 +683,7 @@ class Image extends DataMapper
                 }
             }
 
-            $swImage->setPath($imageName);
+            $swImage->setPath($media->getName());
             $swImage->setDescription($imageDescription);
             $swImage->setMain($swMain);
             $swImage->setPosition($swPos);
@@ -727,7 +725,7 @@ class Image extends DataMapper
                 }
             }
 
-            $variantImage->setPath($imageName);
+            $variantImage->setPath($media->getName());
             $variantImage->setDescription($imageDescription);
             $variantImage->setMain($variantMain);
             $variantImage->setPosition($jtlImage->getSort());
