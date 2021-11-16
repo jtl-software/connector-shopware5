@@ -1,3 +1,9 @@
+2.13.0
+------
+- CO-1809 - Bugfix - Fixed setting image names in s_articles_img table
+- CO-1566 - Feature - Import payments for manual payment types even without a transaction ID
+- CO-1375 - Feature - Added option to not overwrite 'download' files on product after product push
+
 2.12.0
 ------
 - CO-1367 - Extended saving many tracking numbers in delivery note 
