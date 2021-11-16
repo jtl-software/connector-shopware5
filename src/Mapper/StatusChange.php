@@ -7,16 +7,26 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Linker\IdentityLinker;
 use \jtl\Connector\Shopware\Utilities\Shop;
 use \jtl\Connector\Model\StatusChange as StatusChangeModel;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\Status as StatusUtil;
 use \jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
-use \jtl\Connector\Core\Exception\DatabaseException;
+use \jtl\Connector\Shopware\Model\CustomerOrder;
 
 class StatusChange extends DataMapper
 {
+    /**
+     * @param StatusChangeModel $status
+     * @return StatusChangeModel
+     * @throws EntityNotFoundException
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
     public function save(StatusChangeModel $status)
     {
         try {
@@ -33,9 +43,14 @@ class StatusChange extends DataMapper
                         if (!is_null($statusId)) {
                             $customerOrderStatusSW = $mapper->findStatus($statusId);
                             if ($customerOrderStatusSW !== null) {
+
+                                if($status->getPaymentStatus() === CustomerOrder::PAYMENT_STATUS_COMPLETED){
+                                    $this->createMappingIfNotLinked($status);
+                                }
+
                                 $customerOrder->setPaymentStatus($customerOrderStatusSW);
 
-                                if ($status->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED) {
+                                if ($status->getPaymentStatus() === CustomerOrder::PAYMENT_STATUS_COMPLETED) {
                                     $customerOrder->setClearedDate(new \DateTime());
                                 }
 
@@ -71,5 +86,20 @@ class StatusChange extends DataMapper
         }
 
         return $status;
+    }
+
+    /**
+     * @param StatusChangeModel $statusChange
+     * @throws \Exception
+     */
+    protected function createMappingIfNotLinked(StatusChangeModel $statusChange)
+    {
+        $primaryKeyMapper = new PrimaryKeyMapper();
+        $endpointId = $statusChange->getCustomerOrderId()->getEndpoint();
+
+        $paymentLink = $primaryKeyMapper->getHostId($endpointId, IdentityLinker::TYPE_PAYMENT);
+        if (is_null($paymentLink)) {
+            $primaryKeyMapper->save($endpointId, 0, IdentityLinker::TYPE_PAYMENT);
+        }
     }
 }

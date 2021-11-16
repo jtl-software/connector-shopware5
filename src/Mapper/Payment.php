@@ -39,15 +39,25 @@ class Payment extends DataMapper
             WHERE pl.order_id IS NULL
             AND lo.order_id IS NOT NULL
             AND orders.cleared IN (%s)
-            AND LENGTH(orders.transactionID) > 0
+            AND (LENGTH(orders.transactionID) > 0 OR orders.paymentID IN (%s))
             AND %s                
             LIMIT %d',
             UtilPayment::getAllowedPaymentClearedStates(true),
+             join(',', self::getManualPaymentIds()),
             CustomerOrder::createOrderPullStartDateWhereClause(),
             $limit
         );
 
         return Shopware()->Db()->fetchAssoc($sql);
+    }
+
+    /**
+     * Shop default: 2 - debit, 3 - cash, 4 - invoice, 5 - prepayment
+     * @return int[]
+     */
+    protected static function getManualPaymentIds(): array
+    {
+        return [2, 3, 4, 5];
     }
 
     /**
