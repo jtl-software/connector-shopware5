@@ -1050,6 +1050,10 @@ class Product extends DataMapper
                 }
             }
 
+            if ($lcAttributeName === ProductAttr::MAX_PURCHASE) {
+                $detailSW->setMaxPurchase($attributeValue);
+            }
+
             $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
             $attributes[$attributeI18n->getName()] = $attributeValue;
         }
