@@ -389,6 +389,18 @@ class Product extends DataController
             );
         }
 
+        if(!is_null($data['maxPurchase'])) {
+            $product->addAttribute(
+                (new ProductAttr())
+                    ->addI18n(
+                        (new ProductAttrI18n())
+                            ->setLanguageISO($languageIso)
+                            ->setName(ProductAttr::MAX_PURCHASE)
+                            ->setValue((string) $data['maxPurchase'])
+                    )
+            );
+        }
+
         //Additional Text
         if(!empty($data['additionalText'])) {
             $attrId = IdConcatenator::link(array($product->getId()->getEndpoint(), 'addtxt'));

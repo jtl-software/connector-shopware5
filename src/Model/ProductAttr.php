@@ -59,7 +59,8 @@ class ProductAttr extends ProductAttrModel
             self::SHIPPING_FREE,
             'shippingfree',
             self::CUSTOM_PRODUCTS_TEMPLATE,
-            self::PRICE_GROUP_ID
+            self::PRICE_GROUP_ID,
+            self::MAX_PURCHASE
         ];
     }
 
