@@ -384,10 +384,7 @@ class Image extends DataMapper
                     ->setParameters(['mediaId' => $mediaId])
                     ->execute();
 
-                $mediaCount = 2;
-                if ($stmt instanceof \PDOStatement) {
-                    $mediaCount = (int)$stmt->fetchColumn();
-                }
+                $mediaCount = (int)$stmt->fetchColumn();
 
                 $deleteMedia = ($mediaCount < 2);
                 $this->deleteArticleImage($articleId, $detailId, $imageId, $deleteMedia);
