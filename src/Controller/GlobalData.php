@@ -3,6 +3,7 @@
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Result\Action;
@@ -41,7 +42,7 @@ class GlobalData extends DataController
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = array();
             $limit = null;
@@ -52,38 +53,41 @@ class GlobalData extends DataController
             /** @var Shop $shopMapper */
             $shopMapper = Mmc::getMapper('Shop');
             $shops = $shopMapper->findAll(null);
-    
+
             // Currency helpers
             $uniqueCurrencyIds = [];
             $buildCurrency = function (&$globalData, $id, &$uniqueCurrencyIds) {
-                $id = (int) $id;
-                
+                $id = (int)$id;
+
                 if (in_array($id, $uniqueCurrencyIds)) {
                     return;
                 }
-    
+
                 $uniqueCurrencyIds[] = $id;
-                
+
                 try {
                     /** @var Currency $currencyMapper */
                     $currencyMapper = Mmc::getMapper('Currency');
                     $currencySW = $currencyMapper->find($id, true);
-            
+
                     if (!is_null($currencySW)) {
-                        $currencySW['default'] = (bool) $currencySW['default'];
+                        $currencySW['default'] = (bool)$currencySW['default'];
                         $currencySW['hasCurrencySignBeforeValue'] = ($currencySW['position'] == 32) ? true : false;
 
                         /** @var \jtl\Connector\Shopware\Model\Currency $currency */
                         $currency = Mmc::getModel('Currency');
                         $currency->map(true, DataConverter::toObject($currencySW, true));
-                
+
                         $globalData->addCurrency($currency);
                     }
                 } catch (\Exception $e) {
                     Logger::write(ExceptionFormatter::format($e, 'Currency'), Logger::ERROR, 'controller');
                 }
             };
-            
+
+            $languageIso = [];
+            $languages = [];
+
             foreach ($shops as $shop) {
                 $shop['locale']['default'] = (intval($shop['default']) == 1);
                 $shop['customerGroup']['localeName'] = $shop['locale']['locale'];
@@ -92,8 +96,11 @@ class GlobalData extends DataController
                 $language = Mmc::getModel('Language');
                 $language->map(true, DataConverter::toObject($shop['locale'], true));
 
-                $globalData->addLanguage($language);
-                
+                if (!in_array($language->getLanguageISO(), $languageIso)) {
+                    $languageIso[] = $language->getLanguageISO();
+                    $languages[] = $language;
+                }
+
                 // Currencies
                 if (isset($shop['currencies']) && is_array($shop['currencies']) && count($shop['currencies']) > 0) {
                     foreach ($shop['currencies'] as $currencySW) {
@@ -105,6 +112,10 @@ class GlobalData extends DataController
                         $buildCurrency($globalData, $shopSW->getCurrency()->getId(), $uniqueCurrencyIds);
                     }
                 }
+            }
+
+            foreach ($languages as $language) {
+                $globalData->addLanguage($language);
             }
 
             /** @var CustomerGroup $mapper */
@@ -141,7 +152,7 @@ class GlobalData extends DataController
                 $crossSellingGroup = Mmc::getModel('CrossSellingGroup');
                 $crossSellingGroup->map(true, DataConverter::toObject($crossSellingGroupSW, true));
 
-                $crossSellingGroup->getId()->setHost((int) $crossSellingGroupSW['host_id']);
+                $crossSellingGroup->getId()->setHost((int)$crossSellingGroupSW['host_id']);
 
                 foreach ($crossSellingGroupSW['i18ns'] as $crossSellingGroupI18nSW) {
                     try {
@@ -239,7 +250,7 @@ class GlobalData extends DataController
             $taxSWs = $mapper->findAll($limit);
 
             foreach ($taxSWs as $taxSW) {
-                $taxSW['tax'] = (float) $taxSW['tax'];
+                $taxSW['tax'] = (float)$taxSW['tax'];
                 $tax = Mmc::getModel('TaxRate');
                 $tax->map(true, DataConverter::toObject($taxSW, true));
 
@@ -256,7 +267,7 @@ class GlobalData extends DataController
 
                 $globalData->addShippingMethod($shippingMethod);
             }
-            
+
             $result[] = $globalData;
 
             $action->setResult($result);
