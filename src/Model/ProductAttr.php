@@ -22,6 +22,7 @@ class ProductAttr extends ProductAttrModel
     const SHIPPING_FREE = 'shipping_free';
     const CUSTOM_PRODUCTS_TEMPLATE = 'custom_products_template';
     const PRICE_GROUP_ID = 'price_group_id';
+    const MAX_PURCHASE = 'max_purchase';
 
     protected $fields = array(
         'id' => 'id',
@@ -58,7 +59,8 @@ class ProductAttr extends ProductAttrModel
             self::SHIPPING_FREE,
             'shippingfree',
             self::CUSTOM_PRODUCTS_TEMPLATE,
-            self::PRICE_GROUP_ID
+            self::PRICE_GROUP_ID,
+            self::MAX_PURCHASE
         ];
     }
 

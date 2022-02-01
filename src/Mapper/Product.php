@@ -1030,6 +1030,11 @@ class Product extends DataMapper
                 continue;
             }
 
+            if ($lcAttributeName === ProductAttr::MAX_PURCHASE) {
+                $detailSW->setMaxPurchase($attributeValue);
+                continue;
+            }
+
             if (!$isChild && $lcAttributeName === ProductAttr::CUSTOM_PRODUCTS_TEMPLATE) {
                 $pluginName = "SwagCustomProducts";
                 /** @var Plugin $plugin */
