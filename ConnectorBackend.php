@@ -98,7 +98,7 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
 
         $zip = new ZipArchive();
         $zip->open($zipFilepath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-        $zip->addGlob(sprintf('%s*.{log}', $logDirectory), GLOB_BRACE, ['remove_all_path' => true]);
+        $zip->addGlob(sprintf('%s*.log', $logDirectory), 0, ['remove_all_path' => true]);
         $zip->close();
     }
 
