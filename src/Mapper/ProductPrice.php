@@ -6,7 +6,10 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Model\ProductPriceItem;
+use jtl\Connector\Shopware\Model\ProductAttr;
+use jtl\Connector\Shopware\Utilities\I18n;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use \jtl\Connector\Shopware\Utilities\Mmc;
 use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
@@ -35,9 +38,9 @@ class ProductPrice extends DataMapper
             $sortedPrices[$price->getProductId()->getHost()][] = $price;
         }
 
-        foreach(array_values($sortedPrices) as $i => $productPrices) {
+        foreach (array_values($sortedPrices) as $i => $productPrices) {
             $collection = self::buildCollection($productPrices);
-            if(count($collection) > 0) {
+            if (count($collection) > 0) {
                 /** @var ArticleSW $article */
                 $article = $collection[0]->getArticle();
                 $article->setChanged();
@@ -56,15 +59,21 @@ class ProductPrice extends DataMapper
 
     /**
      * @param array \jtl\Connector\Model\ProductPrice $productPrices
-     * @param \Shopware\Models\Article\Article $article
-     * @param \Shopware\Models\Article\Detail $detail
-     * @param float $recommendedRetailPrice
+     * @param ArticleSW|null $article
+     * @param DetailSW|null $detail
+     * @param null|float $recommendedRetailPrice
+     * @param null|\jtl\Connector\Model\Product $product
+     * @return array
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Zend_Db_Statement_Exception
+     * @throws LanguageException
      */
     public static function buildCollection(
-        array $productPrices,
-        ArticleSW &$article = null,
-        DetailSW &$detail = null,
-        $recommendedRetailPrice = null
+        array                        $productPrices,
+        ArticleSW                    &$article = null,
+        DetailSW                     &$detail = null,
+        ?float                       $recommendedRetailPrice = null,
+        ?\jtl\Connector\Model\Product $product = null
     )
     {
         // Price
@@ -76,7 +85,7 @@ class ProductPrice extends DataMapper
             $groupId = (int)$productPrice->getCustomerGroupId()->getEndpoint();
 
             $priceItems = $productPrice->getItems();
-            usort($priceItems, function(ProductPriceItem $a, ProductPriceItem $b) {
+            usort($priceItems, function (ProductPriceItem $a, ProductPriceItem $b) {
                 return $a->getQuantity() - $b->getQuantity();
             });
 
@@ -245,6 +254,10 @@ class ProductPrice extends DataMapper
                     $priceSW->setTo($priceItems[($i + 1)]->getQuantity() - 1);
                 }
 
+                if (!is_null($product)) {
+                    self::applyRegulationPrice($priceSW, $product);
+                }
+
                 Logger::write(sprintf(
                     'group: %s - quantity: %s, net price: %s, (a %s/d %s)',
                     $customerGroupSW->getKey(),
@@ -261,5 +274,63 @@ class ProductPrice extends DataMapper
         }
 
         return $collection;
+    }
+
+    /**
+     * @param Price $swPrice
+     * @param \jtl\Connector\Model\Product $product
+     * @throws LanguageException
+     */
+    private static function applyRegulationPrice(Price &$swPrice, \jtl\Connector\Model\Product $product)
+    {
+        if (!method_exists($swPrice, 'setRegulationPrice')) {
+            Logger::write('Regulation price not supported, skipping', Logger::DEBUG, 'prices');
+
+            return;
+        }
+
+        $attributes = $product->getAttributes();
+
+        $shopwareLocale = ShopUtil::locale()->getLocale();
+        $groupName = strtolower($swPrice->getCustomerGroup()->getName());
+        $groupKey = strtolower($swPrice->getCustomerGroup()->getKey());
+
+        $fallbackPrice = null;
+        $groupPrice = null;
+
+        foreach ($attributes as $attribute) {
+            $attributeI18n = I18n::findByLocale($shopwareLocale, ...$attribute->getI18ns());
+
+            $lcAttributeName = strtolower($attributeI18n->getName());
+            $attributeValue = floatval($attributeI18n->getValue());
+
+            if ($lcAttributeName == ProductAttr::DEFAULT_REGULATION_PRICE_ID) {
+                $fallbackPrice = $attributeValue;
+            } else if ($lcAttributeName == $groupName.ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
+                $groupPrice = $attributeValue;
+            } else if ($lcAttributeName == $groupKey.ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
+                $groupPrice = $attributeValue;
+            }
+
+        }
+        if (!is_null($groupPrice)) {
+            $swPrice->setRegulationPrice($groupPrice);
+
+            Logger::write(sprintf(
+                'regulation price: %f for group: %s',
+                $groupPrice,
+                $groupName
+            ), Logger::DEBUG, 'prices');
+        } else if (!is_null($fallbackPrice)) {
+            $swPrice->setRegulationPrice($fallbackPrice);
+
+            Logger::write(sprintf(
+                'default regulation price: %f',
+                $groupPrice
+            ), Logger::DEBUG, 'prices');
+        } else {
+            Logger::write(sprintf('No regulation price for group %s and no default found!', $groupName), Logger::INFO, 'prices');
+        }
+
     }
 }

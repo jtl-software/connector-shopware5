@@ -23,6 +23,8 @@ class ProductAttr extends ProductAttrModel
     const CUSTOM_PRODUCTS_TEMPLATE = 'custom_products_template';
     const PRICE_GROUP_ID = 'price_group_id';
     const MAX_PURCHASE = 'max_purchase';
+    const DEFAULT_REGULATION_PRICE_ID = 'regulation_price';
+    const SUFFIX_REGULATION_PRICE_ID = '_regulation_price';
 
     protected $fields = array(
         'id' => 'id',

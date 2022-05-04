@@ -1241,7 +1241,8 @@ class Product extends DataMapper
             $product->getPrices(),
             $productSW,
             $detailSW,
-            $product->getRecommendedRetailPrice()
+            $product->getRecommendedRetailPrice(),
+            $product
         );
 
         if (count($collection) > 0) {

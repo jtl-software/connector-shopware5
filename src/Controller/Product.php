@@ -128,6 +128,7 @@ class Product extends DataController
         $data['tax']['tax'] = floatval($data['tax']['tax']);
         $data['mainDetail']['weight'] = floatval($data['mainDetail']['weight']);
 
+        /** @var \jtl\Connector\Model\Product $product */
         $product = Mmc::getModel('Product');
         $product->map(true, DataConverter::toObject($data, true));
 
@@ -226,6 +227,28 @@ class Product extends DataController
             }
 
             $customerGroupCache = $customerGroup->getId();
+
+            if (isset($data['prices'][$i]['regulationPrice']) && $data['prices'][$i]['regulationPrice'] != 0) {
+                $attrName = strtolower($customerGroup->getName()) .ProductAttr::SUFFIX_REGULATION_PRICE_ID;
+
+                $attrId = IdConcatenator::link(array($product->getId()->getEndpoint(), $attrName));
+
+
+                /** @var ProductAttr $productAttr */
+                $productAttr = Mmc::getModel('ProductAttr');
+                $productAttr->setId(new Identity($attrId))
+                    ->setProductId($product->getId())
+                    ->setType(ProductAttr::TYPE_FLOAT);
+
+                /** @var ProductAttrI18n $productAttrI18n */
+                $productAttrI18n = Mmc::getModel('ProductAttrI18n');
+                $productAttrI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                    ->setName($attrName)
+                    ->setValue(number_format($data['prices'][$i]['regulationPrice'],2))
+                    ->setProductAttrId($productAttr->getId());
+                $productAttr->addI18n($productAttrI18n);
+                $product->addAttribute($productAttr);
+            }
         }
 
         $product->addPrice($productPrice);
@@ -372,7 +395,9 @@ class Product extends DataController
             return $productAttr;
         }, $translatableAttributes->getAttributes());
 
-        $product->setAttributes($jtlProductAttributes);
+        foreach($jtlProductAttributes as $attribute){
+            $product->addAttribute($attribute);
+        }
 
         /** @var $product \jtl\Connector\Model\Product */
         if (!is_null($data['priceGroupId'])) {
