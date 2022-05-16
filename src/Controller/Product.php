@@ -53,9 +53,9 @@ class Product extends DataController
 
             /** @var ProductMapper $mapper */
             $mapper = Mmc::getMapper('Product');
-            
+
             $products = $mapper->findAll($limit);
-            
+
             foreach ($products as $productSW) {
                 try {
                     $isDetail = $mapper->isDetailData($productSW);
@@ -176,7 +176,7 @@ class Product extends DataController
         $productPrice = Mmc::getModel('ProductPrice');
         $productPrice->setProductId($product->getId())
             ->setId($productPriceId);
-        
+
         // BasePrice
         if ($product->getBasePriceQuantity() > 0 && $product->getMeasurementQuantity() > 0) {
             $product->setConsiderBasePrice(true);
@@ -229,7 +229,7 @@ class Product extends DataController
             $customerGroupCache = $customerGroup->getId();
 
             if (isset($data['prices'][$i]['regulationPrice']) && $data['prices'][$i]['regulationPrice'] != 0) {
-                $attrName = strtolower($customerGroup->getName()) .ProductAttr::SUFFIX_REGULATION_PRICE_ID;
+                $attrName = strtolower($customerGroup->getKey()) . ProductAttr::SUFFIX_REGULATION_PRICE_ID;
 
                 $attrId = IdConcatenator::link(array($product->getId()->getEndpoint(), $attrName));
 
@@ -244,7 +244,7 @@ class Product extends DataController
                 $productAttrI18n = Mmc::getModel('ProductAttrI18n');
                 $productAttrI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($attrName)
-                    ->setValue(number_format($data['prices'][$i]['regulationPrice'],2))
+                    ->setValue(number_format($data['prices'][$i]['regulationPrice'], 2))
                     ->setProductAttrId($productAttr->getId());
                 $productAttr->addI18n($productAttrI18n);
                 $product->addAttribute($productAttr);
@@ -258,7 +258,7 @@ class Product extends DataController
             $product->addPrice($defaultPrice)
                 ->setRecommendedRetailPrice($recommendedRetailPrice);
         } else {
-            Logger::write(sprintf('Could not find any default price for product (%s, %s)', 
+            Logger::write(sprintf('Could not find any default price for product (%s, %s)',
                 $product->getId()->getEndpoint(),
                 $product->getId()->getHost()
             ), Logger::WARNING, 'controller');
@@ -625,7 +625,7 @@ class Product extends DataController
                 $product->addMediaFile($productMediaFile);
             }
         }
-        
+
         return $product;
     }
 }

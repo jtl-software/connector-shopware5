@@ -7,6 +7,7 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Core\Exception\LanguageException;
+use jtl\Connector\Model\Product as JTLProduct;
 use jtl\Connector\Model\ProductPriceItem;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\I18n;
@@ -62,7 +63,7 @@ class ProductPrice extends DataMapper
      * @param ArticleSW|null $article
      * @param DetailSW|null $detail
      * @param null|float $recommendedRetailPrice
-     * @param null|\jtl\Connector\Model\Product $product
+     * @param null|JTLProduct $product
      * @return array
      * @throws \Doctrine\ORM\ORMException
      * @throws \Zend_Db_Statement_Exception
@@ -73,7 +74,7 @@ class ProductPrice extends DataMapper
         ArticleSW                    &$article = null,
         DetailSW                     &$detail = null,
         ?float                       $recommendedRetailPrice = null,
-        ?\jtl\Connector\Model\Product $product = null
+        ?JTLProduct $product = null
     )
     {
         // Price
@@ -278,10 +279,10 @@ class ProductPrice extends DataMapper
 
     /**
      * @param Price $swPrice
-     * @param \jtl\Connector\Model\Product $product
+     * @param JTLProduct $product
      * @throws LanguageException
      */
-    private static function applyRegulationPrice(Price &$swPrice, \jtl\Connector\Model\Product $product)
+    private static function applyRegulationPrice(Price $swPrice, JTLProduct $product)
     {
         if (!method_exists($swPrice, 'setRegulationPrice')) {
             Logger::write('Regulation price not supported, skipping', Logger::DEBUG, 'prices');
@@ -304,11 +305,11 @@ class ProductPrice extends DataMapper
             $lcAttributeName = strtolower($attributeI18n->getName());
             $attributeValue = floatval($attributeI18n->getValue());
 
-            if ($lcAttributeName == ProductAttr::DEFAULT_REGULATION_PRICE_ID) {
+            if ($lcAttributeName === ProductAttr::DEFAULT_REGULATION_PRICE_ID) {
                 $fallbackPrice = $attributeValue;
-            } else if ($lcAttributeName == $groupName.ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
+            } else if ($lcAttributeName === $groupName . ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
                 $groupPrice = $attributeValue;
-            } else if ($lcAttributeName == $groupKey.ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
+            } else if ($lcAttributeName === $groupKey . ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
                 $groupPrice = $attributeValue;
             }
 
