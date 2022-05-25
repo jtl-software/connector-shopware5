@@ -1,3 +1,7 @@
+2.15.0
+------
+- CO-1996 - Feature - Added support for regulation price 
+
 2.14.0
 ------
 - CO-1913 - Bugfix - Fixed problem with image deleting in shop
