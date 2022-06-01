@@ -301,6 +301,13 @@ class ProductPrice extends DataMapper
 
         foreach ($attributes as $attribute) {
             $attributeI18n = I18n::findByLocale($shopwareLocale, ...$attribute->getI18ns());
+            if(is_null($attributeI18n)){
+                Logger::write(sprintf('No Translation found for Attribute %s in locale %s',
+                    $attribute->getId()->getHost(),
+                    $shopwareLocale
+                ), Logger::WARNING, 'database');
+                continue;
+            }
 
             $lcAttributeName = strtolower($attributeI18n->getName());
             $attributeValue = floatval($attributeI18n->getValue());

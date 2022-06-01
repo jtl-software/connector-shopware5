@@ -10,6 +10,7 @@ use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Core\Exception\LanguageException;
+use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\I18n;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
@@ -305,6 +306,13 @@ class Category extends DataMapper
             }
 
             $attributeI18n = I18n::findByLanguageIso($languageIso, ...$jtlAttribute->getI18ns());
+            if(is_null($attributeI18n)){
+                Logger::write(sprintf('No Translation found for Attribute %s in locale %s',
+                    $jtlAttribute->getId()->getHost(),
+                    $shopwareLocale
+                ), Logger::WARNING, 'database');
+                continue;
+            }
 
             if (CategoryAttr::isSpecialAttribute($attributeI18n->getName())) {
 
