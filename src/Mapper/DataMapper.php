@@ -9,6 +9,7 @@ namespace jtl\Connector\Shopware\Mapper;
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Core\Utilities\Singleton;
+use jtl\Connector\Model\DataModel;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Shopware\Models\Article\Article;
@@ -171,5 +172,18 @@ abstract class DataMapper extends Singleton
         }
 
         return false;
+    }
+
+    /**
+     * @param DataModel $attribute
+     * @param string $local
+     * @return void
+     */
+    protected static function logNullTranslation(DataModel $attribute, string $local)
+    {
+        Logger::write(sprintf('No Translation found for Attribute %s in locale %s',
+            $attribute->getId()->getHost(),
+            $local
+        ), Logger::WARNING, 'database');
     }
 }

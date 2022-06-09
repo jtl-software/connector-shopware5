@@ -95,7 +95,7 @@ class Category extends DataMapper
             return ($paginator->count());
         }
 
-        $categories = array_map(function(array $data) {
+        $categories = array_map(function (array $data) {
             return $data[0] ?? null;
         }, iterator_to_array($paginator));
 
@@ -306,11 +306,8 @@ class Category extends DataMapper
             }
 
             $attributeI18n = I18n::findByLanguageIso($languageIso, ...$jtlAttribute->getI18ns());
-            if(is_null($attributeI18n)){
-                Logger::write(sprintf('No Translation found for Attribute %s in locale %s',
-                    $jtlAttribute->getId()->getHost(),
-                    $shopwareLocale
-                ), Logger::WARNING, 'database');
+            if (is_null($attributeI18n)) {
+                self::logNullTranslation($jtlAttribute, $languageIso);
                 continue;
             }
 
