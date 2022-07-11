@@ -10,6 +10,7 @@ use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Core\Exception\LanguageException;
+use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\I18n;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
@@ -94,7 +95,7 @@ class Category extends DataMapper
             return ($paginator->count());
         }
 
-        $categories = array_map(function(array $data) {
+        $categories = array_map(function (array $data) {
             return $data[0] ?? null;
         }, iterator_to_array($paginator));
 
@@ -305,6 +306,10 @@ class Category extends DataMapper
             }
 
             $attributeI18n = I18n::findByLanguageIso($languageIso, ...$jtlAttribute->getI18ns());
+            if (is_null($attributeI18n)) {
+                self::logNullTranslation($jtlAttribute, $languageIso);
+                continue;
+            }
 
             if (CategoryAttr::isSpecialAttribute($attributeI18n->getName())) {
 

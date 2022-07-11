@@ -1,3 +1,7 @@
+2.15.1
+------
+- CO-2026 - Skip Attributes without i18ns translation
+
 2.15.0
 ------
 - CO-1996 - Feature - Added support for regulation price 

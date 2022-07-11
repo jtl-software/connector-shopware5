@@ -931,6 +931,10 @@ class Product extends DataMapper
             }
 
             $attributeI18n = I18n::findByLocale($shopwareLocale, ...$attribute->getI18ns());
+            if (is_null($attributeI18n)) {
+                self::logNullTranslation($attribute, $shopwareLocale);
+                continue;
+            }
 
             $lcAttributeName = strtolower($attributeI18n->getName());
             $attributeValue = $attributeI18n->getValue();

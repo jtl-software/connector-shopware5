@@ -53,6 +53,6 @@ class I18n
             return reset($i18ns);
         }
 
-        throw new \Exception('No translation found');
+        return null;
     }
 }
