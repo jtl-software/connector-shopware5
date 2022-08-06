@@ -439,7 +439,7 @@ class CustomerOrder extends DataMapper
             ->setDetails($detailsSW);
     }
 
-    protected function prepareItemAssociatedData(CustomerOrderModel &$item, OrderSW &$orderSW, \Doctrine\Common\Collections\ArrayCollection &$detailsSW)
+    protected function prepareItemAssociatedData(CustomerOrderItem &$item, OrderSW &$orderSW, \Doctrine\Common\Collections\ArrayCollection &$detailsSW)
     {
         $detailSW = null;
 
