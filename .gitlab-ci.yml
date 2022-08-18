@@ -1,0 +1,41 @@
+variables:
+  FF_USE_FASTZIP: 1
+  COMPOSER_CACHE_DIR: ${CI_PROJECT_DIR}/.composer-cache
+
+default:
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:8.0
+  tags:
+    - docker
+  before_script:
+    - composer update --no-interaction --no-progress
+  cache:
+    key: vendor
+    paths:
+      - vendor
+      - .composer-cache
+      - composer.lock
+
+include:
+  - project: 'connector/connector-utils/CI-Templates'
+    file:
+      - 'auto-create-mr/ci.yaml'
+      - 'code-quality/ci.yaml'
+
+stages:
+  - createMR
+  - test
+
+code_quality:
+  before_script: []
+
+test:unit:
+  parallel:
+    matrix:
+      - VERSION: [ '7.1','7.2','7.3','7.4','8.0' ]
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
+  stage: test
+  script:
+    - vendor/bin/phpunit --configuration phpunit.xml --log-junit junit.xml
+  artifacts:
+    reports:
+      junit: junit.xml
