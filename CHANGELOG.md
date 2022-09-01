@@ -1,3 +1,6 @@
+## Unreleased
+- CO-2106 - Add PayPal Invoice V2 Support
+
 2.15.1
 ------
 - CO-2026 - Skip Attributes without i18ns translation
