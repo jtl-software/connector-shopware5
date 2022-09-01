@@ -108,7 +108,8 @@ class CustomerOrder extends DataController
                         ->findOneById($jtlOrder->getId()->getEndpoint());
 
                     // PaymentModuleCode
-                    $jtlOrder->setPaymentModuleCode(PaymentUtil::map(null, $swOrder['payment']['name'], $swOrder['payment']['description']));
+                    $jtlOrder->setPaymentModuleCode(PaymentUtil::map(null, $swOrder['payment']['name'],
+                        $swOrder['payment']['description']));
 
                     //To preserve old payment module logic
                     $paymentModuleCode = PaymentUtil::map(null, $swOrder['payment']['name']);
@@ -191,10 +192,12 @@ class CustomerOrder extends DataController
                         switch ((int)$swOrder['net']) {
                             case 0: // price is gross
                                 $swDetail['priceGross'] = round($swDetail['price'], $precision);
-                                $swDetail['price'] = round(Money::AsNet($swDetail['price'], $swDetail['taxRate']), $precision);
+                                $swDetail['price'] = round(Money::AsNet($swDetail['price'], $swDetail['taxRate']),
+                                    $precision);
                                 break;
                             case 1: // price is net
-                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'], $swDetail['taxRate']), 4);
+                                $swDetail['priceGross'] = round(Money::AsGross($swDetail['price'],
+                                    $swDetail['taxRate']), 4);
                                 break;
                         }
 
@@ -216,7 +219,7 @@ class CustomerOrder extends DataController
                         }
                         */
 
-                        if(!is_null($customProductsService)) {
+                        if (!is_null($customProductsService)) {
                             $configHash = $swDetail['attribute']['swagCustomProductsConfigurationHash'] ?? null;
                             $productMode = $swDetail['attribute']['swagCustomProductsMode'] ?? null;
 
@@ -244,7 +247,8 @@ class CustomerOrder extends DataController
                     }
 
                     $this->addPos($jtlOrder, 'setBillingAddress', 'CustomerOrderBillingAddress', $swOrder['billing']);
-                    $this->addPos($jtlOrder, 'setShippingAddress', 'CustomerOrderShippingAddress', $swOrder['shipping']);
+                    $this->addPos($jtlOrder, 'setShippingAddress', 'CustomerOrderShippingAddress',
+                        $swOrder['shipping']);
 
                     // Salutation and Email
                     if ($jtlOrder->getBillingAddress() !== null) {
@@ -326,7 +330,7 @@ class CustomerOrder extends DataController
                                 continue;
                             }
 
-                            if($value instanceof \DateTimeInterface) {
+                            if ($value instanceof \DateTimeInterface) {
                                 $value = $value->format(\DateTime::ISO8601);
                             }
 
@@ -542,6 +546,7 @@ class CustomerOrder extends DataController
 
             switch ($swagPayPalUnifiedPaymentType) {
                 case 'PayPalPlusInvoice':
+                case 'PayPalPayUponInvoiceV2':
                     // Invoice
                     $result = Shopware()->Db()
                         ->fetchAll('SELECT *
@@ -637,8 +642,11 @@ class CustomerOrder extends DataController
      * @param KeyValueAttributes $keyValueAttributes
      * @param array $swAttributes
      */
-    protected function addWunschpaketAttributes(CustomerOrderModel $order, KeyValueAttributes $keyValueAttributes, array $swAttributes)
-    {
+    protected function addWunschpaketAttributes(
+        CustomerOrderModel $order,
+        KeyValueAttributes $keyValueAttributes,
+        array $swAttributes
+    ) {
         $mappings = [
             self::DHL_WUNSCHPAKET_ATTRIBUTE_ADDRESS_TYPE => 'dhl_wunschpaket_type',
             self::DHL_WUNSCHPAKET_ATTRIBUTE_LOCATION => 'dhl_wunschpaket_location',
@@ -695,7 +703,8 @@ class CustomerOrder extends DataController
                             $streetParts['number']);
                     }
 
-                    $addressAddition = sprintf('%s %s', $order->getShippingAddress()->getZipCode(), $order->getShippingAddress()->getCity());
+                    $addressAddition = sprintf('%s %s', $order->getShippingAddress()->getZipCode(),
+                        $order->getShippingAddress()->getCity());
 
                     if (isset($parts[1])) {
                         $addressAddition = $parts[1];
@@ -706,7 +715,7 @@ class CustomerOrder extends DataController
                     break;
             }
         }
-        $keyValueAttributes->addAttribute('dhl_wunschpaket_feeder_system','sw5');
+        $keyValueAttributes->addAttribute('dhl_wunschpaket_feeder_system', 'sw5');
     }
 
     public static function calcShippingVat(CustomerOrderModel $order)
