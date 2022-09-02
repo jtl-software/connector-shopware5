@@ -20,10 +20,13 @@ include:
     file:
       - 'auto-create-mr/ci.yaml'
       - 'code-quality/ci.yaml'
+      - 'update-changelog/ci.yaml'
 
 stages:
   - createMR
   - test
+  - extract-changelog
+  - update-changelog
 
 code_quality:
   before_script: []
@@ -39,3 +42,19 @@ test:unit:
   artifacts:
     reports:
       junit: junit.xml
+
+extractChangelog:
+  stage: extract-changelog
+  when: on_success
+  variables:
+    CHANGELOG_FILE: 'CHANGELOG.md'
+    CHANGELOG_JSON: 'shopware5.json'
+    CONTEXT_FILE: '/tmp/target/storage/systems/shopware5.json'
+
+updateChangelogRepo:
+  only:
+    - tags
+  stage: update-changelog
+  when: on_success
+  variables:
+    COPY_FILE: "shopware5.json"
