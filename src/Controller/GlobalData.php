@@ -25,6 +25,7 @@ use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use Shopware\Models\Tax\Rule;
 
 /**
  * GlobalData Controller
