@@ -21,8 +21,13 @@ class TaxRate extends DataMapper
     {
         return $this->Manager()->getRepository('Shopware\Models\Tax\Tax')->findOneBy($kv);
     }
-    
-    public function findAll($limit = 100, $count = false)
+
+    /**
+     * @param int $limit
+     * @param bool $count
+     * @return array|int
+     */
+    public function findAll(int $limit = 100, bool $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
                 'tax'
