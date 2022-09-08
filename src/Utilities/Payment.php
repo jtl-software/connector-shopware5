@@ -66,7 +66,8 @@ final class Payment
     public static function isPayPalUnifiedType($paymentModuleCode)
     {
         return ($paymentModuleCode === 'SwagPaymentPayPalUnified' ||
-            $paymentModuleCode === 'SwagPaymentPayPalUnifiedInstallments');
+            $paymentModuleCode === 'SwagPaymentPayPalUnifiedInstallments' ||
+            $paymentModuleCode === 'SwagPaymentPayPalUnifiedPayUponInvoice');
     }
 
     /**
@@ -81,6 +82,7 @@ final class Payment
                 break;
             case 'PayPalPlus':
             case 'PayPalPlusInvoice':
+            case 'PayPalPayUponInvoiceV2':
             case 'PayPalInstallments':
                 $paymentModuleCode = PaymentTypes::TYPE_PAYPAL_PLUS;
                 break;
