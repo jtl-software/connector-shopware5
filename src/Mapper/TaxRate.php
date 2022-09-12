@@ -23,11 +23,11 @@ class TaxRate extends DataMapper
     }
 
     /**
-     * @param int $limit
+     * @param int|null $limit
      * @param bool $count
      * @return array|int
      */
-    public function findAll(int $limit = 100, bool $count = false)
+    public function findAll(?int $limit = 100, bool $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
                 'tax'
