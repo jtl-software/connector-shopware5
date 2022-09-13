@@ -1,6 +1,7 @@
 # Changelog 
 
 ## unreleased
+- CO-2113 - add TaxGroups to GlobalData Pull
 - CO-2080 - update Changelog to new format
 - CO-2098 - merge GitHub PR #1
 - CO-2106 - Add PayPal Invoice V2 Support

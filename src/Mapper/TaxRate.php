@@ -21,8 +21,13 @@ class TaxRate extends DataMapper
     {
         return $this->Manager()->getRepository('Shopware\Models\Tax\Tax')->findOneBy($kv);
     }
-    
-    public function findAll($limit = 100, $count = false)
+
+    /**
+     * @param int|null $limit
+     * @param bool $count
+     * @return array|int
+     */
+    public function findAll(?int $limit = 100, bool $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
                 'tax'
@@ -31,9 +36,27 @@ class TaxRate extends DataMapper
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, true);
 
-        return $count ? $paginator->count() : iterator_to_array($paginator);
+        $return = $count ? $paginator->count() : iterator_to_array($paginator);
+
+        $query = Shopware()->Models()->createQueryBuilder()->select(
+            'tax'
+        )
+            ->from('Shopware\Models\Tax\Rule', 'tax')
+            ->groupBy('tax.tax')
+            ->setMaxResults($limit)
+            ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, true);
+
+        if($count){
+            $return = $return + $paginator->count();
+        } else {
+            $return = array_merge($return, iterator_to_array($paginator));
+        }
+
+        return $return;
     }
 
     public function fetchCount($limit = 100)
