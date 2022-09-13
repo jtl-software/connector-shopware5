@@ -1,44 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="JTL-Connector-Shopware-Endpoint" default="release">
     <property file="./build-config.yaml" />
+    <property name="tmpdir" value="/tmp/" />
     <target name="build">
-        <delete dir="./dist" />
-        <mkdir dir="./dist" />
-        <mkdir dir="./dist/Frontend/jtlconnector" />
-        <mkdir dir="./dist/Frontend/jtlconnector/plugins" />
-        <mkdir dir="./dist/Frontend/jtlconnector/config" />
-        <mkdir dir="./dist/Frontend/jtlconnector/logs" />
-        <mkdir dir="./dist/Frontend/jtlconnector/db" />
-        <mkdir dir="./dist/Frontend/jtlconnector/tmp" />
-        <mkdir dir="./dist/Frontend/jtlconnector/validation" />
-        <copy todir="./dist/Frontend/jtlconnector/validation">
+        <delete dir="${tmpdir}/dist" />
+        <mkdir dir="${tmpdir}/dist" />
+        <mkdir dir="${tmpdir}/dist/Frontend/jtlconnector" />
+        <mkdir dir="${tmpdir}/dist/Frontend/jtlconnector/plugins" />
+        <mkdir dir="${tmpdir}/dist/Frontend/jtlconnector/config" />
+        <mkdir dir="${tmpdir}/dist/Frontend/jtlconnector/logs" />
+        <mkdir dir="${tmpdir}/dist/Frontend/jtlconnector/db" />
+        <mkdir dir="${tmpdir}/dist/Frontend/jtlconnector/tmp" />
+        <mkdir dir="${tmpdir}/dist/Frontend/jtlconnector/validation" />
+        <copy todir="${tmpdir}/dist/Frontend/jtlconnector/validation">
             <fileset dir="./config">
                 <include name=".htaccess" />
             </fileset>
         </copy>
-        <copy todir="./dist/Frontend/jtlconnector/config">
+        <copy todir="${tmpdir}/dist/Frontend/jtlconnector/config">
             <fileset dir="./config">
                 <include name=".htaccess" />
                 <include name="config.json.example" />
                 <include name="features.json.example" />
             </fileset>
         </copy>
-        <copy todir="./dist/Frontend/jtlconnector/logs">
+        <copy todir="${tmpdir}/dist/Frontend/jtlconnector/logs">
             <fileset dir="./logs">
                 <include name=".htaccess" />
             </fileset>
         </copy>
-        <copy todir="./dist/Frontend/jtlconnector/db">
+        <copy todir="${tmpdir}/dist/Frontend/jtlconnector/db">
             <fileset dir="./db">
                 <include name=".htaccess" />
             </fileset>
         </copy>
-        <copy todir="./dist/Frontend/jtlconnector/tmp">
+        <copy todir="${tmpdir}/dist/Frontend/jtlconnector/tmp">
             <fileset dir="./tmp">
                 <include name=".htaccess" />
             </fileset>
         </copy>
-        <copy todir="./dist/Frontend/jtlconnector/">
+        <copy todir="${tmpdir}/dist/Frontend/jtlconnector/">
             <fileset dir="./">
                 <include name="Bootstrap.php" />
                 <include name="Connector.php" />
@@ -54,7 +55,7 @@
     </target>
 
     <target name="package" depends="build">
-        <fileset dir="./dist" id="zipFiles">
+        <fileset dir="${tmpdir}/dist" id="zipFiles">
             <include name="Frontend/**" />
         </fileset>
 
@@ -65,6 +66,6 @@
     </target>
 
     <target name="release" depends="package">
-        <delete dir="./dist" />
+        <delete dir="${tmpdir}/dist" />
     </target>
 </project>

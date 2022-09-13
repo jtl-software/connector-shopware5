@@ -1,6 +1,9 @@
 # Changelog 
 
 ## unreleased
+
+
+## 2.16.0 _2022-09-13_
 - CO-2113 - add TaxGroups to GlobalData Pull
 - CO-2080 - update Changelog to new format
 - CO-2098 - merge GitHub PR #1
