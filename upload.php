@@ -5,9 +5,14 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $username = $argv[1];
 $password = $argv[2];
-$version = $argv[3] ?? '0.0.2';
+$version = $argv[3];
 
-$pluginId = '9351';
+if (empty($username) || empty($password) || empty($version)) {
+    echo "Usage: php upload.php <username> <password> <version>";
+    exit(1);
+}
+
+$pluginId = '3255';
 
 $apiUrl = 'https://api.shopware.com/';
 
