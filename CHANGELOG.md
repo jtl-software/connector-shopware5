@@ -1,6 +1,7 @@
 # Changelog 
 
 ## unreleased
+- CO-2048 - upload to sw store 
 
 
 ## 2.16.0 _2022-09-13_
