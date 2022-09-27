@@ -25,7 +25,6 @@ $client = new \GuzzleHttp\Client([
 ]);
 
 try {
-
     echo 'Login... ';
 
     $response = $client->request('POST', 'accesstokens', [
@@ -48,7 +47,7 @@ try {
         ],
     ]);
 
-    echo "Success".PHP_EOL;
+    echo "Success" . PHP_EOL;
     echo 'Get Versions... ';
 
 
@@ -57,7 +56,7 @@ try {
 
     $binaries = json_decode($response->getBody()->getContents());
 
-    echo "Success".PHP_EOL;
+    echo "Success" . PHP_EOL;
 
     $binaries = array_filter($binaries, function ($binary) use ($version) {
         return $binary->version === $version;
@@ -74,7 +73,7 @@ try {
                 [
                     'name' => 'file',
                     'contents' => fopen(
-                        __DIR__ . '/' . sprintf('jtl-connector-shopware5-%s.zip', /*$version*/ '2.16.0'),
+                        __DIR__ . '/' . sprintf('jtl-connector-shopware5-%s.zip', $version),
                         'r'
                     ),
                 ]
@@ -87,7 +86,7 @@ try {
                 [
                     'name' => 'file',
                     'contents' => fopen(
-                        __DIR__ . '/' . sprintf('jtl-connector-shopware5-%s.zip', /*$version*/ '2.16.0'),
+                        __DIR__ . '/' . sprintf('jtl-connector-shopware5-%s.zip', $version),
                         'r'
                     ),
                 ]
@@ -97,22 +96,22 @@ try {
 
     $binaries = json_decode($response->getBody()->getContents());
 
-    echo "Success".PHP_EOL;
+    echo "Success" . PHP_EOL;
 
     $binary = array_shift($binaries);
 
     $binary->version = $version;
     foreach ($binary->changelogs as $key => $changelog) {
-        if($changelog->locale->name === 'en_EN') {
+        if ($changelog->locale->name === 'en_EN') {
             $binary->changelogs[$key]->text = 'https://changelog.jtl-software.de/en/systems/connector/shopware5';
-        }else{
+        } else {
             $binary->changelogs[$key]->text = 'https://changelog.jtl-software.de/systems/connector/shopware5';
         }
     }
 
     echo 'Update Plugin Info... ';
 
-    $response = $client->request('GET','pluginstatics/softwareVersions');
+    $response = $client->request('GET', 'pluginstatics/softwareVersions');
 
     $softwareVersions = json_decode($response->getBody()->getContents());
 
@@ -128,7 +127,7 @@ try {
         'json' => $binary,
     ]);
 
-    echo "Success".PHP_EOL;
+    echo "Success" . PHP_EOL;
     echo 'Requesting Code Review' . PHP_EOL;
 
     $response = $client->request('POST', sprintf('plugins/%d/reviews', $pluginId));
@@ -136,7 +135,6 @@ try {
     echo 'Done' . PHP_EOL;
 
     exit(0);
-
 } catch (\GuzzleHttp\Exception\ClientException $e) {
     die('API Error ' . $e->getResponse()->getStatusCode() . ': ' . $e->getResponse()->getBody());
 }
