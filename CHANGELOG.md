@@ -1,7 +1,7 @@
 # Changelog 
 
 ## unreleased
-
+- CO-2161 - fix duplicate languages on product attributes
 
 ## 2.16.0 _2022-09-13_
 - CO-2113 - add TaxGroups to GlobalData Pull
