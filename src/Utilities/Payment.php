@@ -22,7 +22,10 @@ final class Payment
         PaymentTypes::TYPE_HEIDELPAY => [
             'hgw_iv',
             'hgw_papg',
-            'hgw_ivb2b'
+            'hgw_ivb2b',
+            'unzerPaymentGiropay',
+            'unzerPaymentInvoiceSecured',
+            'unzerPaymentCreditCard'
         ]
     ];
 
