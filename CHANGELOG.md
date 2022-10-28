@@ -2,6 +2,7 @@
 
 ## unreleased
 - CO-2130 - support Unzer Plugin
+- CO-2076 - check if customer creation date is null on pull
 
 ## 2.16.0 _2022-09-13_
 - CO-2113 - add TaxGroups to GlobalData Pull
