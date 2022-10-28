@@ -195,22 +195,22 @@ class CustomerOrder extends DataMapper
 
         if ($orderSW === null) {
             $orderSW = new OrderSW;
-        }
 
-        $orderSW->setNumber($customerOrder->getOrderNumber())
-            ->setInvoiceAmount(Money::AsGross($customerOrder->getTotalSum(), \jtl\Connector\Shopware\Controller\CustomerOrder::calcShippingVat($customerOrder)))
-            ->setInvoiceAmountNet($customerOrder->getTotalSum())
-            ->setOrderTime($customerOrder->getCreationDate())
-            ->setCustomerComment($customerOrder->getNote())
-            ->setNet(0)
-            ->setTrackingCode('')
-            ->setCurrency($customerOrder->getCurrencyIso())
-            ->setRemoteAddress('')
-            ->setTemporaryId('')
-            ->setTransactionId('')
-            ->setComment('')
-            ->setInternalComment('')
-            ->setReferer('');
+            $orderSW->setNumber($customerOrder->getOrderNumber())
+                ->setInvoiceAmount(Money::AsGross($customerOrder->getTotalSum(), \jtl\Connector\Shopware\Controller\CustomerOrder::calcShippingVat($customerOrder)))
+                ->setInvoiceAmountNet($customerOrder->getTotalSum())
+                ->setOrderTime($customerOrder->getCreationDate())
+                ->setCustomerComment($customerOrder->getNote())
+                ->setNet(0)
+                ->setTrackingCode('')
+                ->setCurrency($customerOrder->getCurrencyIso())
+                ->setRemoteAddress('')
+                ->setTemporaryId('')
+                ->setTransactionId('')
+                ->setComment('')
+                ->setInternalComment('')
+                ->setReferer('');
+        }
 
         if (!is_null($customerOrder->getPaymentDate()) &&
             $customerOrder->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED) {
