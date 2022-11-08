@@ -64,7 +64,7 @@ deploy:
   needs:
     - build
   script:
-    - php upload.php $SW_USERNAME $SW_PASSWORD $CI_COMMIT_TAG
+    - php upload.php "$SW_USERNAME" "$SW_PASSWORD" "$CI_COMMIT_TAG"
 
 extractChangelog:
   stage: extract-changelog
