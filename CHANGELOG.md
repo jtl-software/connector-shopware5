@@ -1,6 +1,8 @@
 # Changelog 
 
 ## unreleased
+
+## 2.17.0 _2022-11-08_
 - CO-2048 - upload to sw store 
 - CO-2130 - support Unzer Plugin
 
