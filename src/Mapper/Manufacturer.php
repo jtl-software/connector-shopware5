@@ -183,6 +183,7 @@ class Manufacturer extends DataMapper
      * @param mixed|null $value
      *
      * @return mixed
+     * @throws \RuntimeException
      */
     private function checkNull($value)
     {
