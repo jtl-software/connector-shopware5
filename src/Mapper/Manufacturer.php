@@ -233,7 +233,7 @@ class Manufacturer extends DataMapper
     public function saveTranslatation(ManufacturerModel $manufacturer, ManufacturerSW $manufacturerSW): void
     {
         foreach ($manufacturer->getI18ns() as $i18n) {
-            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) !== false) {
+            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false) {
                 $iso      = $i18n->getLanguageISO();
                 $locale   = LanguageUtil::map(null, null, $iso);
                 $language = LocaleUtil::extractLanguageIsoFromLocale($locale);
