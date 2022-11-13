@@ -1,2 +1,3 @@
-version: 2.16.0
+version: 2.17.0
 zipname: jtl-connector-shopware5-
+tmpdir: /tmp
