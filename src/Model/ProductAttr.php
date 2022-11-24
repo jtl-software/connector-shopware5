@@ -14,7 +14,7 @@ use \jtl\Connector\Model\ProductAttr as ProductAttrModel;
 class ProductAttr extends ProductAttrModel
 {
     const ADDITIONAL_TEXT = 'additional_text';
-    const IMAGE_CONFIGURATION_IGNORES = 'sw_image_config_ignores';
+    const IMAGE_CONFIGURATION_IGNORES = 'image_config_ignores';
     const IS_ACTIVE = 'active';
     const IS_MAIN = 'main';
     const PSEUDO_SALES = 'pseudo_sales';
