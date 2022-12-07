@@ -1,6 +1,7 @@
 # Changelog 
 
 ## unreleased
+- CO-2237 - Fix Plugin Manager Guzzle Error with dev Version
 
 ## 2.17.0 _2022-11-08_
 - CO-2048 - upload to sw store 
