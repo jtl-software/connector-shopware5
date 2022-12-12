@@ -25,6 +25,8 @@ include:
 stages:
   - createMR
   - test
+  - build
+  - deploy
   - extract-changelog
   - update-changelog
 
@@ -34,7 +36,7 @@ code_quality:
 test:unit:
   parallel:
     matrix:
-      - VERSION: [ '7.1','7.2','7.3','7.4','8.0' ]
+      - VERSION: [ '7.2','7.3','7.4','8.0' ]
   image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:${VERSION}
   stage: test
   script:
@@ -42,6 +44,27 @@ test:unit:
   artifacts:
     reports:
       junit: junit.xml
+
+build:
+  image: gitlab.jtl-software.com:4567/connector/connector-utils/ci-docker/php/cli:7.4
+  stage: build
+  only:
+    - tags
+  script:
+    - composer update --no-dev --no-interaction --no-progress
+    - php ./vendor/bin/phing release -Dversion=$CI_COMMIT_TAG -Dtmpdir=.
+  artifacts:
+    paths:
+      - jtl-connector-*.zip
+
+deploy:
+  stage: deploy
+  only:
+    - tags
+  needs:
+    - build
+  script:
+    - php upload.php "$SW_USERNAME" "$SW_PASSWORD" "$CI_COMMIT_TAG"
 
 extractChangelog:
   stage: extract-changelog

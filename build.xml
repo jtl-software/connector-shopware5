@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="JTL-Connector-Shopware-Endpoint" default="release">
     <property file="./build-config.yaml" />
-    <property name="tmpdir" value="/tmp/" />
     <target name="build">
         <delete dir="${tmpdir}/dist" />
         <mkdir dir="${tmpdir}/dist" />

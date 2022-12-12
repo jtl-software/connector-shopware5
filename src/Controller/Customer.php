@@ -80,8 +80,8 @@ class Customer extends DataController
                         }
                     } catch (\Exception $e) { }
 
-                    /* Set actual date as creation date if creation date is 0000-00-00 */
-                    if((int)$customer->getCreationDate()->format('Y') < 0) {
+                    /* Set actual date as creation date if creation date is 0000-00-00 or null */
+                    if(\is_null($customer->getCreationDate()) || (int)$customer->getCreationDate()->format('Y') < 0) {
                         $customer->setCreationDate(new \DateTime());
                     }
 
