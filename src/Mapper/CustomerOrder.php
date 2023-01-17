@@ -15,6 +15,7 @@ use jtl\Connector\Shopware\Utilities\Plugin;
 use \Shopware\Components\Api\Exception as ApiException;
 use \jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use \jtl\Connector\Model\CustomerOrderItem;
+use Shopware\Models\Order\Order;
 use \Shopware\Models\Order\Order as OrderSW;
 use \Shopware\Models\Order\Detail as OrderDetailSW;
 use \jtl\Connector\Core\Logger\Logger;
@@ -27,6 +28,7 @@ use \jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
 use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use \jtl\Connector\Shopware\Utilities\Salutation;
 use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use Shopware\Models\Order\Status;
 
 class CustomerOrder extends DataMapper
 {
@@ -493,13 +495,13 @@ class CustomerOrder extends DataMapper
         // shopId
         $itemStatus = 0;
         switch ($orderSW->getOrderStatus()->getId()) {
-            case CustomerOrderModel::STATUS_PROCESSING:
+            case Status::ORDER_STATE_IN_PROCESS:
                 $itemStatus = 1;
                 break;
-            case CustomerOrderModel::STATUS_CANCELLED:
+            case Status::ORDER_STATE_CANCELLED:
                 $itemStatus = 2;
                 break;
-            case CustomerOrderModel::STATUS_COMPLETED:
+            case Status::ORDER_STATE_COMPLETED:
                 $itemStatus = 3;
                 break;
         }
