@@ -1,6 +1,7 @@
 # Changelog 
 
 ## unreleased
+- CO-2218 - fix order status constants
 
 ## 2.17.1 _2022-12-13_
 - CO-2076 - fix Customer creation date is null
