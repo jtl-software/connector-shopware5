@@ -167,7 +167,7 @@ class Specific extends DataMapper
                     if (count($groupSW->getOptions()) == 1) {
                         $sql = "UPDATE s_articles SET filtergroupID = null WHERE filtergroupID = ?";
                         Shopware()->Db()->query($sql, array($groupSW->getId()));
-                        
+
                         $this->Manager()->remove($groupSW);
                     }
                 }
@@ -269,27 +269,29 @@ class Specific extends DataMapper
         $translationService = ShopUtil::translationService();
         $shopMapper = Mmc::getMapper('Shop');
         foreach ($specific->getI18ns() as $i18n) {
-            $locale = LocaleUtil::getByKey(LanguageUtil::map(null,null, $i18n->getLanguageISO()));
-
-            if ($locale === null) {
-                Logger::write(sprintf('Could not find any locale for (%s)', $i18n->getLanguageISO()), Logger::WARNING, 'database');
-                continue;
-            }
-
-            $language = LocaleUtil::extractLanguageIsoFromLocale($locale->getLocale());
-            $shops = $shopMapper->findByLanguageIso($language);
-
-            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false) {
-                foreach ($shops as $shop) {
-                    $translationService->write(
-                        $shop->getId(),
-                        'propertyoption',
-                        $optionSW->getId(),
-                        array(
-                            'optionName' => $i18n->getName()
-                        )
-                    );
+            $locales = LocaleUtil::getByKey(LanguageUtil::map(null,null, $i18n->getLanguageISO()));
+            foreach ($locales as $locale) {
+                if ($locale === null) {
+                    Logger::write(sprintf('Could not find any locale for (%s)', $i18n->getLanguageISO()), Logger::WARNING, 'database');
+                    continue;
                 }
+
+                $language = LocaleUtil::extractLanguageIsoFromLocale($locale->getLocale());
+                $shops = $shopMapper->findByLanguageIso($language);
+
+                if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false) {
+                    foreach ($shops as $shop) {
+                        $translationService->write(
+                            $shop->getId(),
+                            'propertyoption',
+                            $optionSW->getId(),
+                            array(
+                                'optionName' => $i18n->getName()
+                            )
+                        );
+                    }
+                }
+
             }
         }
 
@@ -305,20 +307,22 @@ class Specific extends DataMapper
                     }
 
                     if ($valueId !== null && ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO()) === false) {
-                        $locale = LocaleUtil::getByKey(LanguageUtil::map(null,null, $valueI18n->getLanguageISO()));
-                        if ($locale !== null) {
-                            $language = LocaleUtil::extractLanguageIsoFromLocale($locale->getLocale());
-                            $shops = $shopMapper->findByLanguageIso($language);
+                        $locales = LocaleUtil::getByKey(LanguageUtil::map(null,null, $valueI18n->getLanguageISO()));
+                        foreach ($locales as $locale) {
+                            if ($locale !== null) {
+                                $language = LocaleUtil::extractLanguageIsoFromLocale($locale->getLocale());
+                                $shops = $shopMapper->findByLanguageIso($language);
 
-                            foreach ($shops as $shop) {
-                                $translationService->write(
-                                    $shop->getId(),
-                                    'propertyvalue',
-                                    $valueId,
-                                    array(
-                                        'optionValue' => $valueI18n->getValue()
-                                    )
-                                );
+                                foreach ($shops as $shop) {
+                                    $translationService->write(
+                                        $shop->getId(),
+                                        'propertyvalue',
+                                        $valueId,
+                                        array(
+                                            'optionValue' => $valueI18n->getValue()
+                                        )
+                                    );
+                                }
                             }
                         }
                     }
