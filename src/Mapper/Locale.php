@@ -30,8 +30,8 @@ class Locale extends DataMapper
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
-        $shops = iterator_to_array($paginator);
-        $locales = array();
+        $shops = \iterator_to_array($paginator);
+        $locales = [];
         foreach ($shops as $shop) {
             $locales[] = $shop->getLocale();
         }

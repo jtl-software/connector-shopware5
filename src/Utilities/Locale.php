@@ -43,7 +43,7 @@ final class Locale
         $mapper = Mmc::getMapper('Locale');
         $locales = $mapper->findByLocale($key);
 
-        foreach($locales as $locale) {
+        foreach ($locales as $locale) {
             self::$_locales[$locale->getId()] = $locale;
         }
 

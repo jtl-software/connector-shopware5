@@ -292,10 +292,10 @@ class CustomerOrder extends DataMapper
         // Locale
         $localesSW = LocaleUtil::getByKey(LanguageUtil::map(null, null, $customerOrder->getLanguageISO()));
         Logger::write('prepareLocaleAssociatedData', Logger::ERROR, 'order');
-        if($localesSW === null || count($localesSW) === 0) {
-            throw new \Exception(sprintf('Locale with iso (%s) not found', $customerOrder->getLanguageISO()));
+        if ($localesSW === null || \count($localesSW) === 0) {
+            throw new \Exception(\sprintf('Locale with iso (%s) not found', $customerOrder->getLanguageISO()));
         }
-        foreach($localesSW as $localeSW) {
+        foreach ($localesSW as $localeSW) {
 
             $language = LocaleUtil::extractLanguageIsoFromLocale($localeSW->getLocale());
             $shopMapper = Mmc::getMapper('Shop');
@@ -307,7 +307,7 @@ class CustomerOrder extends DataMapper
             $orderSW->setLanguageIso($shops[0]->getId());
             return;
         }
-        throw new \Exception(sprintf('Shop with language iso (%s) not found', $customerOrder->getLanguageISO()));
+        throw new \Exception(\sprintf('Shop with language iso (%s) not found', $customerOrder->getLanguageISO()));
     }
 
     protected function prepareStatusAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
