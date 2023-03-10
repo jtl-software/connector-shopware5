@@ -6,6 +6,7 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
+use jtl\Connector\Core\Utilities\Language;
 use \jtl\Connector\Result\Action;
 use \jtl\Connector\Core\Rpc\Error;
 use \jtl\Connector\Core\Model\QueryFilter;
@@ -17,10 +18,8 @@ use \jtl\Connector\Core\Utilities\DataConverter;
 use \jtl\Connector\Core\Utilities\DataInjector;
 use \jtl\Connector\Core\Logger\Logger;
 use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Core\Exception\ControllerException;
 use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
 use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use \jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Shop;
 use jtl\Connector\Shopware\Utilities\Str;
@@ -151,7 +150,7 @@ class Product extends DataController
         if (isset($data['translations'])) {
             foreach ($data['translations'] as $localeName => $translation) {
                 $productI18n = Mmc::getModel('ProductI18n');
-                $productI18n->setLanguageISO(LanguageUtil::map($localeName))
+                $productI18n->setLanguageISO(Language::map($localeName))
                     ->setProductId($product->getId())
                     ->setName(isset($translation['name']) ? $translation['name'] : '')
                     ->setDescription(
@@ -242,7 +241,7 @@ class Product extends DataController
 
                 /** @var ProductAttrI18n $productAttrI18n */
                 $productAttrI18n = Mmc::getModel('ProductAttrI18n');
-                $productAttrI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                $productAttrI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($attrName)
                     ->setValue(number_format($data['prices'][$i]['regulationPrice'], 2))
                     ->setProductAttrId($productAttr->getId());
@@ -334,20 +333,20 @@ class Product extends DataController
         // Attributes
         $translatableAttributes = new TranslatableAttributes(ProductAttr::class, ProductAttrI18n::class);
 
-        $languageIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+        $languageIso = Language::map(Shopware()->Shop()->getLocale()->getLocale());
 
-        if (isset($data['attribute']) && !is_null($data['attribute'])) {
+        if (isset($data['attribute'])) {
             $exclusives = ['id', 'articleId', 'articleDetailId'];
             $i = 1;
 
             /** @var ConfigurationStruct[] $attrStructValues */
             $attrStructValues = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
-            $attrStructKeys = array_map(function(ConfigurationStruct $struct) {
+            $attrStructKeys = \array_map(static function(ConfigurationStruct $struct) {
                 return Str::camel($struct->getColumnName());
             }, $attrStructValues);
 
             /** @var ConfigurationStruct[] $attrStructs */
-            $attrStructs = array_combine($attrStructKeys, $attrStructValues);
+            $attrStructs = \array_combine($attrStructKeys, $attrStructValues);
 
             $translatedByDefaultTypes = [
                 TypeMapping::TYPE_COMBOBOX,
@@ -365,7 +364,7 @@ class Product extends DataController
                     continue;
                 }
 
-                if (in_array($key, $exclusives)) {
+                if (\in_array($key, $exclusives)) {
                     continue;
                 }
 
@@ -396,6 +395,7 @@ class Product extends DataController
         }, $translatableAttributes->getAttributes());
 
         foreach($jtlProductAttributes as $attribute){
+            $attribute = $this->deleteAttributesOnDuplicateLanguages($attribute);
             $product->addAttribute($attribute);
         }
 
@@ -455,7 +455,7 @@ class Product extends DataController
                     if (isset($translation['additionalText']) && !empty($translation['additionalText'])) {
                         $productAttrI18n = Mmc::getModel('ProductAttrI18n');
                         $productAttrI18n->setProductAttrId($productAttr->getId())
-                            ->setLanguageISO(LanguageUtil::map($localeName))
+                            ->setLanguageISO(Language::map($localeName))
                             ->setName(ProductAttr::ADDITIONAL_TEXT)
                             ->setValue((string)$translation['additionalText']);
 
@@ -506,7 +506,7 @@ class Product extends DataController
 
                         // Main Language
                         $productVariationI18n = Mmc::getModel('ProductVariationI18n');
-                        $productVariationI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                        $productVariationI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
                             ->setProductVariationId(new Identity($group['id']))
                             ->setName($group['name']);
 
@@ -515,7 +515,7 @@ class Product extends DataController
                         if (isset($group['translations'])) {
                             foreach ($group['translations'] as $localeName => $translation) {
                                 $productVariationI18n = Mmc::getModel('ProductVariationI18n');
-                                $productVariationI18n->setLanguageISO(LanguageUtil::map($localeName))
+                                $productVariationI18n->setLanguageISO(Language::map($localeName))
                                     ->setProductVariationId(new Identity($group['id']))
                                     ->setName($translation['name']);
 
@@ -551,7 +551,7 @@ class Product extends DataController
 
                             // Main Language
                             $productVariationValueI18n = Mmc::getModel('ProductVariationValueI18n');
-                            $productVariationValueI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                            $productVariationValueI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
                                 ->setProductVariationValueId(new Identity($option['id']))
                                 ->setName($option['name']);
 
@@ -560,7 +560,7 @@ class Product extends DataController
                             if (isset($option['translations'])) {
                                 foreach ($option['translations'] as $localeName => $translation) {
                                     $productVariationValueI18n = Mmc::getModel('ProductVariationValueI18n');
-                                    $productVariationValueI18n->setLanguageISO(LanguageUtil::map($localeName))
+                                    $productVariationValueI18n->setLanguageISO(Language::map($localeName))
                                         ->setProductVariationValueId(new Identity($option['id']))
                                         ->setName($translation['name']);
 
@@ -599,7 +599,7 @@ class Product extends DataController
                     ->setType('.*');
 
                 $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
-                $productMediaFileI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                $productMediaFileI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($downloadSW['name']);
 
                 $productMediaFile->addI18n($productMediaFileI18n);
@@ -617,7 +617,7 @@ class Product extends DataController
                     ->setType('.*');
 
                 $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
-                $productMediaFileI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()))
+                $productMediaFileI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($linkSW['name']);
 
                 $productMediaFile->addI18n($productMediaFileI18n);
@@ -627,5 +627,28 @@ class Product extends DataController
         }
 
         return $product;
+    }
+
+    /**
+     * @param ProductAttr $attribute
+     *
+     * @return ProductAttr
+     */
+    private function deleteAttributesOnDuplicateLanguages(ProductAttr $attribute): ProductAttr
+    {
+        /** @var string[] $uniqueLangISO */
+        $uniqueLangISO = [];
+        /** @var ProductAttrI18n[] $i18nArr */
+        $i18nArr       = [];
+        foreach($attribute->getI18ns() as $i18n) {
+            if (\in_array($i18n->getLanguageISO(), $uniqueLangISO, true)) {
+                continue;
+            }
+            $uniqueLangISO[] = $i18n->getLanguageISO();
+            $i18nArr[]       = $i18n;
+        }
+        $attribute->setI18ns($i18nArr);
+
+        return $attribute;
     }
 }

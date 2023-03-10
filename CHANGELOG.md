@@ -2,6 +2,7 @@
 
 ## unreleased
 - CO-2271 - fix language mapping
+- CO-2161 - fix duplicate languages on product attributes
 
 ## 2.17.1 _2022-12-13_
 - CO-2076 - fix Customer creation date is null
