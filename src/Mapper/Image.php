@@ -1027,19 +1027,21 @@ class Image extends DataMapper
 
             $shopLanguageIso = Utilities\Language::map(ShopUtil::locale()->getLocale());
             if ($i18n->getLanguageISO() !== $shopLanguageIso) {
-                $locale = LocaleUtil::getByKey(Utilities\Language::map(null, null, $i18n->getLanguageISO()));
-                $shops = $shopMapper->findByLocale($locale->getLocale());
+                $locales = LocaleUtil::getByKey(Utilities\Language::map(null, null, $i18n->getLanguageISO()));
+                foreach ($locales as $locale) {
+                    $shops = $shopMapper->findByLocale($locale->getLocale());
 
-                if ($shops !== null && is_array($shops) && count($shops) > 0) {
-                    foreach ($shops as $shop) {
-                        $translationService->write(
-                            $shop->getId(),
-                            'articleimage',
-                            $swImage->getId(),
-                            array(
-                                'description' => $i18n->getAltText()
-                            )
-                        );
+                    if ($shops !== null && is_array($shops) && count($shops) > 0) {
+                        foreach ($shops as $shop) {
+                            $translationService->write(
+                                $shop->getId(),
+                                'articleimage',
+                                $swImage->getId(),
+                                array(
+                                    'description' => $i18n->getAltText()
+                                )
+                            );
+                        }
                     }
                 }
             }

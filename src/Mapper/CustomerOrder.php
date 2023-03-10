@@ -290,19 +290,24 @@ class CustomerOrder extends DataMapper
     protected function prepareLocaleAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
     {
         // Locale
-        $localeSW = LocaleUtil::getByKey(LanguageUtil::map(null, null, $customerOrder->getLanguageISO()));
-        if ($localeSW === null) {
-            throw new \Exception(sprintf('Language Iso with iso (%s) not found', $customerOrder->getLanguageISO()));
+        $localesSW = LocaleUtil::getByKey(LanguageUtil::map(null, null, $customerOrder->getLanguageISO()));
+        Logger::write('prepareLocaleAssociatedData', Logger::ERROR, 'order');
+        if ($localesSW === null || \count($localesSW) === 0) {
+            throw new \Exception(\sprintf('Locale with iso (%s) not found', $customerOrder->getLanguageISO()));
         }
+        foreach ($localesSW as $localeSW) {
 
-        $language = LocaleUtil::extractLanguageIsoFromLocale($localeSW->getLocale());
-        $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findByLanguageIso($language);
-        if ($shops === null || (is_array($shops) && count($shops) == 0)) {
-            throw new \Exception(sprintf('Shop with language iso (%s) and locale (%s) not found', $customerOrder->getLanguageISO(), $localeSW->getLocale()));
+            $language = LocaleUtil::extractLanguageIsoFromLocale($localeSW->getLocale());
+            $shopMapper = Mmc::getMapper('Shop');
+            $shops = $shopMapper->findByLanguageIso($language);
+            if ($shops === null || (is_array($shops) && count($shops) == 0)) {
+                continue;
+            }
+
+            $orderSW->setLanguageIso($shops[0]->getId());
+            return;
         }
-
-        $orderSW->setLanguageIso($shops[0]->getId());
+        throw new \Exception(\sprintf('Shop with language iso (%s) not found', $customerOrder->getLanguageISO()));
     }
 
     protected function prepareStatusAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)

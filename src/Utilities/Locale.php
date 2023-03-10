@@ -29,7 +29,7 @@ final class Locale
 
     /**
      * @param string $key
-     * @return \Shopware\Models\Shop\Locale
+     * @return \Shopware\Models\Shop\Locale[]
      */
     public static function getByKey($key)
     {
@@ -39,16 +39,15 @@ final class Locale
             }
         }
 
+        /** @var \jtl\Connector\Shopware\Mapper\Locale $mapper */
         $mapper = Mmc::getMapper('Locale');
-        $locale = $mapper->findOneBy(array(
-            'locale' => $key
-        ));
+        $locales = $mapper->findByLocale($key);
 
-        if ($locale) {
+        foreach ($locales as $locale) {
             self::$_locales[$locale->getId()] = $locale;
         }
 
-        return $locale;
+        return $locales;
     }
 
     /**
@@ -58,7 +57,7 @@ final class Locale
      */
     public static function extractLanguageIsoFromLocale(string $locale): string
     {
-        list($languageIsoCode, $countryCode) = explode('_', $locale);
+        @list($languageIsoCode, $countryCode) = explode('_', $locale);
 
         if (empty($languageIsoCode)) {
             throw new \Exception(sprintf("Invalid locale '%s'. Cannot extract language code.", $locale));
