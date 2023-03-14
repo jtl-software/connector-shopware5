@@ -1,6 +1,8 @@
 # Changelog 
 
 ## unreleased
+
+## 2.18.0 _2023-03-14_
 - CO-2271 - fix language mapping
 - CO-2161 - fix duplicate languages on product attributes
 

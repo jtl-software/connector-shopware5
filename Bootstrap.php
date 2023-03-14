@@ -461,6 +461,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.16.0':
             case '2.17.0':
             case '2.17.1':
+            case '2.18.0':
             break;
         }
 
