@@ -1,18 +1,20 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class ConfiguratorSet extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Configurator\Set', $id);
+        return (\intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Configurator\Set', $id);
     }
 
     public function findByProductId($productId, $count = false)
@@ -39,31 +41,42 @@ class ConfiguratorSet extends DataMapper
 
             return $paginator->count();
         } else {
-            $sets = $query->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+            $sets       = $query->getResult(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
             $shopMapper = Mmc::getMapper('Shop');
-            $shops = $shopMapper->findAll(null);
+            $shops      = $shopMapper->findAll(null);
 
             $translationService = ShopUtil::translationService();
-            for ($i = 0; $i < count($sets); $i++) {
+            for ($i = 0; $i < \count($sets); $i++) {
                 foreach ($shops as $shop) {
-                    
                     // Groups
-                    $ks = array_keys($sets[$i]['configuratorSet']['groups']);
+                    $ks = \array_keys($sets[$i]['configuratorSet']['groups']);
                     foreach ($ks as $k) {
-                        $translation = $translationService->read($shop['id'], 'configuratorgroup', $sets[$i]['configuratorSet']['groups'][$k]['id']);
+                        $translation = $translationService->read(
+                            $shop['id'],
+                            'configuratorgroup',
+                            $sets[$i]['configuratorSet']['groups'][$k]['id']
+                        );
                         if (!empty($translation)) {
                             $translation['groupId'] = $sets[$i]['configuratorSet']['groups'][$k]['id'];
-                            $sets[$i]['configuratorSet']['groups'][$k]['translations'][$shop['locale']['locale']] = $translation;
+
+                            $sets[$i]['configuratorSet']['groups'][$k]['translations'][$shop['locale']['locale']] =
+                                $translation;
                         }
                     }
 
                     // Options
-                    $ks = array_keys($sets[$i]['configuratorSet']['options']);
+                    $ks = \array_keys($sets[$i]['configuratorSet']['options']);
                     foreach ($ks as $k) {
-                        $translation = $translationService->read($shop['id'], 'configuratoroption', $sets[$i]['configuratorSet']['options'][$k]['id']);
+                        $translation = $translationService->read(
+                            $shop['id'],
+                            'configuratoroption',
+                            $sets[$i]['configuratorSet']['options'][$k]['id']
+                        );
                         if (!empty($translation)) {
                             $translation['optionId'] = $sets[$i]['configuratorSet']['options'][$k]['id'];
-                            $sets[$i]['configuratorSet']['options'][$k]['translations'][$shop['locale']['locale']] = $translation;
+
+                            $sets[$i]['configuratorSet']['options'][$k]['translations'][$shop['locale']['locale']] =
+                                $translation;
                         }
                     }
                 }

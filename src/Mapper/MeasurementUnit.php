@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,34 +7,34 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Model\MeasurementUnit as MeasurementUnitModel;
 use jtl\Connector\Shopware\Utilities\Mmc;
-use \Shopware\Models\Article\Unit as UnitSW;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use Shopware\Models\Article\Unit as UnitSW;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class MeasurementUnit extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Unit')->find($id);
+        return (\intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Unit')->find($id);
     }
-    
+
     public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
-                'unit'
-            )
+            'unit'
+        )
             ->from('Shopware\Models\Article\Unit', 'unit')
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
-        return $count ? $paginator->count() : iterator_to_array($paginator);
+        return $count ? $paginator->count() : \iterator_to_array($paginator);
     }
 
     public function findOneBy(array $kv)
@@ -48,7 +49,7 @@ class MeasurementUnit extends DataMapper
 
     public function delete(MeasurementUnitModel $unit)
     {
-        $result = new MeasurementUnitModel;
+        $result = new MeasurementUnitModel();
 
         $this->deleteUnitData($unit);
 
@@ -61,7 +62,7 @@ class MeasurementUnit extends DataMapper
     public function save(MeasurementUnitModel $unit)
     {
         $unitSW = null;
-        $result = new MeasurementUnitModel;
+        $result = new MeasurementUnitModel();
 
         //$name = $this->findName($unit);
         $this->prepareUnitAssociatedData($unit, $unitSW);
@@ -103,7 +104,7 @@ class MeasurementUnit extends DataMapper
         $unitSW = $this->findOneBy(array('unit' => $unit->getCode()));
 
         if ($unitSW === null) {
-            $unitSW = new UnitSW;
+            $unitSW = new UnitSW();
         }
 
         foreach ($unit->getI18ns() as $i18n) {
@@ -125,9 +126,9 @@ class MeasurementUnit extends DataMapper
             if (ShopUtil::isShopwareDefaultLanguage($iso) !== false) {
                 $locale = LanguageUtil::map(null, null, $iso);
 
-                $language = LocaleUtil::extractLanguageIsoFromLocale($locale);
+                $language   = LocaleUtil::extractLanguageIsoFromLocale($locale);
                 $shopMapper = Mmc::getMapper('Shop');
-                $shops = $shopMapper->findByLanguageIso($language);
+                $shops      = $shopMapper->findByLanguageIso($language);
 
                 foreach ($shops as $shop) {
                     $translationService->write(
