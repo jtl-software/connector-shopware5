@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -7,20 +8,20 @@
 namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Core\Utilities\Language;
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Core\Model\QueryFilter;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Model\ProductAttrI18n;
 use jtl\Connector\Shopware\Utilities\Html;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Core\Utilities\DataInjector;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Core\Utilities\DataInjector;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Shop;
 use jtl\Connector\Shopware\Utilities\Str;
 use jtl\Connector\Shopware\Utilities\TranslatableAttributes;
@@ -48,7 +49,7 @@ class Product extends DataController
 
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit  = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
             /** @var ProductMapper $mapper */
             $mapper = Mmc::getMapper('Product');
@@ -58,12 +59,11 @@ class Product extends DataController
             foreach ($products as $productSW) {
                 try {
                     $isDetail = $mapper->isDetailData($productSW);
-                    $product = $this->buildProduct($productSW, $isDetail);
+                    $product  = $this->buildProduct($productSW, $isDetail);
 
                     if ($product !== null) {
                         $result[] = $product;
                     }
-
                 } catch (\Exception $exc) {
                     Logger::write(ExceptionFormatter::format($exc), Logger::WARNING, 'controller');
                 }
@@ -85,15 +85,16 @@ class Product extends DataController
     protected function buildProduct(array &$data, $isDetail = false)
     {
         if (!isset($data['article']) || $data['article'] === null) {
-            Logger::write(sprintf('Missing article data on product with sku (%s) and detail id (%s)',
+            Logger::write(\sprintf(
+                'Missing article data on product with sku (%s) and detail id (%s)',
                 $data['number'],
                 $data['id']
-                ), Logger::WARNING, 'controller');
+            ), Logger::WARNING, 'controller');
 
             return null;
         }
 
-        foreach (array_keys($data['article']) as $key) {
+        foreach (\array_keys($data['article']) as $key) {
             if (!isset($data[$key])) {
                 $data[$key] = $data['article'][$key];
             }
@@ -102,30 +103,30 @@ class Product extends DataController
         /** @var ProductMapper $productMapper */
         $productMapper = Mmc::getMapper('Product');
 
-        $data['detailId'] = $data['id'];
-        $data['id'] = IdConcatenator::link(array($data['id'], $data['articleId']));
-        $article = $data['article'];
+        $data['detailId']        = $data['id'];
+        $data['id']              = IdConcatenator::link(array($data['id'], $data['articleId']));
+        $article                 = $data['article'];
         $data['isMasterProduct'] = $productMapper->isParentData($data);
 
         unset($data['article']);
 
         if ($isDetail) {
-            $parentDetailId = $productMapper->getParentDetailId((int) $data['articleId']);
+            $parentDetailId          = $productMapper->getParentDetailId((int) $data['articleId']);
             $data['masterProductId'] = IdConcatenator::link(array($parentDetailId, $data['articleId']));
 
             $variationName = $data['additionalText'];
-            if (strlen(trim($variationName)) == 0) {
+            if (\strlen(\trim($variationName)) == 0) {
                 foreach ($data['configuratorOptions'] as $i => $option) {
-                    $space = ($i > 0) ? ' ' : '';
-                    $variationName .= sprintf('%s%s', $space, $option['name']);
+                    $space          = ($i > 0) ? ' ' : '';
+                    $variationName .= \sprintf('%s%s', $space, $option['name']);
                 }
             }
 
-            $data['name'] = sprintf('%s %s', $data['name'], $variationName);
+            $data['name'] = \sprintf('%s %s', $data['name'], $variationName);
         }
 
-        $data['tax']['tax'] = floatval($data['tax']['tax']);
-        $data['mainDetail']['weight'] = floatval($data['mainDetail']['weight']);
+        $data['tax']['tax']           = \floatval($data['tax']['tax']);
+        $data['mainDetail']['weight'] = \floatval($data['mainDetail']['weight']);
 
         /** @var \jtl\Connector\Model\Product $product */
         $product = Mmc::getModel('Product');
@@ -170,9 +171,9 @@ class Product extends DataController
 
         // ProductPrice
         $recommendedRetailPrice = 0.0;
-        $customerGroupCache = null;
-        $productPriceId = new Identity(IdConcatenator::link(array($product->getId()->getEndpoint(), 0)));
-        $productPrice = Mmc::getModel('ProductPrice');
+        $customerGroupCache     = null;
+        $productPriceId         = new Identity(IdConcatenator::link(array($product->getId()->getEndpoint(), 0)));
+        $productPrice           = Mmc::getModel('ProductPrice');
         $productPrice->setProductId($product->getId())
             ->setId($productPriceId);
 
@@ -183,12 +184,13 @@ class Product extends DataController
         }
 
         $defaultPrice = null;
-        for ($i = 0; $i < count($data['prices']); $i++) {
+        for ($i = 0; $i < \count($data['prices']); $i++) {
             $customerGroup = CustomerGroupUtil::getByKey($data['prices'][$i]['customerGroupKey']);
 
             if ($customerGroup === null) {
-                //throw new ControllerException(sprintf('Could not find any customer group with key (%s)', $data['prices'][$i]['customerGroupKey']));
-                $customerGroup = Shopware()->Shop()->getCustomerGroup();
+                //throw new ControllerException(sprintf('Could not find
+                // any customer group with key (%s)', $data['prices'][$i]['customerGroupKey']));
+                $customerGroup = \Shopware()->Shop()->getCustomerGroup();
             }
 
             $productPriceItem = Mmc::getModel('ProductPriceItem');
@@ -200,7 +202,7 @@ class Product extends DataController
                 $product->addPrice($productPrice);
 
                 $productPriceId = new Identity(IdConcatenator::link(array($product->getId()->getEndpoint(), $i)));
-                $productPrice = Mmc::getModel('ProductPrice');
+                $productPrice   = Mmc::getModel('ProductPrice');
                 $productPrice->setProductId($product->getId())
                     ->setCustomerGroupId(new Identity($customerGroup->getId()))
                     ->setId($productPriceId);
@@ -215,9 +217,12 @@ class Product extends DataController
                 ->setCustomerGroupId(new Identity($customerGroup->getId()));
 
             // Search default product price
-            if ($customerGroup->getId() == Shopware()->Shop()->getCustomerGroup()->getId() && (int) $data['prices'][$i]['from'] == 1) {
+            if (
+                $customerGroup->getId() == \Shopware()->Shop()->getCustomerGroup()->getId()
+                && (int) $data['prices'][$i]['from'] == 1
+            ) {
                 $recommendedRetailPrice = (double) $data['prices'][$i]['pseudoPrice'];
-                $defaultPrice = clone $productPrice;
+                $defaultPrice           = clone $productPrice;
                 $defaultPrice->setCustomerGroupId(new Identity('', 0))
                     ->setCustomerId(new Identity('', 0));
                 $arr = $defaultPrice->getItems();
@@ -228,7 +233,7 @@ class Product extends DataController
             $customerGroupCache = $customerGroup->getId();
 
             if (isset($data['prices'][$i]['regulationPrice']) && $data['prices'][$i]['regulationPrice'] != 0) {
-                $attrName = strtolower($customerGroup->getKey()) . ProductAttr::SUFFIX_REGULATION_PRICE_ID;
+                $attrName = \strtolower($customerGroup->getKey()) . ProductAttr::SUFFIX_REGULATION_PRICE_ID;
 
                 $attrId = IdConcatenator::link(array($product->getId()->getEndpoint(), $attrName));
 
@@ -241,9 +246,9 @@ class Product extends DataController
 
                 /** @var ProductAttrI18n $productAttrI18n */
                 $productAttrI18n = Mmc::getModel('ProductAttrI18n');
-                $productAttrI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
+                $productAttrI18n->setLanguageISO(Language::map(\Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($attrName)
-                    ->setValue(number_format($data['prices'][$i]['regulationPrice'], 2))
+                    ->setValue(\number_format($data['prices'][$i]['regulationPrice'], 2))
                     ->setProductAttrId($productAttr->getId());
                 $productAttr->addI18n($productAttrI18n);
                 $product->addAttribute($productAttr);
@@ -257,7 +262,8 @@ class Product extends DataController
             $product->addPrice($defaultPrice)
                 ->setRecommendedRetailPrice($recommendedRetailPrice);
         } else {
-            Logger::write(sprintf('Could not find any default price for product (%s, %s)',
+            Logger::write(\sprintf(
+                'Could not find any default price for product (%s, %s)',
                 $product->getId()->getEndpoint(),
                 $product->getId()->getHost()
             ), Logger::WARNING, 'controller');
@@ -265,28 +271,34 @@ class Product extends DataController
 
         // ProductSpecialPrice
         if ($data['priceGroupActive'] && $data['priceGroup'] !== null) {
-            DataInjector::inject(DataInjector::TYPE_ARRAY, $data['priceGroup'], array('articleId', 'active'), array($product->getId()->getEndpoint(), true));
+            DataInjector::inject(
+                DataInjector::TYPE_ARRAY,
+                $data['priceGroup'],
+                array('articleId', 'active'),
+                array($product->getId()->getEndpoint(), true)
+            );
             $productSpecialPrice = Mmc::getModel('ProductSpecialPrice');
             $productSpecialPrice->map(true, DataConverter::toObject($data['priceGroup'], true));
 
             // SpecialPrices
             $exists = false;
             foreach ($data['priceGroup']['discounts'] as $discount) {
-                if (intval($discount['start']) != 1) {
+                if (\intval($discount['start']) != 1) {
                     continue;
                 }
 
                 $customerGroup = CustomerGroupUtil::get($discount['customerGroupId']);
                 if ($customerGroup === null) {
-                    //throw new ControllerException(sprintf('Could not find any customer group with id (%s)', $discount['customerGroupId']));
-                    $customerGroup = Shopware()->Shop()->getCustomerGroup();
+                    //throw new ControllerException(sprintf('Could not find any
+                    // customer group with id (%s)', $discount['customerGroupId']));
+                    $customerGroup = \Shopware()->Shop()->getCustomerGroup();
                 }
 
-                $price = null;
-                $priceCount = count($data['prices']);
+                $price      = null;
+                $priceCount = \count($data['prices']);
 
                 if ($priceCount == 1) {
-                    $price = reset($data['prices']);
+                    $price = \reset($data['prices']);
                 } elseif ($priceCount > 1) {
                     foreach ($data['prices'] as $mainPrice) {
                         if ($mainPrice['customerGroupKey'] === $customerGroup->getKey()) {
@@ -296,13 +308,17 @@ class Product extends DataController
                         }
                     }
                 } else {
-                    Logger::write(sprintf('Could not find any price for customer group (%s)', $customerGroup->getKey()), Logger::WARNING, 'controller');
+                    Logger::write(
+                        \sprintf('Could not find any price for customer group (%s)', $customerGroup->getKey()),
+                        Logger::WARNING,
+                        'controller'
+                    );
 
                     continue;
                 }
 
                 // Calling shopware core method
-                $discountPriceNet = Shopware()->Modules()->Articles()->sGetPricegroupDiscount(
+                $discountPriceNet = \Shopware()->Modules()->Articles()->sGetPricegroupDiscount(
                     $customerGroup->getKey(),
                     $discount['groupId'],
                     $price['price'],
@@ -326,22 +342,29 @@ class Product extends DataController
 
         // Product2Categories
         if (isset($data['categories'])) {
-            DataInjector::inject(DataInjector::TYPE_ARRAY, $data['categories'], 'articleId', $product->getId()->getEndpoint(), true);
+            DataInjector::inject(
+                DataInjector::TYPE_ARRAY,
+                $data['categories'],
+                'articleId',
+                $product->getId()->getEndpoint(),
+                true
+            );
             $this->addPos($product, 'addCategory', 'Product2Category', $data['categories'], true);
         }
 
         // Attributes
         $translatableAttributes = new TranslatableAttributes(ProductAttr::class, ProductAttrI18n::class);
 
-        $languageIso = Language::map(Shopware()->Shop()->getLocale()->getLocale());
+        $languageIso = Language::map(\Shopware()->Shop()->getLocale()->getLocale());
 
         if (isset($data['attribute'])) {
             $exclusives = ['id', 'articleId', 'articleDetailId'];
-            $i = 1;
+            $i          = 1;
 
             /** @var ConfigurationStruct[] $attrStructValues */
-            $attrStructValues = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
-            $attrStructKeys = \array_map(static function(ConfigurationStruct $struct) {
+            $attrStructValues = \Shopware()->Container()->get('shopware_attribute.crud_service')
+                ->getList('s_articles_attributes');
+            $attrStructKeys   = \array_map(static function (ConfigurationStruct $struct) {
                 return Str::camel($struct->getColumnName());
             }, $attrStructValues);
 
@@ -358,7 +381,6 @@ class Product extends DataController
             ];
 
             foreach ($data['attribute'] as $key => $value) {
-
                 if ($key === ProductMapper::ATTRIBUTE_ARTICLE_SEARCH_KEYWORDS) {
                     $product->setKeywords($value);
                     continue;
@@ -368,18 +390,21 @@ class Product extends DataController
                     continue;
                 }
 
-                $isTranslated = (!isset($attrStructs[$key]) || in_array($attrStructs[$key]->getColumnType(), $translatedByDefaultTypes));
+                $isTranslated = (
+                    !isset($attrStructs[$key])
+                    || \in_array($attrStructs[$key]->getColumnType(), $translatedByDefaultTypes)
+                );
 
-                if($value instanceof \DateTimeInterface) {
+                if ($value instanceof \DateTimeInterface) {
                     $value = $value->format(\DateTime::ISO8601);
                 }
 
-                if (!is_null($value) && !empty($value)) {
+                if (!\is_null($value) && !empty($value)) {
                     $attrId = IdConcatenator::link(array($data['attribute']['id'], $i));
 
                     $translatableAttributes->addAttribute($attrId, $isTranslated);
                     $translatableAttributes->addAttributeTranslation($attrId, $key, $value, $languageIso);
-                    if(is_array($data['translations'])) {
+                    if (\is_array($data['translations'])) {
                         $translatableAttributes->addTranslations($attrId, $key, $data['translations']);
                     }
                 }
@@ -387,20 +412,20 @@ class Product extends DataController
             }
         }
 
-        $jtlProductAttributes = array_map(function (ProductAttr $productAttr) {
+        $jtlProductAttributes = \array_map(function (ProductAttr $productAttr) {
             foreach ($productAttr->getI18ns() as $productAttrI18N) {
                 $productAttrI18N->setProductAttrId($productAttr->getId());
             }
             return $productAttr;
         }, $translatableAttributes->getAttributes());
 
-        foreach($jtlProductAttributes as $attribute){
+        foreach ($jtlProductAttributes as $attribute) {
             $attribute = $this->deleteAttributesOnDuplicateLanguages($attribute);
             $product->addAttribute($attribute);
         }
 
         /** @var $product \jtl\Connector\Model\Product */
-        if (!is_null($data['priceGroupId'])) {
+        if (!\is_null($data['priceGroupId'])) {
             $product->addAttribute(
                 (new ProductAttr())
                     ->setId(new Identity(ProductAttr::PRICE_GROUP_ID))
@@ -414,7 +439,7 @@ class Product extends DataController
             );
         }
 
-        if(!is_null($data['maxPurchase'])) {
+        if (!\is_null($data['maxPurchase'])) {
             $product->addAttribute(
                 (new ProductAttr())
                     ->addI18n(
@@ -427,7 +452,7 @@ class Product extends DataController
         }
 
         //Additional Text
-        if(!empty($data['additionalText'])) {
+        if (!empty($data['additionalText'])) {
             $attrId = IdConcatenator::link(array($product->getId()->getEndpoint(), 'addtxt'));
             /** @var ProductAttr $productAttr */
             $productAttr = Mmc::getModel('ProductAttr');
@@ -469,33 +494,45 @@ class Product extends DataController
 
         // ProductInvisibility
         if (isset($data['customerGroups'])) {
-            DataInjector::inject(DataInjector::TYPE_ARRAY, $data['customerGroups'], 'articleId', $product->getId()->getEndpoint(), true);
+            DataInjector::inject(
+                DataInjector::TYPE_ARRAY,
+                $data['customerGroups'],
+                'articleId',
+                $product->getId()->getEndpoint(),
+                true
+            );
             $this->addPos($product, 'addInvisibility', 'ProductInvisibility', $data['customerGroups'], true);
         }
 
         // ProductVariation
         if (isset($data['configuratorSetId']) && (int)$data['configuratorSetId'] > 0) {
-            $groups = array();
+            $groups  = array();
             $options = array();
-            if ($isDetail && isset($data['configuratorOptions']) && count($data['configuratorOptions']) > 0) {
-                $groups = array_map(function($value) { return $value['groupId']; }, $data['configuratorOptions']);
-                $options = array_map(function($value) { return $value['id']; }, $data['configuratorOptions']);
+            if ($isDetail && isset($data['configuratorOptions']) && \count($data['configuratorOptions']) > 0) {
+                $groups  = \array_map(function ($value) {
+                    return $value['groupId'];
+                }, $data['configuratorOptions']);
+                $options = \array_map(function ($value) {
+                    return $value['id'];
+                }, $data['configuratorOptions']);
             }
 
             $configuratorSetMapper = Mmc::getMapper('ConfiguratorSet');
-            $configuratorSets = $configuratorSetMapper->findByProductId($data['articleId']);
-            if (is_array($configuratorSets) && count($configuratorSets) > 0) {
+            $configuratorSets      = $configuratorSetMapper->findByProductId($data['articleId']);
+            if (\is_array($configuratorSets) && \count($configuratorSets) > 0) {
                 foreach ($configuratorSets as $cs) {
                     $typeSW = (int) $cs['configuratorSet']['type'];
 
                     // ProductVariationI18n
                     foreach ($cs['configuratorSet']['groups'] as $group) {
-                        $groupId = $group['id'];
-                        $group['localeName'] = Shopware()->Shop()->getLocale()->getLocale();
-                        $group['id'] = IdConcatenator::link(array($product->getId()->getEndpoint(), $group['id']));
-                        $group['articleId'] = $product->getId()->getEndpoint();
+                        $groupId             = $group['id'];
+                        $group['localeName'] = \Shopware()->Shop()->getLocale()->getLocale();
+                        $group['id']         = IdConcatenator::link(
+                            array($product->getId()->getEndpoint(), $group['id'])
+                        );
+                        $group['articleId']  = $product->getId()->getEndpoint();
 
-                        if ($isDetail && !in_array($groupId, $groups)) {
+                        if ($isDetail && !\in_array($groupId, $groups)) {
                             continue;
                         }
 
@@ -506,7 +543,9 @@ class Product extends DataController
 
                         // Main Language
                         $productVariationI18n = Mmc::getModel('ProductVariationI18n');
-                        $productVariationI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
+                        $productVariationI18n->setLanguageISO(
+                            Language::map(\Shopware()->Shop()->getLocale()->getLocale())
+                        )
                             ->setProductVariationId(new Identity($group['id']))
                             ->setName($group['name']);
 
@@ -529,11 +568,15 @@ class Product extends DataController
                                 continue;
                             }
 
-                            $id = $option['id'];
-                            $option['id'] = IdConcatenator::link(array($product->getId()->getEndpoint(), $option['groupId'], $option['id']));
-                            $option['groupId'] = IdConcatenator::link(array($product->getId()->getEndpoint(), $option['groupId']));
+                            $id                = $option['id'];
+                            $option['id']      = IdConcatenator::link(
+                                array($product->getId()->getEndpoint(), $option['groupId'], $option['id'])
+                            );
+                            $option['groupId'] = IdConcatenator::link(
+                                array($product->getId()->getEndpoint(), $option['groupId'])
+                            );
 
-                            if ($isDetail && !in_array($id, $options)) {
+                            if ($isDetail && !\in_array($id, $options)) {
                                 continue;
                             }
 
@@ -551,7 +594,9 @@ class Product extends DataController
 
                             // Main Language
                             $productVariationValueI18n = Mmc::getModel('ProductVariationValueI18n');
-                            $productVariationValueI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
+                            $productVariationValueI18n->setLanguageISO(
+                                Language::map(\Shopware()->Shop()->getLocale()->getLocale())
+                            )
                                 ->setProductVariationValueId(new Identity($option['id']))
                                 ->setName($option['name']);
 
@@ -591,7 +636,7 @@ class Product extends DataController
             }
 
             // Downloads
-            foreach ($data['downloads'] as $i=> $downloadSW) {
+            foreach ($data['downloads'] as $i => $downloadSW) {
                 $productMediaFile = Mmc::getModel('ProductMediaFile');
                 $productMediaFile->map(true, DataConverter::toObject($downloadSW));
                 $productMediaFile->setProductId($product->getId())
@@ -599,7 +644,7 @@ class Product extends DataController
                     ->setType('.*');
 
                 $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
-                $productMediaFileI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
+                $productMediaFileI18n->setLanguageISO(Language::map(\Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($downloadSW['name']);
 
                 $productMediaFile->addI18n($productMediaFileI18n);
@@ -608,7 +653,7 @@ class Product extends DataController
             }
 
             // Links
-            foreach ($data['links'] as $i=> $linkSW) {
+            foreach ($data['links'] as $i => $linkSW) {
                 $productMediaFile = Mmc::getModel('ProductMediaFile');
                 $productMediaFile->map(true, DataConverter::toObject($linkSW));
                 $productMediaFile->setProductId($product->getId())
@@ -617,7 +662,7 @@ class Product extends DataController
                     ->setType('.*');
 
                 $productMediaFileI18n = Mmc::getModel('ProductMediaFileI18n');
-                $productMediaFileI18n->setLanguageISO(Language::map(Shopware()->Shop()->getLocale()->getLocale()))
+                $productMediaFileI18n->setLanguageISO(Language::map(\Shopware()->Shop()->getLocale()->getLocale()))
                     ->setName($linkSW['name']);
 
                 $productMediaFile->addI18n($productMediaFileI18n);
@@ -639,8 +684,8 @@ class Product extends DataController
         /** @var string[] $uniqueLangISO */
         $uniqueLangISO = [];
         /** @var ProductAttrI18n[] $i18nArr */
-        $i18nArr       = [];
-        foreach($attribute->getI18ns() as $i18n) {
+        $i18nArr = [];
+        foreach ($attribute->getI18ns() as $i18n) {
             if (\in_array($i18n->getLanguageISO(), $uniqueLangISO, true)) {
                 continue;
             }

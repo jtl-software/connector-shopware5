@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,16 +7,16 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \jtl\Connector\Core\Utilities\DataInjector;
-use \jtl\Connector\Core\Model\QueryFilter;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Core\Utilities\DataInjector;
+use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 /**
  * Specific Controller
@@ -36,12 +37,18 @@ class Specific extends DataController
 
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit  = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
             $specificMapper = Mmc::getMapper('Specific');
-            $optionSWs = $specificMapper->findAll($limit);
+            $optionSWs      = $specificMapper->findAll($limit);
 
-            DataInjector::inject(DataInjector::TYPE_ARRAY, $optionSWs, 'localeName', Shopware()->Shop()->getLocale()->getLocale(), true);
+            DataInjector::inject(
+                DataInjector::TYPE_ARRAY,
+                $optionSWs,
+                'localeName',
+                \Shopware()->Shop()->getLocale()->getLocale(),
+                true
+            );
 
             foreach ($optionSWs as $optionSW) {
                 try {
@@ -53,7 +60,7 @@ class Specific extends DataController
                     $this->addPos($specific, 'addI18n', 'SpecificI18n', $optionSW);
                     if (isset($optionSW['translations'])) {
                         foreach ($optionSW['translations'] as $localeName => $translation) {
-                            $specificI18n = Mmc::getModel('SpecificI18n');   
+                            $specificI18n = Mmc::getModel('SpecificI18n');
                             $specificI18n->setLanguageISO(LanguageUtil::map($localeName))
                                 ->setSpecificId(new Identity($optionSW['id']))
                                 ->setName($translation['name']);

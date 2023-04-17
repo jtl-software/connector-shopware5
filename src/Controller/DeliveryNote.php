@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,15 +7,15 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
-use \jtl\Connector\Core\Model\QueryFilter;
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
 
 /**
  * DeliveryNote Controller
@@ -35,15 +36,15 @@ class DeliveryNote extends DataController
 
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit  = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
             $productMapper = Mmc::getMapper('Product');
-            $mapper = Mmc::getMapper('DeliveryNote');
+            $mapper        = Mmc::getMapper('DeliveryNote');
             $deliveryNotes = $mapper->findAll($limit);
 
             foreach ($deliveryNotes as $deliveryNoteSW) {
                 $orderMapper = Mmc::getMapper('CustomerOrder');
-                $orderSW = $orderMapper->find($deliveryNoteSW['orderId']);
+                $orderSW     = $orderMapper->find($deliveryNoteSW['orderId']);
 
                 $deliveryNote = Mmc::getModel('DeliveryNote');
                 $deliveryNote->map(true, DataConverter::toObject($deliveryNoteSW, true));
@@ -51,21 +52,25 @@ class DeliveryNote extends DataController
                 if ($orderSW !== null) {
                     foreach ($orderSW->getDetails() as $orderDetail) {
                         $deliveryNoteItem = Mmc::getModel('DeliveryNoteItem');
-                        $deliveryNoteItem->setId(new Identity(IdConcatenator::link(array($orderDetail->getId(), $deliveryNoteSW['id']))))
+                        $deliveryNoteItem->setId(
+                            new Identity(IdConcatenator::link(array($orderDetail->getId(), $deliveryNoteSW['id'])))
+                        )
                             ->setDeliveryNoteId(new Identity($deliveryNoteSW['id']))
                             ->setCustomerOrderItemId(new Identity($orderDetail->getId()))
                             ->setQuantity($orderDetail->getQuantity());
 
                         $detail = $productMapper->findDetailBy(array('number' => $orderDetail->getArticleNumber()));
                         if ($detail !== null) {
-                            $deliveryNoteItem->setProductId(new Identity(IdConcatenator::link([$detail->getId(), $detail->getArticleId()])));
+                            $deliveryNoteItem->setProductId(
+                                new Identity(IdConcatenator::link([$detail->getId(), $detail->getArticleId()]))
+                            );
                         }
 
                         $deliveryNote->addItem($deliveryNoteItem);
                     }
 
                     // TrackingList
-                    if ($orderSW->getDispatch() !== null && strlen($orderSW->getTrackingCode()) > 0) {
+                    if ($orderSW->getDispatch() !== null && \strlen($orderSW->getTrackingCode()) > 0) {
                         $trackingList = Mmc::getModel('DeliveryNoteTrackingList');
                         $trackingList->setName($orderSW->getDispatch()->getName())
                             ->addCode($orderSW->getTrackingCode());

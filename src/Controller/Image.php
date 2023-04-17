@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -8,15 +9,15 @@ namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\ImageI18n;
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \jtl\Connector\Drawing\ImageRelationType;
-use \jtl\Connector\Shopware\Model\Image as ImageModel;
-use \jtl\Connector\Core\Model\QueryFilter;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Model\Statistic;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Drawing\ImageRelationType;
+use jtl\Connector\Shopware\Model\Image as ImageModel;
+use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Model\Statistic;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Shopware\Bundle\MediaBundle\MediaService;
 
@@ -39,14 +40,18 @@ class Image extends DataController
 
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit  = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
             /** @var \jtl\Connector\Shopware\Mapper\Image $mapper */
             $mapper = Mmc::getMapper('Image');
 
             $modelContainer = array();
             if ($queryFilter->getFilter('relationType') !== null) {
-                $modelContainer[$queryFilter->getFilter('relationType')] = $mapper->findAll($limit, false, $queryFilter->getFilter('relationType'));
+                $modelContainer[$queryFilter->getFilter('relationType')] = $mapper->findAll(
+                    $limit,
+                    false,
+                    $queryFilter->getFilter('relationType')
+                );
             } else {
                 // Get all images
                 $relationTypes = array(
@@ -72,13 +77,20 @@ class Image extends DataController
                             $model = Mmc::getModel('Image');
 
                             //Clean unused files
-                            if (is_null($modelSW['articleID']) || is_null($modelSW['detailId'])) {
-                                $imageSW = Shopware()->Models()->find(\Shopware\Models\Article\Image::class, $modelSW['id']);
-                                Shopware()->Models()->remove($imageSW);
+                            if (\is_null($modelSW['articleID']) || \is_null($modelSW['detailId'])) {
+                                $imageSW = \Shopware()->Models()->find(
+                                    \Shopware\Models\Article\Image::class,
+                                    $modelSW['id']
+                                );
+                                \Shopware()->Models()->remove($imageSW);
                                 break;
                             }
 
-                            $id = ImageModel::generateId(ImageRelationType::TYPE_PRODUCT, (int)$modelSW['cId'], (int)$modelSW['media_id']);
+                            $id         = ImageModel::generateId(
+                                ImageRelationType::TYPE_PRODUCT,
+                                (int)$modelSW['cId'],
+                                (int)$modelSW['media_id']
+                            );
                             $foreignKey = IdConcatenator::link(array($modelSW['detailId'], $modelSW['articleID']));
 
                             $model->setId(new Identity($id));
@@ -94,7 +106,9 @@ class Image extends DataController
                                     $imageI18n = Mmc::getModel('ImageI18n');
                                     $imageI18n->setLanguageISO(LanguageUtil::map($localeName));
                                     $imageI18n->setImageId($model->getId());
-                                    $imageI18n->setAltText(isset($translation['description']) ? $translation['description'] : '');
+                                    $imageI18n->setAltText(
+                                        isset($translation['description']) ? $translation['description'] : ''
+                                    );
                                     $model->addI18n($imageI18n);
                                 }
                             }
@@ -104,42 +118,60 @@ class Image extends DataController
                         case ImageRelationType::TYPE_CATEGORY:
                             $model = Mmc::getModel('Image');
 
-                            $model->setId(new Identity(ImageModel::generateId(ImageRelationType::TYPE_CATEGORY, $modelSW['id'], $modelSW['mediaId'])));
+                            $model->setId(new Identity(ImageModel::generateId(
+                                ImageRelationType::TYPE_CATEGORY,
+                                $modelSW['id'],
+                                $modelSW['mediaId']
+                            )));
 
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
                                 ->setFilename($mediaServie->getUrl($modelSW['path']))
                                 ->setRemoteUrl($mediaServie->getUrl($modelSW['path']));
-                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
-                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
+                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(),
+                            // Shopware()->Shop()->getBasePath(), $modelSW['path']))
+                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(),
+                            // Shopware()->Shop()->getBasePath(), $modelSW['path']));
 
                             $result[] = $model;
                             break;
                         case ImageRelationType::TYPE_MANUFACTURER:
                             $model = Mmc::getModel('Image');
 
-                            $model->setId(new Identity(ImageModel::generateId(ImageRelationType::TYPE_MANUFACTURER, $modelSW['id'], $modelSW['mediaId'])));
+                            $model->setId(new Identity(ImageModel::generateId(
+                                ImageRelationType::TYPE_MANUFACTURER,
+                                $modelSW['id'],
+                                $modelSW['mediaId']
+                            )));
 
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
                                 ->setFilename($mediaServie->getUrl($modelSW['path']))
                                 ->setRemoteUrl($mediaServie->getUrl($modelSW['path']));
-                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
-                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
+                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(),
+                            // Shopware()->Shop()->getBasePath(), $modelSW['path']))
+                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(),
+                            // Shopware()->Shop()->getBasePath(), $modelSW['path']));
 
                             $result[] = $model;
                             break;
                         case ImageRelationType::TYPE_SPECIFIC_VALUE:
                             $model = Mmc::getModel('Image');
 
-                            $model->setId(new Identity(ImageModel::generateId(ImageRelationType::TYPE_SPECIFIC_VALUE, $modelSW['id'], $modelSW['mediaId'])));
+                            $model->setId(new Identity(ImageModel::generateId(
+                                ImageRelationType::TYPE_SPECIFIC_VALUE,
+                                $modelSW['id'],
+                                $modelSW['mediaId']
+                            )));
 
                             $model->setRelationType($relationType)
                                 ->setForeignKey(new Identity($modelSW['id']))
                                 ->setFilename($mediaServie->getUrl($modelSW['path']))
                                 ->setRemoteUrl($mediaServie->getUrl($modelSW['path']));
-                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']))
-                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(), Shopware()->Shop()->getBasePath(), $modelSW['path']));
+                                //->setFilename(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(),
+                            // Shopware()->Shop()->getBasePath(), $modelSW['path']))
+                                //->setRemoteUrl(sprintf('%s://%s%s/%s', $proto, Shopware()->Shop()->getHost(),
+                            // Shopware()->Shop()->getBasePath(), $modelSW['path']));
 
                             $result[] = $model;
                             break;
@@ -147,7 +179,7 @@ class Image extends DataController
                 }
             }
 
-            Shopware()->Models()->flush();
+            \Shopware()->Models()->flush();
 
             $action->setResult($result);
         } catch (\Exception $exc) {
@@ -178,7 +210,10 @@ class Image extends DataController
             $statModel->setControllerName('image');
 
             if ($queryFilter !== null && $queryFilter->isFilter(QueryFilter::FILTER_RELATION_TYPE)) {
-                $statModel->setAvailable($mapper->fetchCount(null, $queryFilter->getFilter(QueryFilter::FILTER_RELATION_TYPE)));
+                $statModel->setAvailable($mapper->fetchCount(
+                    null,
+                    $queryFilter->getFilter(QueryFilter::FILTER_RELATION_TYPE)
+                ));
             } else {
                 // Get all images
                 $relationTypes = array(
