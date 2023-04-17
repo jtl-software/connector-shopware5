@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -39,10 +40,10 @@ class Connector extends DataController
 
         $pluginController = new \Shopware_Plugins_Frontend_Jtlconnector_Bootstrap('JTL Shopware Connector');
 
-        $returnMegaBytes = function($value) {
-            $value = trim($value);
-            $unit = strtolower($value[strlen($value) - 1]);
-            $value = (int) str_replace($unit, '', strtolower($value));
+        $returnMegaBytes = function ($value) {
+            $value = \trim($value);
+            $unit  = \strtolower($value[\strlen($value) - 1]);
+            $value = (int) \str_replace($unit, '', \strtolower($value));
             switch ($unit) {
                 case 'g':
                     $value *= 1024;
@@ -56,16 +57,16 @@ class Connector extends DataController
         };
 
         $serverInfo = new ConnectorServerInfo();
-        $serverInfo->setMemoryLimit($returnMegaBytes(ini_get('memory_limit')))
-            ->setExecutionTime((int) ini_get('max_execution_time'))
-            ->setPostMaxSize($returnMegaBytes(ini_get('post_max_size')))
-            ->setUploadMaxFilesize($returnMegaBytes(ini_get('upload_max_filesize')));
+        $serverInfo->setMemoryLimit($returnMegaBytes(\ini_get('memory_limit')))
+            ->setExecutionTime((int) \ini_get('max_execution_time'))
+            ->setPostMaxSize($returnMegaBytes(\ini_get('post_max_size')))
+            ->setUploadMaxFilesize($returnMegaBytes(\ini_get('upload_max_filesize')));
 
         $identification = new ConnectorIdentification();
         $identification->setEndpointVersion($pluginController->getVersion())
             ->setPlatformName('Shopware')
             ->setPlatformVersion(ShopUtil::version())
-            ->setProtocolVersion(Application()->getProtocolVersion())
+            ->setProtocolVersion(\Application()->getProtocolVersion())
             ->setServerInfo($serverInfo);
 
         $action->setResult($identification);
@@ -81,18 +82,18 @@ class Connector extends DataController
     public function finish()
     {
         $action = new Action();
-        
+
         $action->setHandled(true);
         $action->setResult(true);
 
-        $cacheManager = Shop::cacheManager();
+        $cacheManager   = Shop::cacheManager();
         $clearCacheTags = $_SESSION[SwConnector::SESSION_CLEAR_CACHE] ?? [];
-        foreach($clearCacheTags as $clearCacheTag => $clearIt) {
-            if($clearIt === true) {
+        foreach ($clearCacheTags as $clearCacheTag => $clearIt) {
+            if ($clearIt === true) {
                 $cacheManager->clearByTag($clearCacheTag);
             }
         }
-        
+
         return $action;
     }
 
@@ -124,7 +125,7 @@ class Connector extends DataController
         foreach ($mainControllers as $mainController) {
             try {
                 $controller = Mmc::getController($mainController);
-                $result = $controller->statistic($queryFilter);
+                $result     = $controller->statistic($queryFilter);
                 if ($result !== null && $result->isHandled() && !$result->isError()) {
                     $results[] = $result->getResult();
                 }
@@ -132,7 +133,7 @@ class Connector extends DataController
                 Logger::write(ExceptionFormatter::format($exc), Logger::WARNING, 'controller');
             }
         }
-        
+
         $action->setResult($results);
 
         return $action;

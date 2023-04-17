@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -9,7 +10,6 @@ namespace jtl\Connector\Shopware\Controller;
 use jtl\Connector\Result\Action;
 use jtl\Connector\Core\Rpc\Error;
 use jtl\Connector\Core\Utilities\DataInjector;
-
 use jtl\Connector\Shopware\Mapper\CrossSellingGroup;
 use jtl\Connector\Shopware\Mapper\Currency;
 use jtl\Connector\Shopware\Mapper\CustomerGroup;
@@ -46,21 +46,21 @@ class GlobalData extends DataController
 
         try {
             $result = array();
-            $limit = null;
+            $limit  = null;
 
             /** @var \jtl\Connector\Shopware\Model\GlobalData $globalData */
             $globalData = Mmc::getModel('GlobalData');
 
             /** @var Shop $shopMapper */
             $shopMapper = Mmc::getMapper('Shop');
-            $shops = $shopMapper->findAll(null);
+            $shops      = $shopMapper->findAll(null);
 
             // Currency helpers
             $uniqueCurrencyIds = [];
-            $buildCurrency = function (&$globalData, $id, &$uniqueCurrencyIds) {
+            $buildCurrency     = function (&$globalData, $id, &$uniqueCurrencyIds) {
                 $id = (int)$id;
 
-                if (in_array($id, $uniqueCurrencyIds)) {
+                if (\in_array($id, $uniqueCurrencyIds)) {
                     return;
                 }
 
@@ -69,10 +69,10 @@ class GlobalData extends DataController
                 try {
                     /** @var Currency $currencyMapper */
                     $currencyMapper = Mmc::getMapper('Currency');
-                    $currencySW = $currencyMapper->find($id, true);
+                    $currencySW     = $currencyMapper->find($id, true);
 
-                    if (!is_null($currencySW)) {
-                        $currencySW['default'] = (bool)$currencySW['default'];
+                    if (!\is_null($currencySW)) {
+                        $currencySW['default']                    = (bool)$currencySW['default'];
                         $currencySW['hasCurrencySignBeforeValue'] = ($currencySW['position'] == 32) ? true : false;
 
                         /** @var \jtl\Connector\Shopware\Model\Currency $currency */
@@ -87,29 +87,29 @@ class GlobalData extends DataController
             };
 
             $languageIso = [];
-            $languages = [];
+            $languages   = [];
 
             foreach ($shops as $shop) {
-                $shop['locale']['default'] = (intval($shop['default']) == 1);
+                $shop['locale']['default']           = (\intval($shop['default']) == 1);
                 $shop['customerGroup']['localeName'] = $shop['locale']['locale'];
 
                 // Languages
                 $language = Mmc::getModel('Language');
                 $language->map(true, DataConverter::toObject($shop['locale'], true));
 
-                if (!in_array($language->getLanguageISO(), $languageIso)) {
+                if (!\in_array($language->getLanguageISO(), $languageIso)) {
                     $languageIso[] = $language->getLanguageISO();
-                    $languages[] = $language;
+                    $languages[]   = $language;
                 }
 
                 // Currencies
-                if (isset($shop['currencies']) && is_array($shop['currencies']) && count($shop['currencies']) > 0) {
+                if (isset($shop['currencies']) && \is_array($shop['currencies']) && \count($shop['currencies']) > 0) {
                     foreach ($shop['currencies'] as $currencySW) {
                         $buildCurrency($globalData, $currencySW['id'], $uniqueCurrencyIds);
                     }
                 } else {
                     $shopSW = $shopMapper->find($shop['id']);
-                    if (!is_null($shopSW) && !is_null($shopSW->getCurrency())) {
+                    if (!\is_null($shopSW) && !\is_null($shopSW->getCurrency())) {
                         $buildCurrency($globalData, $shopSW->getCurrency()->getId(), $uniqueCurrencyIds);
                     }
                 }
@@ -120,15 +120,22 @@ class GlobalData extends DataController
             }
 
             /** @var CustomerGroup $mapper */
-            $mapper = Mmc::getMapper('CustomerGroup');
+            $mapper           = Mmc::getMapper('CustomerGroup');
             $customerGroupSWs = $mapper->findAll($limit);
 
-            for ($i = 0; $i < count($customerGroupSWs); $i++) {
-                $customerGroupSWs[$i]['taxInput'] = !(bool)$customerGroupSWs[$i]['taxInput'];
-                $customerGroupSWs[$i]['isDefault'] = ($customerGroupSWs[$i]['id'] === Shopware()->Shop()->getCustomerGroup()->getId()) ? true : false;
+            for ($i = 0; $i < \count($customerGroupSWs); $i++) {
+                $customerGroupSWs[$i]['taxInput']  = !(bool)$customerGroupSWs[$i]['taxInput'];
+                $customerGroupSWs[$i]['isDefault'] =
+                    ($customerGroupSWs[$i]['id'] === \Shopware()->Shop()->getCustomerGroup()->getId()) ? true : false;
             }
 
-            DataInjector::inject(DataInjector::TYPE_ARRAY, $customerGroupSWs, 'localeName', Shopware()->Shop()->getLocale()->getLocale(), true);
+            DataInjector::inject(
+                DataInjector::TYPE_ARRAY,
+                $customerGroupSWs,
+                'localeName',
+                \Shopware()->Shop()->getLocale()->getLocale(),
+                true
+            );
             foreach ($customerGroupSWs as $customerGroupSW) {
                 try {
                     $customerGroup = Mmc::getModel('CustomerGroup');
@@ -148,7 +155,7 @@ class GlobalData extends DataController
 
             /** @var CrossSellingGroup $crossSellingGroupMapper */
             $crossSellingGroupMapper = Mmc::getMapper('CrossSellingGroup');
-            $crossSellingGroupSWs = $crossSellingGroupMapper->fetchAll($limit);
+            $crossSellingGroupSWs    = $crossSellingGroupMapper->fetchAll($limit);
             foreach ($crossSellingGroupSWs as $crossSellingGroupSW) {
                 $crossSellingGroup = Mmc::getModel('CrossSellingGroup');
                 $crossSellingGroup->map(true, DataConverter::toObject($crossSellingGroupSW, true));
@@ -160,7 +167,8 @@ class GlobalData extends DataController
                         $crossSellingGroupI18n = Mmc::getModel('CrossSellingGroupI18n');
                         $crossSellingGroupI18n->map(true, DataConverter::toObject($crossSellingGroupI18nSW, true));
 
-                        $crossSellingGroupI18n->getCrossSellingGroupId()->setHost($crossSellingGroup->getId()->getHost());
+                        $crossSellingGroupI18n->getCrossSellingGroupId()
+                            ->setHost($crossSellingGroup->getId()->getHost());
 
                         $crossSellingGroup->addI18n($crossSellingGroupI18n);
                     } catch (\Exception $e) {
@@ -168,7 +176,7 @@ class GlobalData extends DataController
                     }
                 }
 
-                if (count($crossSellingGroup->getI18ns()) == 0) {
+                if (\count($crossSellingGroup->getI18ns()) == 0) {
                     throw new \Exception('Could not find any crossSelling language');
                 }
 
@@ -176,10 +184,16 @@ class GlobalData extends DataController
             }
 
             /** @var Unit $mapper */
-            $mapper = Mmc::getMapper('Unit');
+            $mapper  = Mmc::getMapper('Unit');
             $unitSWs = $mapper->findAll($limit);
 
-            DataInjector::inject(DataInjector::TYPE_ARRAY, $unitSWs, 'localeName', Shopware()->Shop()->getLocale()->getLocale(), true);
+            DataInjector::inject(
+                DataInjector::TYPE_ARRAY,
+                $unitSWs,
+                'localeName',
+                \Shopware()->Shop()->getLocale()->getLocale(),
+                true
+            );
             foreach ($unitSWs as $unitSW) {
                 try {
                     $unit = Mmc::getModel('Unit');
@@ -196,11 +210,11 @@ class GlobalData extends DataController
             }
 
             /** @var MeasurementUnit $mapper */
-            $mapper = Mmc::getMapper('MeasurementUnit');
+            $mapper             = Mmc::getMapper('MeasurementUnit');
             $measurementUnitSWs = $mapper->findAll($limit);
 
             $shopMapper = Mmc::getMapper('Shop');
-            $shops = $shopMapper->findAll(null, null);
+            $shops      = $shopMapper->findAll(null, null);
 
             $translationService = ShopUtil::translationService();
 
@@ -218,11 +232,11 @@ class GlobalData extends DataController
 
                 $measurementUnitI18n = Mmc::getModel('MeasurementUnitI18n');
                 $measurementUnitI18n->map(true, DataConverter::toObject($measurementUnitSW, true));
-                $measurementUnitI18n->setLanguageISO(LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale()));
+                $measurementUnitI18n->setLanguageISO(LanguageUtil::map(\Shopware()->Shop()->getLocale()->getLocale()));
 
                 $measurementUnit->addI18n($measurementUnitI18n);
 
-                if (count($translations) > 0) {
+                if (\count($translations) > 0) {
                     foreach ($translations as $localeName => $translation) {
                         foreach ($translation as $id => $trans) {
                             if ($id === $measurementUnitSW['id']) {
@@ -252,14 +266,14 @@ class GlobalData extends DataController
 
             foreach ($taxSWs as $taxSW) {
                 $taxSW['tax'] = (float)$taxSW['tax'];
-                $tax = Mmc::getModel('TaxRate');
+                $tax          = Mmc::getModel('TaxRate');
                 $tax->map(true, DataConverter::toObject($taxSW, true));
 
                 $globalData->addTaxRate($tax);
             }
 
             /** @var Shipping $mapper */
-            $mapper = Mmc::getMapper('Shipping');
+            $mapper            = Mmc::getMapper('Shipping');
             $shippingMethodSWs = $mapper->findAll($limit);
 
             foreach ($shippingMethodSWs as $shippingMethodSW) {

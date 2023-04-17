@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -31,10 +32,10 @@ class Payment extends DataController
 
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit  = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
             /** @var \jtl\Connector\Shopware\Mapper\Payment $mapper */
-            $mapper = Mmc::getMapper('Payment');
+            $mapper     = Mmc::getMapper('Payment');
             $swPayments = $mapper->findAllNative($limit);
 
             /** @var \jtl\Connector\Shopware\Mapper\CustomerOrder $customerOrderMapper */
@@ -45,10 +46,12 @@ class Payment extends DataController
 
                 if (PaymentUtil::isPayPalUnifiedType($swPayment['name'])) {
                     $swOrder = $customerOrderMapper->find($swPayment['customerOrderId']);
-                    if (!is_null($swOrder)) {
+                    if (!\is_null($swOrder)) {
                         $orderAttributes = $swOrder->getAttribute();
-                        if (method_exists($orderAttributes,'getSwagPaypalUnifiedPaymentType') === true) {
-                            $paymentModuleCode = PaymentUtil::mapPayPalUnified($orderAttributes->getSwagPaypalUnifiedPaymentType());
+                        if (\method_exists($orderAttributes, 'getSwagPaypalUnifiedPaymentType') === true) {
+                            $paymentModuleCode = PaymentUtil::mapPayPalUnified(
+                                $orderAttributes->getSwagPaypalUnifiedPaymentType()
+                            );
                         }
                     }
                 }
