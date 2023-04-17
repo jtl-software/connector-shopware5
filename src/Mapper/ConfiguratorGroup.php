@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,22 +7,24 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Logger\Logger;
-use \Shopware\Components\Api\Exception as ApiException;
-use \Shopware\Models\Article\Configurator\Group as ConfiguratorGroupModel;
-use \jtl\Connector\ModelContainer\ProductContainer;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Shopware\Model\DataModel;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Logger\Logger;
+use Shopware\Components\Api\Exception as ApiException;
+use Shopware\Models\Article\Configurator\Group as ConfiguratorGroupModel;
+use jtl\Connector\ModelContainer\ProductContainer;
+use jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Shopware\Model\DataModel;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class ConfiguratorGroup extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Group')->find($id);
+        return (\intval($id) == 0)
+            ? null
+            : $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Group')->find($id);
     }
 
     public function findOneBy(array $kv)
@@ -31,7 +34,7 @@ class ConfiguratorGroup extends DataMapper
 
     public function findOneByName($name, $forceObject = false)
     {
-        $result = Shopware()->Db()->fetchOne(
+        $result = \Shopware()->Db()->fetchOne(
             'SELECT id FROM s_article_configurator_groups WHERE name = ?',
             array($name)
         );
@@ -56,8 +59,8 @@ class ConfiguratorGroup extends DataMapper
 
     public function save(array $data, $namespace = '\Shopware\Models\Article\Configurator\Group')
     {
-        Logger::write(print_r($data, 1), Logger::DEBUG, 'database');
-        
+        Logger::write(\print_r($data, 1), Logger::DEBUG, 'database');
+
         try {
             if (!$data['id']) {
                 return $this->create($data);
@@ -137,15 +140,15 @@ class ConfiguratorGroup extends DataMapper
         $configuratorGroup = $this->find($id);
 
         if (!$configuratorGroup) {
-            throw new ApiException\NotFoundException(sprintf('Configurator Group by id (%s) not found', $id));
+            throw new ApiException\NotFoundException(\sprintf('Configurator Group by id (%s) not found', $id));
         }
 
-        $locale = LanguageUtil::map(null, null, $iso);
+        $locale   = LanguageUtil::map(null, null, $iso);
         $language = LocaleUtil::extractLanguageIsoFromLocale($locale);
 
         $translationService = ShopUtil::translationService();
-        $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findByLanguageIso($language);
+        $shopMapper         = Mmc::getMapper('Shop');
+        $shops              = $shopMapper->findByLanguageIso($language);
 
         foreach ($shops as $shop) {
             $translationService->delete($shop->getId(), 'configuratorgroup', $id);
@@ -182,7 +185,10 @@ class ConfiguratorGroup extends DataMapper
                 $groupId = null;
                 if (empty($productVariation->getId()->getEndpoint())) {
                     if (empty($productVariation->getId()->getHost())) {
-                        Logger::write('Product variation host and endpoint ids cannot be empty', Logger::WARNING, 'database');
+                        Logger::write(
+                            'Product variation host and endpoint ids cannot be empty',
+                            Logger::WARNING, 'database'
+                        );
 
                         continue;
                     }
@@ -192,8 +198,12 @@ class ConfiguratorGroup extends DataMapper
                     foreach ($container->getProductVariationI18ns() as $productVariationI18n) {
 
                         // find default shop language to create a base variation
-                        if ($productVariation->getId()->getHost() == $productVariationI18n->getProductVariationId()->getHost()
-                            && $productVariationI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                        if (
+                            $productVariation->getId()->getHost()
+                                == $productVariationI18n->getProductVariationId()->getHost()
+                            && $productVariationI18n->getLanguageISO()
+                                === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())
+                        ) {
                             $params = DataConverter::toArray(DataModel::map(false, null, $productVariation));
                             $params['name'] = $productVariationI18n->getName();
 
@@ -213,30 +223,49 @@ class ConfiguratorGroup extends DataMapper
                     }
 
                     if (!$isAvailable) {
-                        Logger::write('Product variation (Host: ' . $productVariation->getId()->getHost() . ') could not be created', Logger::WARNING, 'database');
+                        Logger::write(
+                            'Product variation (Host: ' . $productVariation->getId()->getHost() . ')
+                             could not be created',
+                            Logger::WARNING,
+                            'database'
+                        );
 
                         continue;
                     }
 
-                    $data['configuratorSet']['groups'][$groupId] = array_merge($data['configuratorSet']['groups'][$groupId],
-                        DataConverter::toArray(DataModel::map(false, null, $productVariation)));
+                    $data['configuratorSet']['groups'][$groupId] = array_merge(
+                        $data['configuratorSet']['groups'][$groupId],
+                        DataConverter::toArray(DataModel::map(false, null, $productVariation))
+                    );
 
                     $data['configuratorSet']['groups'][$groupId]['id'] = $groupId;
                     $data['configuratorSet']['groups'][$groupId]['articleId'] = $productId;
 
                     // find all non defaut languages to create a translation model
                     foreach ($container->getProductVariationI18ns() as $productVariationI18n) {
-                        if ($productVariation->getId()->getHost() == $productVariationI18n->getProductVariationId()->getHost()
-                            && $productVariationI18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                        if (
+                            $productVariation->getId()->getHost()
+                                == $productVariationI18n->getProductVariationId()->getHost()
+                            && $productVariationI18n->getLanguageISO()
+                                !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())
+                        ) {
                             $localeId = null;
                             foreach ($shops as $shop) {
-                                if (LanguageUtil::map($shop['locale']['locale']) === $productVariationI18n->getLanguageISO()) {
+                                if (
+                                    LanguageUtil::map($shop['locale']['locale'])
+                                        === $productVariationI18n->getLanguageISO()
+                                ) {
                                     $localeId = $shop['locale']['id'];
                                 }
                             }
 
                             if ($localeId === null) {
-                                Logger::write('Cannot find any shop localeId with languageIso (' . $productVariationI18n->getLanguageISO() . ')', Logger::WARNING, 'database');
+                                Logger::write(#
+                                    'Cannot find any shop localeId with languageIso ('
+                                        . $productVariationI18n->getLanguageISO() .
+                                    ')',
+                                    Logger::WARNING, 'database'
+                                );
 
                                 continue;
                             }
@@ -255,15 +284,23 @@ class ConfiguratorGroup extends DataMapper
 
                     list($productId, $groupId) = explode('_', $productVariation->getId()->getEndpoint());
 
-                    $data['configuratorSet']['groups'][$groupId] = DataConverter::toArray(DataModel::map(false, null, $productVariation));
+                    $data['configuratorSet']['groups'][$groupId] = DataConverter::toArray(
+                        DataModel::map(false, null, $productVariation)
+                    );
                     $data['configuratorSet']['groups'][$groupId]['id'] = $groupId;
                     $data['configuratorSet']['groups'][$groupId]['articleId'] = $productId;
 
                     foreach ($container->getProductVariationI18ns() as $productVariationI18n) {
-                        if ($productVariation->getId()->getEndpoint() == $productVariationI18n->getProductVariationId()->getEndpoint()) {
+                        if (
+                            $productVariation->getId()->getEndpoint()
+                            == $productVariationI18n->getProductVariationId()->getEndpoint()
+                        ) {
 
                             // Update default language name on the current base variation
-                            if ($productVariationI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                            if (
+                                $productVariationI18n->getLanguageISO()
+                                === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())
+                            ) {
                                 $data['configuratorSet']['groups'][$groupId]['name'] = $productVariationI18n->getName();
                             } else {
 
@@ -271,7 +308,10 @@ class ConfiguratorGroup extends DataMapper
                                 if (empty($productVariationI18n->getProductVariationId()->getEndpoint())) {
                                     $localeId = null;
                                     foreach ($shops as $shop) {
-                                        if (LanguageUtil::map($shop['locale']['locale']) === $productVariationI18n->getLanguageISO()) {
+                                        if (
+                                            LanguageUtil::map($shop['locale']['locale'])
+                                            === $productVariationI18n->getLanguageISO()
+                                        ) {
                                             $localeId = $shop['locale']['id'];
                                         }
                                     }

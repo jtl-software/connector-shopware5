@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -11,12 +12,12 @@ use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Linker\IdentityLinker;
-use \jtl\Connector\Shopware\Utilities\Shop;
-use \jtl\Connector\Model\StatusChange as StatusChangeModel;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Shopware\Utilities\Status as StatusUtil;
-use \jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
-use \jtl\Connector\Shopware\Model\CustomerOrder;
+use jtl\Connector\Shopware\Utilities\Shop;
+use jtl\Connector\Model\StatusChange as StatusChangeModel;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Status as StatusUtil;
+use jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
+use jtl\Connector\Shopware\Model\CustomerOrder;
 
 class StatusChange extends DataMapper
 {
@@ -33,18 +34,16 @@ class StatusChange extends DataMapper
             $customerOrderId = (int)$status->getCustomerOrderId()->getEndpoint();
             if ($customerOrderId > 0) {
                 /** @var CustomerOrder $mapper */
-                $mapper = Mmc::getMapper('CustomerOrder');
+                $mapper        = Mmc::getMapper('CustomerOrder');
                 $customerOrder = $mapper->find($customerOrderId);
-                if (!is_null($customerOrder)) {
-
+                if (!\is_null($customerOrder)) {
                     // Payment Status
-                    if ($status->getPaymentStatus() !== null && strlen($status->getPaymentStatus()) > 0) {
+                    if ($status->getPaymentStatus() !== null && \strlen($status->getPaymentStatus()) > 0) {
                         $statusId = PaymentStatusUtil::map($status->getPaymentStatus());
-                        if (!is_null($statusId)) {
+                        if (!\is_null($statusId)) {
                             $customerOrderStatusSW = $mapper->findStatus($statusId);
                             if ($customerOrderStatusSW !== null) {
-
-                                if($status->getPaymentStatus() === CustomerOrder::PAYMENT_STATUS_COMPLETED){
+                                if ($status->getPaymentStatus() === CustomerOrder::PAYMENT_STATUS_COMPLETED) {
                                     $this->createMappingIfNotLinked($status);
                                 }
 
@@ -61,7 +60,7 @@ class StatusChange extends DataMapper
                     }
 
                     // Order Status
-                    if ($status->getOrderStatus() !== null && strlen($status->getOrderStatus()) > 0) {
+                    if ($status->getOrderStatus() !== null && \strlen($status->getOrderStatus()) > 0) {
                         $statusId = StatusUtil::map($status->getOrderStatus());
 
                         if ($statusId !== null) {
@@ -95,10 +94,10 @@ class StatusChange extends DataMapper
     protected function createMappingIfNotLinked(StatusChangeModel $statusChange)
     {
         $primaryKeyMapper = new PrimaryKeyMapper();
-        $endpointId = $statusChange->getCustomerOrderId()->getEndpoint();
+        $endpointId       = $statusChange->getCustomerOrderId()->getEndpoint();
 
         $paymentLink = $primaryKeyMapper->getHostId($endpointId, IdentityLinker::TYPE_PAYMENT);
-        if (is_null($paymentLink)) {
+        if (\is_null($paymentLink)) {
             $primaryKeyMapper->save($endpointId, 0, IdentityLinker::TYPE_PAYMENT);
         }
     }

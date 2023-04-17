@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -8,11 +9,11 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Drawing\ImageRelationType;
 use jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Mapper\IPrimaryKeyMapper;
-use \jtl\Connector\Linker\IdentityLinker;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Shopware\Utilities\IdConcatenator;
-use \jtl\Connector\Shopware\Model\Image;
+use jtl\Connector\Mapper\IPrimaryKeyMapper;
+use jtl\Connector\Linker\IdentityLinker;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Model\Image;
 
 class PrimaryKeyMapper implements IPrimaryKeyMapper
 {
@@ -25,8 +26,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 case IdentityLinker::TYPE_PRODUCT:
                     list ($detailId, $productId) = IdConcatenator::unlink($endpointId);
 
-                    $hostId = Shopware()->Db()->fetchOne(
-                        'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ? AND detail_id = ?',
+                    $hostId = \Shopware()->Db()->fetchOne(
+                        'SELECT host_id FROM ' . $dbInfo['table'] .
+                        ' WHERE ' . $dbInfo['pk'] . ' = ? AND detail_id = ?',
                         array($productId, $detailId)
                     );
                     break;
@@ -34,19 +36,19 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     list ($mediaType, $foreignId, $mediaId) = IdConcatenator::unlink($endpointId);
 
                     if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
-                        $hostId = Shopware()->Db()->fetchOne(
+                        $hostId = \Shopware()->Db()->fetchOne(
                             'SELECT host_id FROM jtl_connector_link_product_image WHERE id = ?',
                             array($foreignId)
                         );
                     } else {
-                        $hostId = Shopware()->Db()->fetchOne(
+                        $hostId = \Shopware()->Db()->fetchOne(
                             'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ?',
                             array($mediaId)
                         );
                     }
                     break;
                 default:
-                    $hostId = Shopware()->Db()->fetchOne(
+                    $hostId = \Shopware()->Db()->fetchOne(
                         'SELECT host_id FROM ' . $dbInfo['table'] . ' WHERE ' . $dbInfo['pk'] . ' = ?',
                         array($endpointId)
                     );
@@ -54,7 +56,16 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             }
         }
 
-        Logger::write(sprintf('Trying to get hostId with endpointId (%s) and type (%s) ... hostId: (%s)', $endpointId, $type, $hostId), Logger::DEBUG, 'linker');
+        Logger::write(
+            \sprintf(
+                'Trying to get hostId with endpointId (%s) and type (%s) ... hostId: (%s)',
+                $endpointId,
+                $type,
+                $hostId
+            ),
+            Logger::DEBUG,
+            'linker'
+        );
 
         return ($hostId !== false) ? (int) $hostId : null;
     }
@@ -62,22 +73,22 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     public function getEndpointId($hostId, $type, $relationType = null)
     {
         $endpointId = false;
-        $dbInfo = $this->getTableInfo($type);
+        $dbInfo     = $this->getTableInfo($type);
         if ($dbInfo !== null) {
             switch ($type) {
                 case IdentityLinker::TYPE_PRODUCT:
-                    $res = Shopware()->Db()->fetchAll(
+                    $res = \Shopware()->Db()->fetchAll(
                         'SELECT ' . $dbInfo['pk'] . ', detail_id FROM ' . $dbInfo['table'] . ' WHERE host_id = ?',
                         array($hostId)
                     );
 
-                    if (is_array($res) && count($res) > 0) {
+                    if (\is_array($res) && \count($res) > 0) {
                         $endpointId = IdConcatenator::link(array($res[0]['detail_id'], $res[0][$dbInfo['pk']]));
                     }
                     break;
                 case IdentityLinker::TYPE_IMAGE:
                     if ($relationType === ImageRelationType::TYPE_PRODUCT) {
-                        $endpointId = Shopware()->Db()->fetchOne(
+                        $endpointId = \Shopware()->Db()->fetchOne(
                             'SELECT image_id FROM jtl_connector_link_product_image WHERE host_id = ?',
                             array($hostId)
                         );
@@ -95,14 +106,15 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                                 break;
                         }
 
-                        $endpointId = Shopware()->Db()->fetchOne(
-                            "SELECT image_id FROM " . $dbInfo['table'] . " WHERE host_id = ? AND image_id LIKE '{$prefix}_%'",
+                        $endpointId = \Shopware()->Db()->fetchOne(
+                            "SELECT image_id FROM " . $dbInfo['table'] .
+                            " WHERE host_id = ? AND image_id LIKE '{$prefix}_%'",
                             array($hostId)
                         );
                     }
                     break;
                 default:
-                    $endpointId = Shopware()->Db()->fetchOne(
+                    $endpointId = \Shopware()->Db()->fetchOne(
                         'SELECT ' . $dbInfo['pk'] . ' FROM ' . $dbInfo['table'] . ' WHERE host_id = ?',
                         array($hostId)
                     );
@@ -110,17 +122,35 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
             }
         }
 
-        Logger::write(sprintf('Trying to get endpointId with hostId (%s) and type (%s) ... endpointId: (%s)', $hostId, $type, $endpointId), Logger::DEBUG, 'linker');
-        
+        Logger::write(
+            \sprintf(
+                'Trying to get endpointId with hostId (%s) and type (%s) ... endpointId: (%s)',
+                $hostId,
+                $type,
+                $endpointId
+            ),
+            Logger::DEBUG,
+            'linker'
+        );
+
         return ($endpointId !== false) ? $endpointId : null;
     }
 
     public function save($endpointId, $hostId, $type)
     {
-        Logger::write(sprintf('Save link with endpointId (%s), hostId (%s) and type (%s)', $endpointId, $hostId, $type), Logger::DEBUG, 'linker');
+        Logger::write(
+            \sprintf(
+                'Save link with endpointId (%s), hostId (%s) and type (%s)',
+                $endpointId,
+                $hostId,
+                $type
+            ),
+            Logger::DEBUG,
+            'linker'
+        );
 
         $statement = false;
-        $dbInfo = $this->getTableInfo($type);
+        $dbInfo    = $this->getTableInfo($type);
         if ($dbInfo !== null) {
             switch ($type) {
                 case IdentityLinker::TYPE_PRODUCT:
@@ -135,9 +165,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     ';
 
                     try {
-                        $statement = Shopware()->Db()->query($sql, array($productId, $detailId, $hostId));
+                        $statement = \Shopware()->Db()->query($sql, array($productId, $detailId, $hostId));
                     } catch (\Exception $e) {
-                        Logger::write(sprintf(
+                        Logger::write(\sprintf(
                             'SQL: %s - Params: productId (%s), detailId (%s), hostId (%s)',
                             $sql,
                             $productId,
@@ -160,8 +190,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                                 )
                                 VALUES (?,?,?,?)
                             ';
-        
-                            $statement = Shopware()->Db()->query($sql, array($foreignId, $hostId, $endpointId, $mediaId));
+
+                            $statement = \Shopware()->Db()
+                                ->query($sql, array($foreignId, $hostId, $endpointId, $mediaId));
                         } else {
                             $sql = '
                                 INSERT IGNORE INTO ' . $dbInfo['table'] . '
@@ -170,11 +201,11 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                                 )
                                 VALUES (?,?,?)
                             ';
-        
-                            $statement = Shopware()->Db()->query($sql, array($endpointId, $mediaId, $hostId));
+
+                            $statement = \Shopware()->Db()->query($sql, array($endpointId, $mediaId, $hostId));
                         }
                     } catch (\Exception $e) {
-                        Logger::write(sprintf(
+                        Logger::write(\sprintf(
                             'SQL: %s - Params: foreignId (%s), hostId (%s), endpointId (%s), mediaId (%s)',
                             $sql,
                             $foreignId,
@@ -187,8 +218,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     break;
                 case IdentityLinker::TYPE_CROSSSELLING:
                     $productId = $endpointId;
-                    $splitted = IdConcatenator::unlink($endpointId);
-                    if(count($splitted) == 2) {
+                    $splitted  = IdConcatenator::unlink($endpointId);
+                    if (\count($splitted) == 2) {
                         $productId = $splitted[1];
                     }
 
@@ -201,9 +232,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     ';
 
                     try {
-                        $statement = Shopware()->Db()->query($sql, array($productId, $hostId));
+                        $statement = \Shopware()->Db()->query($sql, array($productId, $hostId));
                     } catch (\Exception $e) {
-                        Logger::write(sprintf(
+                        Logger::write(\sprintf(
                             'SQL: %s - Params: productId (%s), hostId (%s)',
                             $sql,
                             $productId,
@@ -213,8 +244,8 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     }
                     break;
                 case IdentityLinker::TYPE_CROSSSELLING_GROUP:
-                    $sql = 'UPDATE jtl_connector_crosssellinggroup SET host_id = ? WHERE id = ?';
-                    $statement = Shopware()->Db()->query($sql, array($hostId, $endpointId));
+                    $sql       = 'UPDATE jtl_connector_crosssellinggroup SET host_id = ? WHERE id = ?';
+                    $statement = \Shopware()->Db()->query($sql, array($hostId, $endpointId));
                     break;
                 default:
                     $sql = '
@@ -226,9 +257,9 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                     ';
 
                     try {
-                        $statement = Shopware()->Db()->query($sql, array($endpointId, $hostId));
+                        $statement = \Shopware()->Db()->query($sql, array($endpointId, $hostId));
                     } catch (\Exception $e) {
-                        Logger::write(sprintf(
+                        Logger::write(\sprintf(
                             'SQL: %s - Params: endpointId (%s), hostId (%s)',
                             $sql,
                             $endpointId,
@@ -245,9 +276,13 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 
     public function delete($endpointId = null, $hostId = null, $type)
     {
-        Logger::write(sprintf('Delete link with endpointId (%s), hostId (%s) and type (%s)', $endpointId, $hostId, $type), Logger::DEBUG, 'linker');
+        Logger::write(
+            \sprintf('Delete link with endpointId (%s), hostId (%s) and type (%s)', $endpointId, $hostId, $type),
+            Logger::DEBUG,
+            'linker'
+        );
 
-        $rows = false;
+        $rows   = false;
         $dbInfo = $this->getTableInfo($type);
         if ($dbInfo !== null) {
             $where = [];
@@ -264,7 +299,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
 
                         $where = array($dbInfo['pk'] . ' = ?' => $mediaId);
                         if ($mediaType === Image::MEDIA_TYPE_PRODUCT) {
-                            $where = array('id = ?' => $foreignId);
+                            $where           = array('id = ?' => $foreignId);
                             $dbInfo['table'] = 'jtl_connector_link_product_image';
                         }
 
@@ -275,11 +310,11 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                         break;
                     case IdentityLinker::TYPE_CROSSSELLING_GROUP:
                         $sql = 'UPDATE jtl_connector_crosssellinggroup SET host_id = 0 WHERE id = ?';
-                        
+
                         try {
-                            $statement = Shopware()->Db()->query($sql, array($endpointId));
+                            $statement = \Shopware()->Db()->query($sql, array($endpointId));
                         } catch (\Exception $e) {
-                            Logger::write(sprintf(
+                            Logger::write(\sprintf(
                                 'SQL: %s - Params: endpointId (%s)',
                                 $sql,
                                 $endpointId
@@ -300,7 +335,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
                 $where += array('host_id = ?' => $hostId);
             }
 
-            $rows = Shopware()->Db()->delete($dbInfo['table'], $where);
+            $rows = \Shopware()->Db()->delete($dbInfo['table'], $where);
         }
 
         return $rows ? true : false;
@@ -310,7 +345,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
     {
         Logger::write('Clearing linking tables', Logger::DEBUG, 'linker');
 
-        $statement = Shopware()->Db()->query(
+        $statement = \Shopware()->Db()->query(
             '
              TRUNCATE TABLE jtl_connector_link_category;
              TRUNCATE TABLE jtl_connector_link_customer;

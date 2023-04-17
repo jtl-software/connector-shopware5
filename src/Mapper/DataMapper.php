@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -8,7 +9,7 @@ namespace jtl\Connector\Shopware\Mapper;
 
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Core\Utilities\Singleton;
+use jtl\Connector\Core\Utilities\Singleton;
 use jtl\Connector\Model\DataModel;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
@@ -24,10 +25,10 @@ abstract class DataMapper extends Singleton
 
     protected function __construct()
     {
-        $this->manager = Shopware()->Models();
+        $this->manager = \Shopware()->Models();
     }
 
-    protected function Manager()
+    protected function Manager() //phpcs:ignore
     {
         return $this->manager;
     }
@@ -58,7 +59,7 @@ abstract class DataMapper extends Singleton
         $this->removeArticleImagesMappings($article);
         $this->createArticleImagesMappings($article);
         Logger::write(
-            sprintf(
+            \sprintf(
                 'Image mappings for article (%s) rebuilded',
                 $article->getId()
             ),
@@ -83,8 +84,8 @@ abstract class DataMapper extends Singleton
         $stmt = $qb->execute();
 
         $result = $stmt->fetchColumn();
-        if (is_string($result) && strlen($result) > 0) {
-            return explode('|||', $result);
+        if (\is_string($result) && \strlen($result) > 0) {
+            return \explode('|||', $result);
         }
         return [];
     }
@@ -99,9 +100,12 @@ abstract class DataMapper extends Singleton
 
         /** @var Detail $detail */
         foreach ($article->getDetails() as $detail) {
-            $detailOptions = array_filter($detail->getConfiguratorOptions()->toArray(), function (Option $option) use ($ignoreGroups) {
-                return !in_array($option->getGroup()->getName(), $ignoreGroups);
-            });
+            $detailOptions = \array_filter(
+                $detail->getConfiguratorOptions()->toArray(),
+                function (Option $option) use ($ignoreGroups) {
+                    return !\in_array($option->getGroup()->getName(), $ignoreGroups);
+                }
+            );
 
             /** @var ArticleImage $image */
             foreach ($detail->getImages() as $image) {
@@ -153,7 +157,7 @@ abstract class DataMapper extends Singleton
         /** @var ArticleImage\Mapping $mapping */
         foreach ($image->getMappings() as $mapping) {
             $rules = $mapping->getRules()->toArray();
-            if (count($rules) !== count($options)) {
+            if (\count($rules) !== \count($options)) {
                 continue;
             }
 
@@ -162,7 +166,7 @@ abstract class DataMapper extends Singleton
                 $mappingOptions[] = $rule->getOption();
             }
 
-            $diff = array_udiff($options, $mappingOptions, function (Option $a, Option $b) {
+            $diff = \array_udiff($options, $mappingOptions, function (Option $a, Option $b) {
                 return $a->getId() - $b->getId();
             });
 
@@ -181,7 +185,8 @@ abstract class DataMapper extends Singleton
      */
     protected static function logNullTranslation(DataModel $attribute, string $local)
     {
-        Logger::write(sprintf('No Translation found for Attribute %s in locale %s',
+        Logger::write(\sprintf(
+            'No Translation found for Attribute %s in locale %s',
             $attribute->getId()->getHost(),
             $local
         ), Logger::WARNING, 'database');

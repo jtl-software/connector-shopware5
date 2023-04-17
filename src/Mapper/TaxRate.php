@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,15 +7,15 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Model\TaxRate as TaxRateModel;
-use \Shopware\Models\Tax\Tax as TaxRateSW;
-use \jtl\Connector\Model\Identity;
+use jtl\Connector\Model\TaxRate as TaxRateModel;
+use Shopware\Models\Tax\Tax as TaxRateSW;
+use jtl\Connector\Model\Identity;
 
 class TaxRate extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Tax\Tax')->find($id);
+        return (\intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Tax\Tax')->find($id);
     }
 
     public function findOneBy(array $kv)
@@ -30,17 +31,17 @@ class TaxRate extends DataMapper
     public function findAll(?int $limit = 100, bool $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
-                'tax'
-            )
+            'tax'
+        )
             ->from('Shopware\Models\Tax\Tax', 'tax')
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, true);
 
-        $return = $count ? $paginator->count() : iterator_to_array($paginator);
+        $return = $count ? $paginator->count() : \iterator_to_array($paginator);
 
-        $query = Shopware()->Models()->createQueryBuilder()->select(
+        $query = \Shopware()->Models()->createQueryBuilder()->select(
             'tax'
         )
             ->from('Shopware\Models\Tax\Rule', 'tax')
@@ -50,10 +51,10 @@ class TaxRate extends DataMapper
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, true);
 
-        if($count){
+        if ($count) {
             $return = $return + $paginator->count();
         } else {
-            $return = array_merge($return, iterator_to_array($paginator));
+            $return = \array_merge($return, \iterator_to_array($paginator));
         }
 
         return $return;
@@ -66,7 +67,7 @@ class TaxRate extends DataMapper
 
     public function delete(TaxRateModel $taxRate)
     {
-        $result = new TaxRateModel;
+        $result = new TaxRateModel();
 
         $this->deleteTaxRateData($unit);
 
@@ -79,7 +80,7 @@ class TaxRate extends DataMapper
     public function save(TaxRateModel $taxRate)
     {
         $taxRateSW = null;
-        $result = new TaxRateModel;
+        $result    = new TaxRateModel();
 
         $this->prepareTaxRateAssociatedData($taxRate, $taxRateSW);
 
@@ -94,7 +95,7 @@ class TaxRate extends DataMapper
 
     protected function deleteTaxRateData(TaxRateModel $taxRate)
     {
-        $taxRateId = (strlen($taxRate->getId()->getEndpoint()) > 0) ? (int)$taxRate->getId()->getEndpoint() : null;
+        $taxRateId = (\strlen($taxRate->getId()->getEndpoint()) > 0) ? (int)$taxRate->getId()->getEndpoint() : null;
 
         if ($taxRateId !== null && $taxRateId > 0) {
             $taxRateSW = $this->find((int) $taxRateId);
@@ -107,7 +108,7 @@ class TaxRate extends DataMapper
 
     protected function prepareTaxRateAssociatedData(TaxRateModel $taxRate, TaxRateSW &$taxRateSW = null)
     {
-        $taxRateId = (strlen($taxRate->getId()->getEndpoint()) > 0) ? (int)$taxRate->getId()->getEndpoint() : null;
+        $taxRateId = (\strlen($taxRate->getId()->getEndpoint()) > 0) ? (int)$taxRate->getId()->getEndpoint() : null;
 
         if ($taxRateId !== null && $taxRateId > 0) {
             $taxRateSW = $this->find($taxRateId);
@@ -118,7 +119,7 @@ class TaxRate extends DataMapper
         }
 
         if ($taxRateSW === null) {
-            $taxRateSW = new TaxRateSW;
+            $taxRateSW = new TaxRateSW();
         }
 
         $taxRateSW->setTax($taxRate->getRate())

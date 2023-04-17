@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -17,13 +18,13 @@ class Payment extends DataMapper
 
     public function find(?int $id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('jtl\Connector\Shopware\Model\Linker\Payment', $id);
+        return (\intval($id) == 0) ? null : $this->Manager()->find('jtl\Connector\Shopware\Model\Linker\Payment', $id);
     }
 
     public function findAllNative(int $limit = 100)
     {
-         $sql = sprintf(
-            'SELECT
+         $sql = \sprintf(
+             'SELECT
                 orders.id as id,
                 orders.id as customerOrderId,
                 "" as billingInfo,
@@ -42,13 +43,13 @@ class Payment extends DataMapper
             AND (LENGTH(orders.transactionID) > 0 OR orders.paymentID IN (%s))
             AND %s                
             LIMIT %d',
-            UtilPayment::getAllowedPaymentClearedStates(true),
-             join(',', self::getManualPaymentIds()),
-            CustomerOrder::createOrderPullStartDateWhereClause(),
-            $limit
-        );
+             UtilPayment::getAllowedPaymentClearedStates(true),
+             \join(',', self::getManualPaymentIds()),
+             CustomerOrder::createOrderPullStartDateWhereClause(),
+             $limit
+         );
 
-        return Shopware()->Db()->fetchAssoc($sql);
+        return \Shopware()->Db()->fetchAssoc($sql);
     }
 
     /**
@@ -66,7 +67,7 @@ class Payment extends DataMapper
      */
     public function fetchCount(int $limit = 100)
     {
-        $sql = sprintf(
+        $sql = \sprintf(
             'SELECT count(*) as count
              FROM s_order orders
              -- JOIN jtl_connector_link_order lo ON lo.order_id = orders.id            
@@ -80,6 +81,6 @@ class Payment extends DataMapper
             CustomerOrder::createOrderPullStartDateWhereClause()
         );
 
-        return (int)Shopware()->Db()->fetchOne($sql);
+        return (int)\Shopware()->Db()->fetchOne($sql);
     }
 }
