@@ -28,7 +28,7 @@ abstract class DataMapper extends Singleton
         $this->manager = \Shopware()->Models();
     }
 
-    protected function Manager()
+    protected function Manager() //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         return $this->manager;
     }
