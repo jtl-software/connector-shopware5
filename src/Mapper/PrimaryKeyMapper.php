@@ -274,6 +274,7 @@ class PrimaryKeyMapper implements IPrimaryKeyMapper
         return $statement ? true : false;
     }
 
+    //phpcs:ignore PEAR.Functions.ValidDefaultValue.NotAtEnd
     public function delete($endpointId = null, $hostId = null, $type)
     {
         Logger::write(

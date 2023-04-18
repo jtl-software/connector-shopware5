@@ -250,8 +250,11 @@ class ConfiguratorOption extends DataMapper
 
                         $this->createTranslatation($optionId, $localeId, $productVariationValueI18n->getName());
 
+                        //phpcs:ignore
                         $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()] = array();
+                        //phpcs:ignore
                         $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()]['name'] = $productVariationValueI18n->getName();
+                        //phpcs:ignore
                         $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()]['optionId'] = $optionId;
                     }
                 }
@@ -301,8 +304,11 @@ class ConfiguratorOption extends DataMapper
                                 $this->createTranslatation($optionId, $localeId, $productVariationValueI18n->getName());
                             }
 
+                            //phpcs:ignore
                             $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()] = array();
+                            //phpcs:ignore
                             $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()]['name'] = $productVariationValueI18n->getName();
+                            //phpcs:ignore
                             $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()]['optionId'] = $optionId;
                         }
                     }

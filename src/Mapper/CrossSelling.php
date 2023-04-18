@@ -41,7 +41,11 @@ class CrossSelling extends DataMapper
                  JOIN jtl_connector_crosssellinggroup_i18n gi
                      ON gi.languageISO = \'ger\' AND gi.name = \'' . CrossSellingGroupModel::RELATED . '\'
                  UNION
-                 SELECT s.id, s.articleID, s.relatedarticle, ss.detailId, if (a.configurator_set_id > 0, d.id, a.main_detail_id)
+                 SELECT s.id,
+                        s.articleID,
+                        s.relatedarticle,
+                        ss.detailId,
+                        if (a.configurator_set_id > 0, d.id, a.main_detail_id)
                   as relatedDetailId, gi.group_id
                  FROM s_articles_similar s
                  JOIN
@@ -72,12 +76,14 @@ class CrossSelling extends DataMapper
             (
                 SELECT count(*) AS count FROM s_articles_relationships r
                 LEFT JOIN jtl_connector_crossselling c ON c.product_id = r.articleID
-                JOIN jtl_connector_crosssellinggroup_i18n gi ON gi.languageISO = \'ger\' AND gi.name =\'' . CrossSellingGroupModel::RELATED . '\'
+                JOIN jtl_connector_crosssellinggroup_i18n gi
+                ON gi.languageISO = \'ger\' AND gi.name =\'' . CrossSellingGroupModel::RELATED . '\'
                 WHERE c.product_id IS NULL
                 UNION
                 SELECT count(*) AS count FROM s_articles_similar s
                 LEFT JOIN jtl_connector_crossselling c ON c.product_id = s.articleID
-                JOIN jtl_connector_crosssellinggroup_i18n gi ON gi.languageISO = \'ger\' AND gi.name = \'' . CrossSellingGroupModel::SIMILAR . '\'
+                JOIN jtl_connector_crosssellinggroup_i18n gi
+                ON gi.languageISO = \'ger\' AND gi.name = \'' . CrossSellingGroupModel::SIMILAR . '\'
                 WHERE c.product_id IS NULL
             ) a'
         );
