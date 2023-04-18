@@ -272,11 +272,9 @@ class ConfiguratorGroup extends DataMapper
 
                             $this->createTranslatation($groupId, $localeId, $productVariationI18n->getName());
 
-                            //phpcs:ignore
+
                             $data['configuratorSet']['groups'][$groupId]['translations'][$productVariationI18n->getLanguageISO()] = array();
-                            //phpcs:ignore
                             $data['configuratorSet']['groups'][$groupId]['translations'][$productVariationI18n->getLanguageISO()]['name'] = $productVariationI18n->getName();
-                            //phpcs:ignore
                             $data['configuratorSet']['groups'][$groupId]['translations'][$productVariationI18n->getLanguageISO()]['groupId'] = $groupId;
                         }
                     }
@@ -322,11 +320,8 @@ class ConfiguratorGroup extends DataMapper
                                     $this->createTranslatation($groupId, $localeId, $productVariationI18n->getName());
                                 }
 
-                                //phpcs:ignore
                                 $data['configuratorSet']['groups'][$groupId]['translations'][$productVariationI18n->getLanguageISO()] = array();
-                                //phpcs:ignore
                                 $data['configuratorSet']['groups'][$groupId]['translations'][$productVariationI18n->getLanguageISO()]['name'] = $productVariationI18n->getName();
-                                //phpcs:ignore
                                 $data['configuratorSet']['groups'][$groupId]['translations'][$productVariationI18n->getLanguageISO()]['groupId'] = $groupId;
                             }
                         }

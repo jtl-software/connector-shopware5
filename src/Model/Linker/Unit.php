@@ -35,7 +35,12 @@ class Unit
      */
     protected $hostId;
 /**
-     * @ORM\OneToMany(targetEntity="jtl\Connector\Shopware\Model\Linker\UnitI18n", mappedBy="unit", orphanRemoval=true, cascade={"persist"})
+     * @ORM\OneToMany(
+     *  targetEntity="jtl\Connector\Shopware\Model\Linker\UnitI18n",
+     *  mappedBy="unit",
+     *  orphanRemoval=true,
+     *  cascade={"persist"}
+     * )
      * @var ArrayCollection
      */
     protected $i18ns;

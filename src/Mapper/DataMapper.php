@@ -28,7 +28,7 @@ abstract class DataMapper extends Singleton
         $this->manager = \Shopware()->Models();
     }
 
-    protected function Manager() //phpcs:ignore
+    protected function Manager()
     {
         return $this->manager;
     }

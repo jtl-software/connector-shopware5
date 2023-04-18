@@ -19,7 +19,7 @@ use Symfony\Component\Yaml\Yaml;
 
 define('CONNECTOR_DIR', __DIR__);
 
-class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap //phpcs:ignore
+class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
     public const
         DELETE_USER_DATA  = 'delete_user_data',
