@@ -1,8 +1,8 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  */
-
 
 use jtl\Connector\Application\Application;
 use jtl\Connector\Shopware\Connector;
@@ -11,7 +11,7 @@ use jtl\Connector\Shopware\Connector;
 /* @var $connector jtl\Connector\Shopware\Connector */
 /* @var $application jtl\Connector\Application\Application */
 
-$connector = Connector::getInstance();
+$connector   = Connector::getInstance();
 $application = Application::getInstance();
 $application->createFeaturesFileIfNecessary(sprintf('%s/config/features.json.example', CONNECTOR_DIR));
 $application->register($connector);

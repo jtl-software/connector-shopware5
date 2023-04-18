@@ -1,4 +1,5 @@
 <?php
+
 use Shopware\Components\CSRFWhitelistAware;
 
 class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Action implements CSRFWhitelistAware
@@ -20,12 +21,12 @@ class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Acti
     public function indexAction()
     {
         session_destroy();
-        if(!defined('CONNECTOR_DIR')) {
+        if (!defined('CONNECTOR_DIR')) {
             define('CONNECTOR_DIR', __DIR__);
         }
 
         $bootstrapFile = sprintf('%s/src/bootstrap.php', CONNECTOR_DIR);
-        if(!file_exists($bootstrapFile)) {
+        if (!file_exists($bootstrapFile)) {
             throw new \Exception('Could not find src/bootstrap.php. Something is very wrong!');
         }
 

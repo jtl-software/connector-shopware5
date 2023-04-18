@@ -1,24 +1,26 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware
  */
+
 namespace jtl\Connector\Shopware;
 
-use \jtl\Connector\Core\Rpc\RequestPacket;
-use \jtl\Connector\Base\Connector as BaseConnector;
-use \jtl\Connector\Core\Utilities\RpcMethod;
-use \jtl\Connector\Core\Rpc\Method;
-use \jtl\Connector\Core\Controller\Controller as CoreController;
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \jtl\Connector\Shopware\Mapper\PrimaryKeyMapper;
-use \jtl\Connector\Shopware\Authentication\TokenLoader;
-use \jtl\Connector\Shopware\Checksum\ChecksumLoader;
+use jtl\Connector\Core\Rpc\RequestPacket;
+use jtl\Connector\Base\Connector as BaseConnector;
+use jtl\Connector\Core\Utilities\RpcMethod;
+use jtl\Connector\Core\Rpc\Method;
+use jtl\Connector\Core\Controller\Controller as CoreController;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Shopware\Mapper\PrimaryKeyMapper;
+use jtl\Connector\Shopware\Authentication\TokenLoader;
+use jtl\Connector\Shopware\Checksum\ChecksumLoader;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Shopware\Utilities\Mmc;
 use Shopware\Components\CacheManager;
 
 /**
@@ -56,7 +58,7 @@ class Connector extends BaseConnector
             ->setChecksumLoader(new ChecksumLoader());
 
         // Doctrine register entity
-        $config = Shopware()->Models()->getConfiguration();
+        $config      = \Shopware()->Models()->getConfiguration();
         $driverChain = $config->getMetadataDriverImpl();
 
         if ($driverChain instanceof \Doctrine\Common\Persistence\Mapping\Driver\MappingDriverChain) {
@@ -70,7 +72,7 @@ class Connector extends BaseConnector
             $driverChain->addDriver($annotationDriver, 'jtl\\Connector\\Shopware\\Model\\');
             $driverChain->addDriver($annotationDriver, 'jtl\\Connector\\Shopware\\Model\\Linker\\');
             $config->setMetadataDriverImpl($driverChain);
-        } else if ($driverChain instanceof AnnotationDriver) {
+        } elseif ($driverChain instanceof AnnotationDriver) {
             $driverChain->addPaths([
                 'jtl\\Connector\\Shopware\\Model\\',
                 'jtl\\Connector\\Shopware\\Model\\Linker\\'
@@ -86,13 +88,13 @@ class Connector extends BaseConnector
     public function canHandle()
     {
         $controller = RpcMethod::buildController($this->getMethod()->getController());
-        
-        $class = "\\jtl\\Connector\\Shopware\\Controller\\{$controller}";
-        if (class_exists($class)) {
-            $this->controller = $class::getInstance();
-            $this->action = RpcMethod::buildAction($this->getMethod()->getAction());
 
-            return is_callable(array($this->controller, $this->action));
+        $class = "\\jtl\\Connector\\Shopware\\Controller\\{$controller}";
+        if (\class_exists($class)) {
+            $this->controller = $class::getInstance();
+            $this->action     = RpcMethod::buildAction($this->getMethod()->getAction());
+
+            return \is_callable(array($this->controller, $this->action));
         }
 
         return false;
@@ -113,10 +115,10 @@ class Connector extends BaseConnector
             if ($this->getMethod()->getController() === 'product_price') {
                 $action = new Action();
                 $action->setHandled(true);
-                
+
                 try {
                     $mapper = Mmc::getMapper('ProductPrice');
-                    $res = $mapper->save($requestpacket->getParams());
+                    $res    = $mapper->save($requestpacket->getParams());
 
                     $action->setResult($res);
                 } catch (\Exception $exc) {
@@ -127,14 +129,13 @@ class Connector extends BaseConnector
                     $err->setMessage($exc->getMessage());
                     $action->setError($err);
                 }
-            }
-            else {
-                if (!is_array($requestpacket->getParams())) {
+            } else {
+                if (!\is_array($requestpacket->getParams())) {
                     throw new \Exception('Param must be an array');
                 }
 
-                $action = new Action();
-                $results = array();
+                $action   = new Action();
+                $results  = array();
                 $entities = $requestpacket->getParams();
                 foreach ($entities as $entity) {
                     $result = $this->controller->{$this->action}($entity);
@@ -158,7 +159,7 @@ class Connector extends BaseConnector
             return $this->controller->{$this->action}($requestpacket->getParams());
         }
     }
-    
+
     /**
      * Getter Controller
      *
