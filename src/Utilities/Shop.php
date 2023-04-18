@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -22,7 +23,7 @@ final class Shop
      */
     public static function get()
     {
-        return Shopware();
+        return \Shopware();
     }
 
     /**
@@ -54,7 +55,7 @@ final class Shop
      */
     public static function isShopwareDefaultLanguage(string $languageIsoCode2B): bool
     {
-        return self::areSameLanguages($languageIsoCode2B, Shopware()->Shop()->getLocale()->getLocale());
+        return self::areSameLanguages($languageIsoCode2B, \Shopware()->Shop()->getLocale()->getLocale());
     }
 
     /**
@@ -62,11 +63,11 @@ final class Shop
      */
     public static function version()
     {
-        if(static::get()->Container()->has('shopware.release')) {
+        if (static::get()->Container()->has('shopware.release')) {
             /** @var ShopwareReleaseStruct $shopwareRelease */
             $shopwareRelease = static::get()->Container()->get('shopware.release');
             return $shopwareRelease->getVersion();
-        } elseif (defined('Shopware::VERSION') && \Shopware::VERSION !== '___VERSION___') {
+        } elseif (\defined('Shopware::VERSION') && \Shopware::VERSION !== '___VERSION___') {
             return \Shopware::VERSION;
         } else {
             throw new \RuntimeException('Shopware version could not get found!');
@@ -130,9 +131,9 @@ final class Shop
 
         $url = "";
 
-        if (!is_null($shop)) {
+        if (!\is_null($shop)) {
             $proto = $shop->getSecure() ? 'https' : 'http';
-            $url = sprintf('%s://%s%s/', $proto, $shop->getHost(), $shop->getBasePath());
+            $url   = \sprintf('%s://%s%s/', $proto, $shop->getHost(), $shop->getBasePath());
         }
 
         return $url;
@@ -145,7 +146,6 @@ final class Shop
     public static function isCustomerNotFoundException($message): bool
     {
         $pattern = "/Entity of type 'Shopware\\\Models\\\Customer\\\Customer' for IDs id\([0-9]+\) was not found/";
-        return (int)preg_match($pattern, $message) > 0;
+        return (int)\preg_match($pattern, $message) > 0;
     }
-
 }
