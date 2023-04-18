@@ -2,6 +2,7 @@
 
 use Shopware\Components\CSRFWhitelistAware;
 
+//phpcs:ignore
 class Shopware_Controllers_Frontend_Jtlconnector extends Enlight_Controller_Action implements CSRFWhitelistAware
 {
     public function getWhitelistedCSRFActions()

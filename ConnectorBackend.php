@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 /**
  * @ORM\Embedded
  */
+//phpcs:ignore
 class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Action implements CSRFWhitelistAware
 {
     /**
