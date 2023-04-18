@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductWarehouseInfo as ProductWarehouseInfoModel;
+use jtl\Connector\Model\ProductWarehouseInfo as ProductWarehouseInfoModel;
 
 /**
  * ProductWarehouseInfo Model
@@ -21,7 +22,7 @@ class ProductWarehouseInfo extends ProductWarehouseInfoModel
         'inflowQuantity' => '',
         'inflowDate' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

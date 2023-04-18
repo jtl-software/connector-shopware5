@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Utilities
@@ -14,22 +15,19 @@ class Str
      * @var array
      */
     protected static $snakeCache = [];
-    
-    /**
+/**
      * The cache of camel-cased words.
      *
      * @var array
      */
     protected static $camelCache = [];
-    
-    /**
+/**
      * The cache of studly-cased words.
      *
      * @var array
      */
     protected static $studlyCache = [];
-    
-    /**
+/**
      * Convert a value to camel case.
      *
      * @param  string  $value
@@ -41,26 +39,24 @@ class Str
             return static::$camelCache[$value];
         }
 
-        $parts = explode('_', $value);
-
-        $lastEmpty = false;
+        $parts       = \explode('_', $value);
+        $lastEmpty   = false;
         $toCamelcase = '';
-        foreach($parts as $part) {
-            if(empty($part)) {
+        foreach ($parts as $part) {
+            if (empty($part)) {
                 $toCamelcase .= '_';
-                $lastEmpty = true;
-            }
-            elseif (is_numeric($part[0])) {
+                $lastEmpty    = true;
+            } elseif (\is_numeric($part[0])) {
                 $toCamelcase .= '_' . $part;
-                $lastEmpty = false;
+                $lastEmpty    = false;
             } else {
-                $toCamelcase .= $lastEmpty ? $part : ucfirst($part);
-                $lastEmpty = false;
+                $toCamelcase .= $lastEmpty ? $part : \ucfirst($part);
+                $lastEmpty    = false;
             }
         }
-        return static::$camelCache[$value] = lcfirst($toCamelcase);
+        return static::$camelCache[$value] = \lcfirst($toCamelcase);
     }
-    
+
     /**
      * Convert a string to snake case.
      *
@@ -71,20 +67,18 @@ class Str
     public static function snake($value, $delimiter = '_')
     {
         $key = $value;
-        
         if (isset(static::$snakeCache[$key][$delimiter])) {
             return static::$snakeCache[$key][$delimiter];
         }
-        
-        if (! ctype_lower($value)) {
-            $value = preg_replace('/\s+/u', '', $value);
-            
-            $value = static::lower(preg_replace('/(.)(?=[A-Z])/u', '$1'.$delimiter, $value));
+
+        if (! \ctype_lower($value)) {
+            $value = \preg_replace('/\s+/u', '', $value);
+            $value = static::lower(\preg_replace('/(.)(?=[A-Z])/u', '$1' . $delimiter, $value));
         }
-        
+
         return static::$snakeCache[$key][$delimiter] = $value;
     }
-    
+
     /**
      * Convert a value to studly caps case.
      *
@@ -94,16 +88,14 @@ class Str
     public static function studly($value)
     {
         $key = $value;
-        
         if (isset(static::$studlyCache[$key])) {
             return static::$studlyCache[$key];
         }
-        
-        $value = ucwords(str_replace(['-', '_'], ' ', $value));
-        
-        return static::$studlyCache[$key] = str_replace(' ', '', $value);
+
+        $value                            = \ucwords(\str_replace(['-', '_'], ' ', $value));
+        return static::$studlyCache[$key] = \str_replace(' ', '', $value);
     }
-    
+
     /**
      * Convert the given string to lower-case.
      *
@@ -112,9 +104,9 @@ class Str
      */
     public static function lower($value)
     {
-        return mb_strtolower($value, 'UTF-8');
+        return \mb_strtolower($value, 'UTF-8');
     }
-    
+
     /**
      * Convert the given string to upper-case.
      *
@@ -123,6 +115,6 @@ class Str
      */
     public static function upper($value)
     {
-        return mb_strtoupper($value, 'UTF-8');
+        return \mb_strtoupper($value, 'UTF-8');
     }
 }

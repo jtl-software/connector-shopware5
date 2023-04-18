@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,11 +7,11 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
-use \jtl\Connector\Model\Identity;
+use jtl\Connector\Model\CustomerGroup as CustomerGroupModel;
+use jtl\Connector\Model\Identity;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
-use \Shopware\Models\Customer\Group as CustomerGroupSW;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use Shopware\Models\Customer\Group as CustomerGroupSW;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 class CustomerGroup extends DataMapper
 {
@@ -24,7 +25,9 @@ class CustomerGroup extends DataMapper
 
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Customer\Group')->find($id);
+        return (\intval($id) == 0)
+            ? null
+            : $this->Manager()->getRepository('Shopware\Models\Customer\Group')->find($id);
     }
 
     public function findOneBy(array $kv)
@@ -45,7 +48,7 @@ class CustomerGroup extends DataMapper
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
-        return $count ? $paginator->count() : iterator_to_array($paginator);
+        return $count ? $paginator->count() : \iterator_to_array($paginator);
     }
 
     public function fetchCount($limit = 100)
@@ -55,7 +58,7 @@ class CustomerGroup extends DataMapper
 
     public function delete(CustomerGroupModel $customerGroup)
     {
-        $result = new CustomerGroupModel;
+        $result = new CustomerGroupModel();
 
         $this->deleteCustomerGroupData($customerGroup);
 
@@ -68,7 +71,7 @@ class CustomerGroup extends DataMapper
     public function save(CustomerGroupModel $customerGroup)
     {
         $customerGroupSW = null;
-        $result = new CustomerGroupModel;
+        $result          = new CustomerGroupModel();
 
         $this->prepareCustomerGroupAssociatedData($customerGroup, $customerGroupSW);
         $this->prepareI18nAssociatedData($customerGroup, $customerGroupSW);
@@ -84,7 +87,9 @@ class CustomerGroup extends DataMapper
 
     protected function deleteCustomerGroupData(CustomerGroupModel &$customerGroup)
     {
-        $customerGroupId = (strlen($customerGroup->getId()->getEndpoint()) > 0) ? (int)$customerGroup->getId()->getEndpoint() : null;
+        $customerGroupId = (\strlen($customerGroup->getId()->getEndpoint()) > 0)
+            ? (int)$customerGroup->getId()->getEndpoint()
+            : null;
 
         if ($customerGroupId !== null && $customerGroupId > 0) {
             $customerGroupSW = $this->find((int) $customerGroupId);
@@ -95,16 +100,20 @@ class CustomerGroup extends DataMapper
         }
     }
 
-    protected function prepareCustomerGroupAssociatedData(CustomerGroupModel &$customerGroup, CustomerGroupSW &$customerGroupSW = null)
-    {
-        $customerGroupId = (strlen($customerGroup->getId()->getEndpoint()) > 0) ? (int) $customerGroup->getId()->getEndpoint() : null;
+    protected function prepareCustomerGroupAssociatedData(
+        CustomerGroupModel &$customerGroup,
+        CustomerGroupSW &$customerGroupSW = null
+    ) {
+        $customerGroupId = (\strlen($customerGroup->getId()->getEndpoint()) > 0)
+            ? (int) $customerGroup->getId()->getEndpoint()
+            : null;
 
         if ($customerGroupId !== null && $customerGroupId > 0) {
             $customerGroupSW = $this->find($customerGroupId);
         }
 
         if ($customerGroupSW === null) {
-            $customerGroupSW = new CustomerGroupSW;
+            $customerGroupSW = new CustomerGroupSW();
         }
 
         $customerGroupSW->setDiscount($customerGroup->getDiscount())
@@ -114,20 +123,23 @@ class CustomerGroup extends DataMapper
             ->setTaxInput(!$customerGroup->getApplyNetPrice());
     }
 
-    protected function prepareI18nAssociatedData(CustomerGroupModel &$customerGroup, CustomerGroupSW &$customerGroupSW)
-    {
+    protected function prepareI18nAssociatedData(
+        CustomerGroupModel &$customerGroup,
+        CustomerGroupSW &$customerGroupSW
+    ) {
         // I18n
         foreach ($customerGroup->getI18ns() as $i18n) {
             if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
-
                 // EK fix, thanks Shopware :/
-                $groupKey = ($customerGroupSW->getKey() === 'EK') ? $customerGroupSW->getKey() : substr($i18n->getName(), 0, 5);
+                $groupKey = ($customerGroupSW->getKey() === 'EK')
+                    ? $customerGroupSW->getKey()
+                    : \substr($i18n->getName(), 0, 5);
 
                 // If Update => update foreign tables
                 if ($customerGroupSW->getId() > 0) {
                     foreach ($this->groupKeyTables as $table => $field) {
-                        Shopware()->Db()->query(
-                            sprintf('UPDATE %s SET %s = ? WHERE %s = ?', $table, $field, $field),
+                        \Shopware()->Db()->query(
+                            \sprintf('UPDATE %s SET %s = ? WHERE %s = ?', $table, $field, $field),
                             array($groupKey, $customerGroupSW->getKey())
                         );
                     }

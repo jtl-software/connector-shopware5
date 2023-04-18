@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Utilities
@@ -6,11 +7,11 @@
 
 namespace jtl\Connector\Shopware\Utilities;
 
-use \jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Mmc;
 
 final class CustomerGroup
 {
-    private static $_customerGroups;
+    private static $customerGroups;
 
     /**
      * @param int $id
@@ -19,17 +20,17 @@ final class CustomerGroup
      */
     public static function get($id, $useCache = true)
     {
-        if (is_null(self::$_customerGroups)) {
-            self::$_customerGroups = [];
+        if (\is_null(self::$customerGroups)) {
+            self::$customerGroups = [];
         }
 
-        if (!$useCache || !isset(self::$_customerGroups[$id])) {
+        if (!$useCache || !isset(self::$customerGroups[$id])) {
             $mapper = Mmc::getMapper('CustomerGroup');
 
-            self::$_customerGroups[$id] = $mapper->find($id);
+            self::$customerGroups[$id] = $mapper->find($id);
         }
 
-        return self::$_customerGroups[$id];
+        return self::$customerGroups[$id];
     }
 
     /**
@@ -39,25 +40,25 @@ final class CustomerGroup
      */
     public static function getByKey($key, $useCache = true)
     {
-        if (is_null(self::$_customerGroups)) {
-            self::$_customerGroups = [];
+        if (\is_null(self::$customerGroups)) {
+            self::$customerGroups = [];
         }
 
         if ($useCache) {
-            foreach (self::$_customerGroups as $customerGroup) {
+            foreach (self::$customerGroups as $customerGroup) {
                 if ($customerGroup->getKey() === $key) {
                     return $customerGroup;
                 }
             }
         }
 
-        $mapper = Mmc::getMapper('CustomerGroup');
+        $mapper        = Mmc::getMapper('CustomerGroup');
         $customerGroup = $mapper->findOneBy(array(
             'key' => $key
         ));
 
         if ($customerGroup) {
-            self::$_customerGroups[$customerGroup->getId()] = $customerGroup;
+            self::$customerGroups[$customerGroup->getId()] = $customerGroup;
         }
 
         return $customerGroup;
@@ -66,7 +67,7 @@ final class CustomerGroup
     private function __construct()
     {
     }
-    
+
     private function __clone()
     {
     }

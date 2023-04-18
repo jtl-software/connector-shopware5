@@ -1,8 +1,10 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
  */
+
 namespace jtl\Connector\Shopware\Mapper;
 
 use jtl\Connector\Model\Manufacturer as ManufacturerModel;
@@ -18,9 +20,9 @@ class Manufacturer extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Supplier', $id);
+        return (\intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Article\Supplier', $id);
     }
-    
+
     public function findOneBy(array $kv)
     {
         return $this->Manager()->getRepository('Shopware\Models\Article\Supplier')->findOneBy($kv);
@@ -29,11 +31,12 @@ class Manufacturer extends DataMapper
     public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
-                'supplier',
-                'attribute'
-            )
+            'supplier',
+            'attribute'
+        )
             //->from('Shopware\Models\Article\Supplier', 'supplier')
-            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link', \Doctrine\ORM\Query\Expr\Join::WITH, 'supplier.id = link.endpointId AND link.type = 41')
+            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link',
+            // \Doctrine\ORM\Query\Expr\Join::WITH, 'supplier.id = link.endpointId AND link.type = 41')
             ->from('jtl\Connector\Shopware\Model\Linker\Manufacturer', 'supplier')
             ->leftJoin('supplier.linker', 'linker')
             ->leftJoin('supplier.attribute', 'attribute')
@@ -51,17 +54,17 @@ class Manufacturer extends DataMapper
             return $paginator->count();
         }
 
-        $manufacturers = iterator_to_array($paginator);
+        $manufacturers = \iterator_to_array($paginator);
 
         $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findAll(null, null);
+        $shops      = $shopMapper->findAll(null, null);
 
         $translationService = ShopUtil::translationService();
-        for ($i = 0; $i < count($manufacturers); $i++) {
+        for ($i = 0; $i < \count($manufacturers); $i++) {
             foreach ($shops as $shop) {
                 $translation = $translationService->read($shop['id'], 'supplier', $manufacturers[$i]['id']);
                 if (!empty($translation)) {
-                    $translation['shopId'] = $shop['id'];
+                    $translation['shopId']                                        = $shop['id'];
                     $manufacturers[$i]['translations'][$shop['locale']['locale']] = $translation;
                 }
             }
@@ -77,7 +80,7 @@ class Manufacturer extends DataMapper
 
     public function deleteSuperfluous()
     {
-        return Shopware()->Db()->query('DELETE s
+        return \Shopware()->Db()->query('DELETE s
                                         FROM s_articles_supplier s
                                         LEFT JOIN s_articles a ON a.supplierID = s.id
                                         WHERE a.id IS NULL');
@@ -85,7 +88,7 @@ class Manufacturer extends DataMapper
 
     public function delete(ManufacturerModel $manufacturer)
     {
-        $result = new ManufacturerModel;
+        $result = new ManufacturerModel();
 
         $this->deleteManufacturerData($manufacturer);
 
@@ -98,7 +101,7 @@ class Manufacturer extends DataMapper
     public function save(ManufacturerModel $manufacturer)
     {
         $manufacturerSW = null;
-        $result = new ManufacturerModel;
+        $result         = new ManufacturerModel();
 
         $this->prepareManufacturerAssociatedData($manufacturer, $manufacturerSW);
         $this->prepareI18nAssociatedData($manufacturer, $manufacturerSW);
@@ -123,14 +126,13 @@ class Manufacturer extends DataMapper
     {
         foreach ($manufacturer->getI18ns() as $i18n) {
             if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) !== false) {
-
-                $iso = $i18n->getLanguageISO();
-                $locale = LanguageUtil::map(null, null, $iso);
+                $iso      = $i18n->getLanguageISO();
+                $locale   = LanguageUtil::map(null, null, $iso);
                 $language = LocaleUtil::extractLanguageIsoFromLocale($locale);
 
                 $translationService = ShopUtil::translationService();
-                $shopMapper = Mmc::getMapper('Shop');
-                $shops = $shopMapper->findByLanguageIso($language);
+                $shopMapper         = Mmc::getMapper('Shop');
+                $shops              = $shopMapper->findByLanguageIso($language);
 
                 foreach ($shops as $shop) {
                     $translationService->delete($shop->getId(), 'supplier', $manufacturerSW->getId());
@@ -157,7 +159,9 @@ class Manufacturer extends DataMapper
 
     protected function deleteManufacturerData(ManufacturerModel $manufacturer)
     {
-        $manufacturerId = (strlen($manufacturer->getId()->getEndpoint()) > 0) ? (int) $manufacturer->getId()->getEndpoint() : null;
+        $manufacturerId = (\strlen($manufacturer->getId()->getEndpoint()) > 0)
+            ? (int) $manufacturer->getId()->getEndpoint()
+            : null;
 
         if ($manufacturerId !== null && $manufacturerId > 0) {
             $manufacturerSW = $this->find((int) $manufacturerId);
@@ -170,16 +174,20 @@ class Manufacturer extends DataMapper
         }
     }
 
-    protected function prepareManufacturerAssociatedData(ManufacturerModel &$manufacturer, ManufacturerSW &$manufacturerSW = null)
-    {
-        $manufacturerId = (strlen($manufacturer->getId()->getEndpoint()) > 0) ? (int)$manufacturer->getId()->getEndpoint() : null;
+    protected function prepareManufacturerAssociatedData(
+        ManufacturerModel &$manufacturer,
+        ManufacturerSW &$manufacturerSW = null
+    ) {
+        $manufacturerId = (\strlen($manufacturer->getId()->getEndpoint()) > 0)
+            ? (int)$manufacturer->getId()->getEndpoint()
+            : null;
 
         if ($manufacturerId !== null && $manufacturerId > 0) {
             $manufacturerSW = $this->find($manufacturerId);
         }
 
         if ($manufacturerSW === null) {
-            $manufacturerSW = new ManufacturerSW;
+            $manufacturerSW = new ManufacturerSW();
         }
 
         $manufacturerSW->setName($manufacturer->getName())

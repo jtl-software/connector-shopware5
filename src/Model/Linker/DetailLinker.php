@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -21,20 +22,21 @@ class DetailLinker
     /**
      * @var integer
      *
-     * @ORM\Column(name="host_id", type="integer", nullable=false)     
+     * @ORM\Column(name="host_id", type="integer", nullable=false)
      */
     protected $hostId;
-
-    /**
+/**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\Detail", inversedBy="linker")
-     * @ORM\JoinTable(name="s_articles_details", 
-     *     joinColumns={@ORM\JoinColumn(name="product_id", referencedColumnName="articleId"),@ORM\JoinColumn(name="detail_id", referencedColumnName="id")}
+     * @ORM\JoinTable(name="s_articles_details",
+     *     joinColumns={
+     *      @ORM\JoinColumn(name="product_id", referencedColumnName="articleId"),
+     *      @ORM\JoinColumn(name="detail_id", referencedColumnName="id")
+     *     }
      * )
      * @ORM\Id
      */
     protected $detail;
-
-    /**
+/**
      * Gets the value of detail.
      *
      * @return string
@@ -54,7 +56,6 @@ class DetailLinker
     public function setDetail(Detail $detail)
     {
         $this->detail = $detail;
-
         return $this;
     }
 
@@ -78,7 +79,6 @@ class DetailLinker
     public function setHostId($hostId)
     {
         $this->hostId = $hostId;
-
         return $this;
     }
 }

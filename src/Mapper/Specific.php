@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -21,7 +22,9 @@ class Specific extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Property\Option')->find($id);
+        return (\intval($id) == 0)
+            ? null
+            : $this->Manager()->getRepository('Shopware\Models\Property\Option')->find($id);
     }
 
     public function findOneBy(array $kv)
@@ -31,7 +34,9 @@ class Specific extends DataMapper
 
     public function findValue($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Property\Value')->find($id);
+        return (\intval($id) == 0)
+            ? null
+            : $this->Manager()->getRepository('Shopware\Models\Property\Value')->find($id);
     }
 
     public function findValueBy(array $kv)
@@ -42,11 +47,12 @@ class Specific extends DataMapper
     public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
-                'option',
-                'values'
-            )
+            'option',
+            'values'
+        )
             //->from('Shopware\Models\Property\Option', 'option')
-            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link', \Doctrine\ORM\Query\Expr\Join::WITH, 'option.id = link.endpointId AND link.type = 77')
+            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link',
+            // \Doctrine\ORM\Query\Expr\Join::WITH, 'option.id = link.endpointId AND link.type = 77')
             ->from('jtl\Connector\Shopware\Model\Linker\Specific', 'option')
             ->leftJoin('option.linker', 'linker')
             ->leftJoin('option.values', 'values')
@@ -64,28 +70,38 @@ class Specific extends DataMapper
             //return count($options);
             return $paginator->count();
         } else {
-            $options = iterator_to_array($paginator);
+            $options = \iterator_to_array($paginator);
 
             $shopMapper = Mmc::getMapper('Shop');
-            $shops = $shopMapper->findAll(null, null);
+            $shops      = $shopMapper->findAll(null, null);
 
             $translationService = ShopUtil::translationService();
-            for ($i = 0; $i < count($options); $i++) {
+            for ($i = 0; $i < \count($options); $i++) {
                 foreach ($shops as $shop) {
-                    $translationOption = $translationService->read($shop['locale']['id'], 'propertyoption', $options[$i]['id']);
+                    $translationOption = $translationService->read(
+                        $shop['locale']['id'],
+                        'propertyoption',
+                        $options[$i]['id']
+                    );
                     if (!empty($translationOption)) {
-                        $translationOption['shopId'] = $shop['id'];
-                        $translationOption['name'] = $translationOption['optionName'];
+                        $translationOption['shopId']                            = $shop['id'];
+                        $translationOption['name']                              = $translationOption['optionName'];
                         $options[$i]['translations'][$shop['locale']['locale']] = $translationOption;
                     }
 
-                    for ($j = 0; $j < count($options[$i]['values']); $j++) {
+                    for ($j = 0; $j < \count($options[$i]['values']); $j++) {
                         foreach ($shops as $shop) {
-                            $translationValue = $translationService->read($shop['locale']['id'], 'propertyvalue', $options[$i]['values'][$j]['id']);
+                            $translationValue = $translationService->read(
+                                $shop['locale']['id'],
+                                'propertyvalue',
+                                $options[$i]['values'][$j]['id']
+                            );
                             if (!empty($translationValue)) {
                                 $translationValue['shopId'] = $shop['id'];
-                                $translationValue['name'] = $translationValue['optionValue'];
-                                $options[$i]['values'][$j]['translations'][$shop['locale']['locale']] = $translationValue;
+                                $translationValue['name']   = $translationValue['optionValue'];
+
+                                $options[$i]['values'][$j]['translations'][$shop['locale']['locale']] =
+                                    $translationValue;
                             }
                         }
                     }
@@ -103,7 +119,7 @@ class Specific extends DataMapper
 
     public function delete(SpecificModel $specific)
     {
-        $result = new SpecificModel;
+        $result = new SpecificModel();
 
         $this->deleteSpecificData($specific);
 
@@ -116,27 +132,28 @@ class Specific extends DataMapper
     public function save(SpecificModel $specific)
     {
         $optionSW = null;
-        $result = $specific;
+        $result   = $specific;
 
         $this->prepareSpecificAssociatedData($specific, $optionSW);
         $this->prepareI18nAssociatedData($specific, $optionSW);
-		$this->prepareValueAssociatedData($specific, $optionSW);
+        $this->prepareValueAssociatedData($specific, $optionSW);
 
         // Save
-		$this->Manager()->persist($optionSW);
-		$this->Manager()->flush();
+        $this->Manager()->persist($optionSW);
+        $this->Manager()->flush();
 
         $this->deleteTranslationData($optionSW);
         $this->saveTranslationData($specific, $optionSW);
-		
+
         // Result
         foreach ($optionSW->getValues() as $valueSW) {
             $values = $result->getValues();
             foreach ($values as &$value) {
                 foreach ($value->getI18ns() as $valueI18n) {
-                    if (ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO())
-                        && $valueI18n->getValue() === $valueSW->getValue()) {
-
+                    if (
+                        ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO())
+                        && $valueI18n->getValue() === $valueSW->getValue()
+                    ) {
                         $value->getId()->setEndpoint($valueSW->getId());
                     }
                 }
@@ -150,7 +167,7 @@ class Specific extends DataMapper
 
     protected function deleteSpecificData(SpecificModel $specific)
     {
-        $specificId = (strlen($specific->getId()->getEndpoint()) > 0) ? (int)$specific->getId()->getEndpoint() : null;
+        $specificId = (\strlen($specific->getId()->getEndpoint()) > 0) ? (int)$specific->getId()->getEndpoint() : null;
 
         if ($specificId !== null && $specificId > 0) {
             $optionSW = $this->find($specificId);
@@ -164,9 +181,9 @@ class Specific extends DataMapper
                 $this->Manager()->remove($optionSW);
 
                 foreach ($optionSW->getGroups() as $groupSW) {
-                    if (count($groupSW->getOptions()) == 1) {
+                    if (\count($groupSW->getOptions()) == 1) {
                         $sql = "UPDATE s_articles SET filtergroupID = null WHERE filtergroupID = ?";
-                        Shopware()->Db()->query($sql, array($groupSW->getId()));
+                        \Shopware()->Db()->query($sql, array($groupSW->getId()));
 
                         $this->Manager()->remove($groupSW);
                     }
@@ -179,7 +196,7 @@ class Specific extends DataMapper
 
     protected function prepareSpecificAssociatedData(SpecificModel $specific, OptionSW &$optionSW = null)
     {
-        $specificId = (strlen($specific->getId()->getEndpoint()) > 0) ? (int)$specific->getId()->getEndpoint() : null;
+        $specificId = (\strlen($specific->getId()->getEndpoint()) > 0) ? (int)$specific->getId()->getEndpoint() : null;
 
         if ($specificId !== null && $specificId > 0) {
             $optionSW = $this->find($specificId);
@@ -200,7 +217,7 @@ class Specific extends DataMapper
         }
 
         if ($optionSW === null) {
-            $optionSW = new OptionSW;
+            $optionSW = new OptionSW();
             $this->Manager()->persist($optionSW);
         }
 
@@ -222,12 +239,12 @@ class Specific extends DataMapper
         // SpecificValues
         $optionSW->getValues()->clear();
         $values = array();
-        $seo = new Seo();
+        $seo    = new Seo();
         foreach ($specific->getValues() as $specificValue) {
             $valueSW = null;
 
-            if (strlen($specificValue->getId()->getEndpoint()) > 0) {
-                $valueSW = $this->findValue(intval($specificValue->getId()->getEndpoint()));
+            if (\strlen($specificValue->getId()->getEndpoint()) > 0) {
+                $valueSW = $this->findValue(\intval($specificValue->getId()->getEndpoint()));
             }
 
             // SpecificValueI18n
@@ -239,16 +256,16 @@ class Specific extends DataMapper
             }
 
             // Check
-            if ($value === null || in_array(strtolower($seo->replaceDiacritics($value)), $values)) {
+            if ($value === null || \in_array(\strtolower($seo->replaceDiacritics($value)), $values)) {
                 continue;
             }
 
-            $values[] = strtolower($seo->replaceDiacritics($value));
+            $values[] = \strtolower($seo->replaceDiacritics($value));
 
             if ($valueSW === null && $optionSW->getId() > 0) {
                 $valueSW = $this->findValueBy(array('option' => $optionSW->getId(), 'value' => $value));
             }
-            
+
             if ($valueSW === null) {
                 $valueSW = new ValueSW($optionSW, $value);
             } else {
@@ -267,17 +284,21 @@ class Specific extends DataMapper
     {
         // SpecificI18n
         $translationService = ShopUtil::translationService();
-        $shopMapper = Mmc::getMapper('Shop');
+        $shopMapper         = Mmc::getMapper('Shop');
         foreach ($specific->getI18ns() as $i18n) {
-            $locales = LocaleUtil::getByKey(LanguageUtil::map(null,null, $i18n->getLanguageISO()));
+            $locales = LocaleUtil::getByKey(LanguageUtil::map(null, null, $i18n->getLanguageISO()));
             foreach ($locales as $locale) {
                 if ($locale === null) {
-                    Logger::write(sprintf('Could not find any locale for (%s)', $i18n->getLanguageISO()), Logger::WARNING, 'database');
+                    Logger::write(
+                        \sprintf('Could not find any locale for (%s)', $i18n->getLanguageISO()),
+                        Logger::WARNING,
+                        'database'
+                    );
                     continue;
                 }
 
                 $language = LocaleUtil::extractLanguageIsoFromLocale($locale->getLocale());
-                $shops = $shopMapper->findByLanguageIso($language);
+                $shops    = $shopMapper->findByLanguageIso($language);
 
                 if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false) {
                     foreach ($shops as $shop) {
@@ -291,7 +312,6 @@ class Specific extends DataMapper
                         );
                     }
                 }
-
             }
         }
 
@@ -299,19 +319,23 @@ class Specific extends DataMapper
             foreach ($specific->getValues() as $value) {
                 $valueId = null;
                 foreach ($value->getI18ns() as $valueI18n) {
-                    if ($valueI18n->getValue() === $valueSW->getValue()
-                        && ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO())) {
-
+                    if (
+                        $valueI18n->getValue() === $valueSW->getValue()
+                        && ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO())
+                    ) {
                         $valueId = $valueSW->getId();
                         continue;
                     }
 
-                    if ($valueId !== null && ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO()) === false) {
-                        $locales = LocaleUtil::getByKey(LanguageUtil::map(null,null, $valueI18n->getLanguageISO()));
+                    if (
+                        $valueId !== null
+                        && ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO()) === false
+                    ) {
+                        $locales = LocaleUtil::getByKey(LanguageUtil::map(null, null, $valueI18n->getLanguageISO()));
                         foreach ($locales as $locale) {
                             if ($locale !== null) {
                                 $language = LocaleUtil::extractLanguageIsoFromLocale($locale->getLocale());
-                                $shops = $shopMapper->findByLanguageIso($language);
+                                $shops    = $shopMapper->findByLanguageIso($language);
 
                                 foreach ($shops as $shop) {
                                     $translationService->write(

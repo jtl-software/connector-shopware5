@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\SpecificValueI18n as SpecificValueI18nModel;
+use jtl\Connector\Model\SpecificValueI18n as SpecificValueI18nModel;
 
 /**
  * SpecificValueI18n Model
@@ -24,7 +25,7 @@ class SpecificValueI18n extends SpecificValueI18nModel
         'metaKeywords' => '',
         'titleTag' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

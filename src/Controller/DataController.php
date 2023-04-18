@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,18 +7,18 @@
 
 namespace jtl\Connector\Shopware\Controller;
 
-use \jtl\Connector\Core\Controller\Controller as CoreController;
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Model\QueryFilter;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Model\Statistic;
-use \jtl\Connector\Core\Utilities\ClassName;
-use \jtl\Connector\Model\DataModel;
-use \jtl\Connector\Core\Model\DataModel as CoreDataModel;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Core\Controller\Controller as CoreController;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Model\Statistic;
+use jtl\Connector\Core\Utilities\ClassName;
+use jtl\Connector\Model\DataModel;
+use jtl\Connector\Core\Model\DataModel as CoreDataModel;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
 
 /**
  * Product Controller
@@ -35,12 +36,12 @@ abstract class DataController extends CoreController
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
-            $class = ClassName::getFromNS(get_called_class());
-            
+            $class = ClassName::getFromNS(\get_called_class());
+
             $statModel = new Statistic();
-            $mapper = Mmc::getMapper($class);
+            $mapper    = Mmc::getMapper($class);
 
             $statModel->setAvailable($mapper->fetchCount());
 
@@ -50,7 +51,7 @@ abstract class DataController extends CoreController
             }
             */
 
-            $statModel->setControllerName(lcfirst($class));
+            $statModel->setControllerName(\lcfirst($class));
 
             //$action->setResult($statModel->getPublic());
             $action->setResult($statModel);
@@ -73,10 +74,10 @@ abstract class DataController extends CoreController
         $action->setHandled(true);
 
         try {
-            $class = ClassName::getFromNS(get_called_class());
+            $class = ClassName::getFromNS(\get_called_class());
 
             $mapper = Mmc::getMapper($class);
-            $res = $mapper->save($model);
+            $res    = $mapper->save($model);
 
             $action->setResult($res);
         } catch (\Exception $exc) {
@@ -85,7 +86,7 @@ abstract class DataController extends CoreController
 
         return $action;
     }
-    
+
     /**
      * Select
      *
@@ -96,12 +97,12 @@ abstract class DataController extends CoreController
     {
         $action = new Action();
         $action->setHandled(true);
-        
+
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit  = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
-            $class = ClassName::getFromNS(get_called_class());
+            $class = ClassName::getFromNS(\get_called_class());
 
             $mapper = Mmc::getMapper($class);
             $models = $mapper->findAll($limit);
@@ -121,7 +122,7 @@ abstract class DataController extends CoreController
 
         return $action;
     }
-    
+
     /**
      * Delete
      *
@@ -134,11 +135,11 @@ abstract class DataController extends CoreController
         $action->setHandled(true);
 
         try {
-            $class = ClassName::getFromNS(get_called_class());
+            $class = ClassName::getFromNS(\get_called_class());
 
             $mapper = Mmc::getMapper($class);
-            $res = $mapper->delete($model);
-            
+            $res    = $mapper->delete($model);
+
             $action->setResult($res);
         } catch (\Exception $exc) {
             $action->setError($this->handleException($exc));
@@ -154,7 +155,7 @@ abstract class DataController extends CoreController
         $err = new Error();
         $err->setCode($e->getCode());
         $err->setMessage($e->getMessage());
-        
+
         return $err;
     }
 
@@ -169,16 +170,18 @@ abstract class DataController extends CoreController
      */
     protected function addPos(DataModel &$model, $setter, $className, $data, $isSeveral = false)
     {
-        if (!is_array($data)) {
+        if (!\is_array($data)) {
             return;
         }
 
-        $callableName = get_class($model) . '::' . $setter;
+        $callableName = \get_class($model) . '::' . $setter;
 
-        if (!is_callable(array($model, $setter), false, $callableName)) {
-            throw new \InvalidArgumentException(sprintf('Method %s in class %s not found', $setter, get_class($model)));
+        if (!\is_callable(array($model, $setter), false, $callableName)) {
+            throw new \InvalidArgumentException(
+                \sprintf('Method %s in class %s not found', $setter, \get_class($model))
+            );
         }
-            
+
         if ($isSeveral) {
             foreach ($data as $swArr) {
                 $subModel = Mmc::getModel($className);

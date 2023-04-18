@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductMediaFileI18n as ProductMediaFileI18nModel;
+use jtl\Connector\Model\ProductMediaFileI18n as ProductMediaFileI18nModel;
 
 /**
  * ProductMediaFileI18n Model
@@ -20,7 +21,7 @@ class ProductMediaFileI18n extends ProductMediaFileI18nModel
         'name' => '',
         'description' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

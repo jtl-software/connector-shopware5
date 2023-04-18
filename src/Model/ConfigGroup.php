@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ConfigGroup as ConfigGroupModel;
+use jtl\Connector\Model\ConfigGroup as ConfigGroupModel;
 
 /**
  * ConfigGroup Model
@@ -23,7 +24,7 @@ class ConfigGroup extends ConfigGroupModel
         'sort' => '',
         'comment' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

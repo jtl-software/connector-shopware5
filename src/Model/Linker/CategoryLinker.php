@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -24,15 +25,13 @@ class CategoryLinker
      * @ORM\Column(name="host_id", type="integer", nullable=false)
      */
     protected $hostId;
-
-    /**
+/**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\Category", inversedBy="linker")
      * @ORM\JoinColumn(name="category_id", referencedColumnName="id")
      * @ORM\Id
      */
     protected $category;
-
-    /**
+/**
      * Gets the value of category.
      *
      * @return string
@@ -52,7 +51,6 @@ class CategoryLinker
     public function setCategory(Category $category)
     {
         $this->category = $category;
-
         return $this;
     }
 
@@ -76,7 +74,6 @@ class CategoryLinker
     public function setHostId($hostId)
     {
         $this->hostId = $hostId;
-
         return $this;
     }
 }

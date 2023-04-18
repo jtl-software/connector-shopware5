@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,38 +7,41 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Core\Logger\Logger;
-use \Shopware\Components\Api\Exception as ApiException;
-use \jtl\Connector\Model\Unit as UnitModel;
-use \jtl\Connector\Shopware\Model\Linker\Unit as UnitSW;
-use \jtl\Connector\Shopware\Model\Linker\UnitI18n as UnitI18nSW;
-use \jtl\Connector\Model\Identity;
-use \Doctrine\Common\Collections\ArrayCollection;
+use jtl\Connector\Core\Logger\Logger;
+use Shopware\Components\Api\Exception as ApiException;
+use jtl\Connector\Model\Unit as UnitModel;
+use jtl\Connector\Shopware\Model\Linker\Unit as UnitSW;
+use jtl\Connector\Shopware\Model\Linker\UnitI18n as UnitI18nSW;
+use jtl\Connector\Model\Identity;
+use Doctrine\Common\Collections\ArrayCollection;
 
 class Unit extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\Unit')->find($id);
+        return (\intval($id) == 0)
+            ? null
+            : $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\Unit')->find($id);
     }
 
     public function findI18n($unitId, $languageIso)
     {
-        return $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\UnitI18n')->findOneBy(array('unit_id' => $unitId, 'languageIso' => $languageIso));
+        return $this->Manager()->getRepository('jtl\Connector\Shopware\Model\Linker\UnitI18n')
+            ->findOneBy(array('unit_id' => $unitId, 'languageIso' => $languageIso));
     }
-    
+
     public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
-                'unit'
-            )
+            'unit'
+        )
             ->from('jtl\Connector\Shopware\Model\Linker\Unit', 'unit')
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
-        return $count ? $paginator->count() : iterator_to_array($paginator);
+        return $count ? $paginator->count() : \iterator_to_array($paginator);
     }
 
     public function findOneBy(array $kv)
@@ -52,7 +56,7 @@ class Unit extends DataMapper
 
     public function delete(UnitModel $unit)
     {
-        $result = new UnitModel;
+        $result = new UnitModel();
 
         $this->deleteUnitData($unit);
 
@@ -65,7 +69,7 @@ class Unit extends DataMapper
     public function save(UnitModel $unit)
     {
         $unitSW = null;
-        $result = new UnitModel;
+        $result = new UnitModel();
 
         $this->prepareUnitAssociatedData($unit, $unitSW);
         $this->prepareUnitI18nAssociatedData($unit, $unitSW);
@@ -99,7 +103,7 @@ class Unit extends DataMapper
         $unitSW = $this->findOneBy(array('hostId' => $unit->getId()->getHost()));
 
         if ($unitSW === null) {
-            $unitSW = new UnitSW;
+            $unitSW = new UnitSW();
             $unitSW->setHostId($unit->getId()->getHost());
             $this->Manager()->persist($unitSW);
         }

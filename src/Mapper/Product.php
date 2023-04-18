@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -34,7 +35,7 @@ use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use Shopware\Models\Attribute\Article;
-use \Shopware\Models\Price\Group as SwGroup;
+use Shopware\Models\Price\Group as SwGroup;
 use Shopware\Models\Plugin\Plugin;
 use Shopware\Models\Property\Group;
 use Shopware\Models\Property\Option;
@@ -47,9 +48,9 @@ use SwagCustomProducts\Models\Template;
 class Product extends DataMapper
 {
     public const
-        KIND_VALUE_PARENT = 3,
+        KIND_VALUE_PARENT  = 3,
         KIND_VALUE_DEFAULT = 2,
-        KIND_VALUE_MAIN = 1;
+        KIND_VALUE_MAIN    = 1;
 
     public const
         ATTRIBUTE_ARTICLE_SEARCH_KEYWORDS = 'jtl_search_keywords';
@@ -69,7 +70,7 @@ class Product extends DataMapper
      */
     public function getRepository()
     {
-        return Shopware()->Models()->getRepository('Shopware\Models\Article\Article');
+        return \Shopware()->Models()->getRepository('Shopware\Models\Article\Article');
     }
 
     /**
@@ -81,7 +82,7 @@ class Product extends DataMapper
      */
     public function find($id)
     {
-        return (intval($id) == 0) ? null : ShopUtil::entityManager()->find('Shopware\Models\Article\Article', $id);
+        return (\intval($id) == 0) ? null : ShopUtil::entityManager()->find('Shopware\Models\Article\Article', $id);
     }
 
     /**
@@ -93,7 +94,7 @@ class Product extends DataMapper
      */
     public function findDetail($id)
     {
-        return (intval($id) == 0) ? null : ShopUtil::entityManager()->find('Shopware\Models\Article\Detail', $id);
+        return (\intval($id) == 0) ? null : ShopUtil::entityManager()->find('Shopware\Models\Article\Detail', $id);
     }
 
     /**
@@ -151,7 +152,8 @@ class Product extends DataMapper
             ->leftJoin('article.mainDetail', 'maindetail')
             ->leftJoin('maindetail.prices', 'prices')
             ->leftJoin('article.links', 'links')
-            //->leftJoin('article.attribute', 'attribute', \Doctrine\ORM\Query\Expr\Join::WITH, 'attribute.articleDetailId = detail.id')
+            //->leftJoin('article.attribute', 'attribute',
+            // \Doctrine\ORM\Query\Expr\Join::WITH, 'attribute.articleDetailId = detail.id')
             ->leftJoin('detail.attribute', 'attribute')
             ->leftJoin('article.downloads', 'downloads')
             ->leftJoin('article.supplier', 'supplier')
@@ -168,17 +170,24 @@ class Product extends DataMapper
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
-        $products = iterator_to_array($paginator);
+        $products = \iterator_to_array($paginator);
 
         $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findAll(null, null);
+        $shops      = $shopMapper->findAll(null, null);
 
         $translationService = ShopUtil::translationService();
-        for ($i = 0; $i < count($products); $i++) {
+        for ($i = 0; $i < \count($products); $i++) {
             foreach ($shops as $shop) {
                 $translation = $translationService->read($shop['id'], 'article', $products[$i]['articleId']);
                 if ($this->isDetailData($products[$i]) && $products[$i]['kind'] === self::KIND_VALUE_DEFAULT) {
-                    $translation = array_merge($translation, $translationService->read($shop['id'], 'variant', $products[$i]['id']));
+                    $translation = \array_merge(
+                        $translation,
+                        $translationService->read(
+                            $shop['id'],
+                            'variant',
+                            $products[$i]['id']
+                        )
+                    );
                 }
 
                 if (!empty($translation)) {
@@ -198,7 +207,7 @@ class Product extends DataMapper
      */
     public function fetchCount()
     {
-        return (int)Shopware()->Db()->fetchOne(
+        return (int)\Shopware()->Db()->fetchOne(
             'SELECT count(*)
                 FROM s_articles_details d
                 LEFT JOIN jtl_connector_link_detail l ON l.product_id = d.articleID
@@ -213,7 +222,7 @@ class Product extends DataMapper
      */
     public function fetchDetailCount($productId)
     {
-        return Shopware()->Db()->fetchOne(
+        return \Shopware()->Db()->fetchOne(
             'SELECT count(*) FROM s_articles_details WHERE articleID = ?',
             array($productId)
         );
@@ -221,7 +230,7 @@ class Product extends DataMapper
 
     public function deleteDetail($detailId)
     {
-        return Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailId));
+        return \Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailId));
     }
 
     /**
@@ -230,7 +239,7 @@ class Product extends DataMapper
      */
     public function getParentDetailId($productId)
     {
-        return (int)Shopware()->Db()->fetchOne(
+        return (int)\Shopware()->Db()->fetchOne(
             'SELECT id FROM s_articles_details WHERE articleID = ? AND kind = ' . self::KIND_VALUE_PARENT,
             array($productId)
         );
@@ -256,7 +265,7 @@ class Product extends DataMapper
         /** @var SwDetail $detailSW */
         $detailSW = null;
         //$result = new ProductModel();
-        $result = $product;
+        $result       = $product;
         $attrMappings = [];
 
         /*
@@ -273,7 +282,8 @@ class Product extends DataMapper
         try {
             if ($this->isChild($product)) {
                 if (isset(self::$masterProductIds[$product->getMasterProductId()->getHost()])) {
-                    $product->getMasterProductId()->setEndpoint(self::$masterProductIds[$product->getMasterProductId()->getHost()]);
+                    $product->getMasterProductId()
+                        ->setEndpoint(self::$masterProductIds[$product->getMasterProductId()->getHost()]);
                 }
 
                 $this->prepareChildAssociatedData($product, $productSW, $detailSW);
@@ -284,17 +294,20 @@ class Product extends DataMapper
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
 
                 // First Child
-                if (is_null($productSW->getMainDetail()) || $productSW->getMainDetail()->getKind() === self::KIND_VALUE_PARENT) {
+                if (
+                    \is_null($productSW->getMainDetail())
+                    || $productSW->getMainDetail()->getKind() === self::KIND_VALUE_PARENT
+                ) {
                     $productSW->setMainDetail($detailSW);
                 }
 
                 $this->prepareDetailVariationAssociatedData($product, $detailSW);
 
-                $autoMainDetailSelection = (bool)Application()->getConfig()->get('product.push.article_detail_preselection', false);
+                $autoMainDetailSelection = (bool)\Application()->getConfig()
+                    ->get('product.push.article_detail_preselection', false);
                 if ($autoMainDetailSelection && !$this->isSuitableForMainDetail($productSW->getMainDetail())) {
                     $this->selectSuitableMainDetail($productSW);
                 }
-
             } else {
                 $this->prepareProductAssociatedData($product, $productSW, $detailSW);
                 $this->prepareCategoryAssociatedData($product, $productSW);
@@ -312,7 +325,7 @@ class Product extends DataMapper
                 $this->prepareMeasurementUnitAssociatedData($product, $detailSW);
                 $this->prepareMediaFileAssociatedData($product, $productSW);
 
-                if (is_null($detailSW->getId())) {
+                if (\is_null($detailSW->getId())) {
                     $kind = $detailSW->getKind();
                     $productSW->setMainDetail($detailSW);
                     $detailSW->setKind($kind);
@@ -320,7 +333,9 @@ class Product extends DataMapper
                 }
 
                 if ($this->isParent($product) && $productSW !== null) {
-                    self::$masterProductIds[$product->getId()->getHost()] = IdConcatenator::link(array($productSW->getMainDetail()->getId(), $productSW->getId()));
+                    self::$masterProductIds[$product->getId()->getHost()] = IdConcatenator::link(
+                        array($productSW->getMainDetail()->getId(), $productSW->getId())
+                    );
                 }
             }
 
@@ -342,9 +357,16 @@ class Product extends DataMapper
             }
 
             $this->saveTranslations($product, $productSW, $detailSW, $attrMappings);
-
         } catch (\Exception $e) {
-            Logger::write(sprintf('Exception from Product (%s, %s)', $product->getId()->getEndpoint(), $product->getId()->getHost()), Logger::ERROR, 'database');
+            Logger::write(
+                \sprintf(
+                    'Exception from Product (%s, %s)',
+                    $product->getId()->getEndpoint(),
+                    $product->getId()->getHost()
+                ),
+                Logger::ERROR,
+                'database'
+            );
             Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
         }
 
@@ -353,7 +375,13 @@ class Product extends DataMapper
         $result->setId(new Identity('', $product->getId()->getHost()))
             ->setChecksums($product->getChecksums());
         if ($detailSW !== null && $productSW !== null && (int)$detailSW->getId() > 0 && (int)$productSW->getId() > 0) {
-            $result->setId(new Identity(IdConcatenator::link(array($detailSW->getId(), $productSW->getId())), $product->getId()->getHost()))
+            $result->setId(
+                new Identity(
+                    IdConcatenator::link(array($detailSW->getId(),
+                        $productSW->getId())),
+                    $product->getId()->getHost()
+                )
+            )
                 ->setChecksums($product->getChecksums());
         }
 
@@ -366,7 +394,9 @@ class Product extends DataMapper
      */
     protected function isSuitableForMainDetail(SwDetail $detail)
     {
-        $lastStock = (bool)(method_exists($detail, 'getLastStock') ? $detail->getLastStock() : $detail->getArticle()->getLastStock());
+        $lastStock = (bool)(\method_exists($detail, 'getLastStock')
+            ? $detail->getLastStock()
+            : $detail->getArticle()->getLastStock());
         return $detail->getKind() !== self::KIND_VALUE_PARENT && ($detail->getInStock() > 0 || !$lastStock);
     }
 
@@ -432,22 +462,27 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareChildAssociatedData(JtlProduct &$product, SwArticle &$productSW = null, SwDetail &$detailSW = null)
-    {
-        $productId = (strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
-        $masterProductId = (strlen($product->getMasterProductId()->getEndpoint()) > 0) ? $product->getMasterProductId()->getEndpoint() : null;
+    protected function prepareChildAssociatedData(
+        JtlProduct &$product,
+        SwArticle &$productSW = null,
+        SwDetail &$detailSW = null
+    ) {
+        $productId       = (\strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
+        $masterProductId = (\strlen($product->getMasterProductId()->getEndpoint()) > 0)
+            ? $product->getMasterProductId()->getEndpoint()
+            : null;
 
-        if (is_null($masterProductId)) {
+        if (\is_null($masterProductId)) {
             throw new \Exception('Master product id is empty');
         }
 
         list($detailId, $id) = IdConcatenator::unlink($masterProductId);
-        $productSW = $this->find($id);
-        if (is_null($productSW)) {
-            throw new \Exception(sprintf('Cannot find parent product with id (%s)', $masterProductId));
+        $productSW           = $this->find($id);
+        if (\is_null($productSW)) {
+            throw new \Exception(\sprintf('Cannot find parent product with id (%s)', $masterProductId));
         }
 
-        if (!is_null($productId)) {
+        if (!\is_null($productId)) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
 
             /** @var SwDetail $detail */
@@ -459,20 +494,24 @@ class Product extends DataMapper
             }
         }
 
-        if (is_null($detailSW) && strlen($product->getSku()) > 0) {
-            $detailSW = Shopware()->Models()->getRepository('Shopware\Models\Article\Detail')->findOneBy(array('number' => $product->getSku()));
+        if (\is_null($detailSW) && \strlen($product->getSku()) > 0) {
+            $detailSW = \Shopware()->Models()->getRepository('Shopware\Models\Article\Detail')
+                ->findOneBy(array('number' => $product->getSku()));
         }
     }
 
-    protected function prepareProductAssociatedData(JtlProduct $product, SwArticle &$productSW = null, SwDetail &$detailSW = null)
-    {
-        $productId = (strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
+    protected function prepareProductAssociatedData(
+        JtlProduct $product,
+        SwArticle &$productSW = null,
+        SwDetail &$detailSW = null
+    ) {
+        $productId = (\strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
         if ($productId !== null) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
 
             $productSW = $this->find((int)$id);
             if ($productSW === null) {
-                throw new \Exception(sprintf('Article with id (%s) not found', $productId));
+                throw new \Exception(\sprintf('Article with id (%s) not found', $productId));
             }
 
             /** @var SwDetail $detail */
@@ -484,10 +523,11 @@ class Product extends DataMapper
             }
 
             if ($detailSW === null) {
-                throw new \Exception(sprintf('Detail (%s) from article (%s) not found', $detailId, $id));
+                throw new \Exception(\sprintf('Detail (%s) from article (%s) not found', $detailId, $id));
             }
-        } elseif (strlen($product->getSku()) > 0) {
-            $detailSW = Shopware()->Models()->getRepository('Shopware\Models\Article\Detail')->findOneBy(array('number' => $product->getSku()));
+        } elseif (\strlen($product->getSku()) > 0) {
+            $detailSW = \Shopware()->Models()->getRepository('Shopware\Models\Article\Detail')
+                ->findOneBy(array('number' => $product->getSku()));
             if ($detailSW) {
                 $productSW = $detailSW->getArticle();
             }
@@ -496,16 +536,16 @@ class Product extends DataMapper
         $isNew = false;
         if ($productSW === null) {
             $productSW = new SwArticle();
-            $isNew = true;
+            $isNew     = true;
         }
 
         $productSW->setAdded($product->getCreationDate())
             ->setAvailableFrom($product->getAvailableFrom())
-            ->setHighlight(intval($product->getIsTopProduct()))
+            ->setHighlight(\intval($product->getIsTopProduct()))
             ->setActive($product->getIsActive());
 
         // new in stock
-        if ($product->getisNewProduct() && !is_null($product->getNewReleaseDate())) {
+        if ($product->getisNewProduct() && !\is_null($product->getNewReleaseDate())) {
             $productSW->setAdded($product->getNewReleaseDate());
         }
 
@@ -515,7 +555,7 @@ class Product extends DataMapper
             $inStock = $product->getPermitNegativeStock() ? 0 : 1;
         }
 
-        if (is_callable([$productSW, 'setLastStock'])) {
+        if (\is_callable([$productSW, 'setLastStock'])) {
             $productSW->setLastStock($inStock);
         }
 
@@ -540,22 +580,28 @@ class Product extends DataMapper
 
     protected function prepareCategoryAssociatedData(JtlProduct $product, SwArticle &$productSW)
     {
-        $collection = new ArrayCollection();
+        $collection     = new ArrayCollection();
         $categoryMapper = Mmc::getMapper('Category');
         /** @deprecated Will be removed in a future connector release  $mappingOld */
-        $mappingOld = Application()->getConfig()->get('category_mapping', false);
-        $useMapping = Application()->getConfig()->get('category.mapping', $mappingOld);
+        $mappingOld = \Application()->getConfig()->get('category_mapping', false);
+        $useMapping = \Application()->getConfig()->get('category.mapping', $mappingOld);
         foreach ($product->getCategories() as $category) {
-            if (strlen($category->getCategoryId()->getEndpoint()) > 0) {
-                $categorySW = $categoryMapper->find(intval($category->getCategoryId()->getEndpoint()));
+            if (\strlen($category->getCategoryId()->getEndpoint()) > 0) {
+                $categorySW = $categoryMapper->find(\intval($category->getCategoryId()->getEndpoint()));
                 if ($categorySW) {
                     $collection->add($categorySW);
 
                     // Category Mapping
                     if ($useMapping) {
                         foreach ($product->getI18ns() as $i18n) {
-                            if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false && strlen($i18n->getName()) > 0) {
-                                $categoryMapping = CategoryMappingUtil::findCategoryMappingByParent($categorySW->getId(), $i18n->getLanguageISO());
+                            if (
+                                ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false
+                                && \strlen($i18n->getName()) > 0
+                            ) {
+                                $categoryMapping = CategoryMappingUtil::findCategoryMappingByParent(
+                                    $categorySW->getId(),
+                                    $i18n->getLanguageISO()
+                                );
                                 if ($categoryMapping !== null) {
                                     $collection->add($categoryMapping);
                                 }
@@ -574,9 +620,9 @@ class Product extends DataMapper
         // Invisibility
         $collection = new ArrayCollection();
         foreach ($product->getInvisibilities() as $invisibility) {
-            $customerGroupSW = CustomerGroupUtil::get(intval($invisibility->getCustomerGroupId()->getEndpoint()));
+            $customerGroupSW = CustomerGroupUtil::get(\intval($invisibility->getCustomerGroupId()->getEndpoint()));
             if ($customerGroupSW === null) {
-                $customerGroupSW = CustomerGroupUtil::get(Shopware()->Shop()->getCustomerGroup()->getId());
+                $customerGroupSW = CustomerGroupUtil::get(\Shopware()->Shop()->getCustomerGroup()->getId());
             }
 
             if ($customerGroupSW) {
@@ -594,12 +640,12 @@ class Product extends DataMapper
      */
     protected function prepareTaxAssociatedData(JtlProduct $jtlProduct, SwArticle $swProduct)
     {
-        $taxRepository = Shopware()->Models()->getRepository(Tax::class);
-        if (!is_null($jtlProduct->getTaxClassId()) && !empty($taxId = $jtlProduct->getTaxClassId()->getEndpoint())) {
+        $taxRepository = \Shopware()->Models()->getRepository(Tax::class);
+        if (!\is_null($jtlProduct->getTaxClassId()) && !empty($taxId = $jtlProduct->getTaxClassId()->getEndpoint())) {
             $swTax = $taxRepository->findOneBy(['id' => $taxId]);
         } else {
             $swTax = $taxRepository->findOneBy(['tax' => $jtlProduct->getVat()]);
-            if (count($jtlProduct->getTaxRates()) > 0 && !is_null($jtlProduct->getTaxClassId())) {
+            if (\count($jtlProduct->getTaxRates()) > 0 && !\is_null($jtlProduct->getTaxClassId())) {
                 $swTax = $this->findSwTaxByJtlTaxRates($jtlProduct->getVat(), ...$jtlProduct->getTaxRates()) ?? $swTax;
                 if ($swTax instanceof Tax) {
                     //$product->getTaxClassId()->setEndpoint((string)$swTax->getId());
@@ -611,7 +657,13 @@ class Product extends DataMapper
             throw new DatabaseException('Could not find any matching Tax entity');
         }
 
-        $logMessage = sprintf('SKU = %s | Tax (%d) [name = "%s", default rate = %f] selected', $jtlProduct->getSku(), $swTax->getId(), $swTax->getName(), $swTax->getTax());
+        $logMessage = \sprintf(
+            'SKU = %s | Tax (%d) [name = "%s", default rate = %f] selected',
+            $jtlProduct->getSku(),
+            $swTax->getId(),
+            $swTax->getName(),
+            $swTax->getTax()
+        );
         Logger::write($logMessage, Logger::DEBUG);
 
         $swProduct->setTax($swTax);
@@ -624,36 +676,42 @@ class Product extends DataMapper
      */
     protected function findSwTaxByJtlTaxRates(float $vat, TaxRate ...$jtlTaxRates): ?Tax
     {
-        $swTax = null;
-        $taxRepository = Shopware()->Models()->getRepository(Tax::class);
+        $swTax         = null;
+        $taxRepository = \Shopware()->Models()->getRepository(Tax::class);
         /** @var Tax[] $swTaxGroups */
         $swTaxGroups = [];
         foreach ($taxRepository->findBy(['tax' => $vat]) as $swTaxGroup) {
             $swTaxGroups[$swTaxGroup->getId()] = $swTaxGroup;
         }
 
-        switch (count($swTaxGroups)) {
+        switch (\count($swTaxGroups)) {
             case 0:
                 $swTax = null;
                 break;
             case 1:
-                $swTax = reset($swTaxGroups);
+                $swTax = \reset($swTaxGroups);
                 break;
             default:
                 $commonTaxRates = [];
                 foreach ($swTaxGroups as $swTaxGroup) {
-                    $swCountryRelatedTaxRules = array_filter($swTaxGroup->getRules()->toArray(), function (Rule $swTaxRule) {
-                        return $swTaxRule->getCountry() !== null;
-                    });
+                    $swCountryRelatedTaxRules = \array_filter(
+                        $swTaxGroup->getRules()->toArray(),
+                        function (Rule $swTaxRule) {
+                            return $swTaxRule->getCountry() !== null;
+                        }
+                    );
 
                     /** @var Rule[] $swGroupRules */
-                    $swGroupRules = array_combine(array_map(function (Rule $swTaxRule) {
+                    $swGroupRules = \array_combine(\array_map(function (Rule $swTaxRule) {
                         return $swTaxRule->getCountry()->getIso();
                     }, $swCountryRelatedTaxRules), $swCountryRelatedTaxRules);
 
                     $commonTaxRates[$swTaxGroup->getId()] = 0;
                     foreach ($jtlTaxRates as $jtlTaxRate) {
-                        if (isset($swGroupRules[$jtlTaxRate->getCountryIso()]) && $swGroupRules[$jtlTaxRate->getCountryIso()]->getTax() === $jtlTaxRate->getRate()) {
+                        if (
+                            isset($swGroupRules[$jtlTaxRate->getCountryIso()])
+                            && $swGroupRules[$jtlTaxRate->getCountryIso()]->getTax() === $jtlTaxRate->getRate()
+                        ) {
                             $commonTaxRates[$swTaxGroup->getId()]++;
                         }
                     }
@@ -663,7 +721,7 @@ class Product extends DataMapper
                 foreach ($commonTaxRates as $swTaxGroupId => $matches) {
                     if ($matches > $actualMatches) {
                         $actualMatches = $matches;
-                        $swTax = $swTaxGroups[$swTaxGroupId];
+                        $swTax         = $swTaxGroups[$swTaxGroupId];
                     }
                 }
 
@@ -677,7 +735,7 @@ class Product extends DataMapper
     {
         // Manufacturer
         $manufacturerMapper = Mmc::getMapper('Manufacturer');
-        $manufacturerSW = $manufacturerMapper->find((int)$product->getManufacturerId()->getEndpoint());
+        $manufacturerSW     = $manufacturerMapper->find((int)$product->getManufacturerId()->getEndpoint());
         if ($manufacturerSW) {
             $productSW->setSupplier($manufacturerSW);
         } else {
@@ -704,14 +762,15 @@ class Product extends DataMapper
     protected function prepareSpecialPriceAssociatedData(JtlProduct $product, SwArticle &$productSW)
     {
         // ProductSpecialPrice
-        if (is_array($product->getSpecialPrices())) {
+        if (\is_array($product->getSpecialPrices())) {
             foreach ($product->getSpecialPrices() as $i => $productSpecialPrice) {
-                if (count($productSpecialPrice->getItems()) == 0) {
+                if (\count($productSpecialPrice->getItems()) == 0) {
                     continue;
                 }
 
-                $collection = array();
-                $priceGroupSW = Shopware()->Models()->getRepository('Shopware\Models\Price\Group')->find(intval($productSpecialPrice->getId()->getEndpoint()));
+                $collection   = array();
+                $priceGroupSW = \Shopware()->Models()->getRepository('Shopware\Models\Price\Group')
+                    ->find(\intval($productSpecialPrice->getId()->getEndpoint()));
                 if ($priceGroupSW === null) {
                     $priceGroupSW = new \Shopware\Models\Price\Group();
                     ShopUtil::entityManager()->persist($priceGroupSW);
@@ -719,19 +778,23 @@ class Product extends DataMapper
 
                 // SpecialPrice
                 foreach ($productSpecialPrice->getItems() as $specialPrice) {
-                    $customerGroupSW = CustomerGroupUtil::get(intval($specialPrice->getCustomerGroupId()->getEndpoint()));
+                    $customerGroupSW = CustomerGroupUtil::get(
+                        \intval($specialPrice->getCustomerGroupId()->getEndpoint())
+                    );
                     if ($customerGroupSW === null) {
-                        $customerGroupSW = CustomerGroupUtil::get(Shopware()->Shop()->getCustomerGroup()->getId());
+                        $customerGroupSW = CustomerGroupUtil::get(\Shopware()->Shop()->getCustomerGroup()->getId());
                     }
 
-                    $price = null;
+                    $price         = null;
                     $productPrices = $product->getPrices();
-                    $priceCount = count($productPrices);
+                    $priceCount    = \count($productPrices);
                     if ($priceCount == 1) {
-                        $price = reset($productPrices);
+                        $price = \reset($productPrices);
                     } elseif ($priceCount > 1) {
                         foreach ($productPrices as $productPrice) {
-                            if ($customerGroupSW->getId() == intval($productPrice->getCustomerGroupId()->getEndpoint())) {
+                            if (
+                                $customerGroupSW->getId() == \intval($productPrice->getCustomerGroupId()->getEndpoint())
+                            ) {
                                 $price = $productPrice->getNetPrice();
 
                                 break;
@@ -740,12 +803,20 @@ class Product extends DataMapper
                     }
 
                     if ($price === null) {
-                        Logger::write(sprintf('Could not find any price for customer group (%s)', $specialPrice->getCustomerGroupId()->getEndpoint()), Logger::WARNING, 'database');
+                        Logger::write(
+                            \sprintf(
+                                'Could not find any price for customer group (%s)',
+                                $specialPrice->getCustomerGroupId()->getEndpoint()
+                            ),
+                            Logger::WARNING,
+                            'database'
+                        );
 
                         continue;
                     }
 
-                    $priceDiscountSW = Shopware()->Models()->getRepository('Shopware\Models\Price\Discount')->findOneBy(array('groupId' => $specialPrice->getProductSpecialPriceId()->getEndpoint()));
+                    $priceDiscountSW = \Shopware()->Models()->getRepository('Shopware\Models\Price\Discount')
+                        ->findOneBy(array('groupId' => $specialPrice->getProductSpecialPriceId()->getEndpoint()));
                     if ($priceDiscountSW === null) {
                         $priceDiscountSW = new \Shopware\Models\Price\Discount();
                         ShopUtil::entityManager()->persist($priceDiscountSW);
@@ -773,8 +844,12 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareDetailAssociatedData(JtlProduct $product, SwArticle &$productSW, SwDetail &$detailSW = null, $isChild = false)
-    {
+    protected function prepareDetailAssociatedData(
+        JtlProduct $product,
+        SwArticle &$productSW,
+        SwDetail &$detailSW = null,
+        $isChild = false
+    ) {
         // Detail
         if ($detailSW === null) {
             $detailSW = new SwDetail();
@@ -784,10 +859,17 @@ class Product extends DataMapper
         $detailSW->setAdditionalText('');
         $productSW->setChanged();
 
-        $kind = ($isChild && $detailSW->getId() != self::KIND_VALUE_PARENT && $productSW->getMainDetail() !== null && $productSW->getMainDetail()->getId() == $detailSW->getId()) ? self::KIND_VALUE_MAIN : self::KIND_VALUE_DEFAULT;
+        $kind   = (
+            $isChild
+            && $detailSW->getId() != self::KIND_VALUE_PARENT
+            && $productSW->getMainDetail() !== null
+            && $productSW->getMainDetail()->getId() == $detailSW->getId()
+        )
+            ? self::KIND_VALUE_MAIN
+            : self::KIND_VALUE_DEFAULT;
         $active = $product->getIsActive();
         if (!$isChild) {
-            $kind = $this->isParent($product) ? self::KIND_VALUE_PARENT : self::KIND_VALUE_MAIN;
+            $kind   = $this->isParent($product) ? self::KIND_VALUE_PARENT : self::KIND_VALUE_MAIN;
             $active = $this->isParent($product) ? false : $active;
         }
 
@@ -799,9 +881,9 @@ class Product extends DataMapper
             ->setStockMin(0)
             ->setPosition($product->getSort())
             ->setWeight($product->getProductWeight())
-            ->setInStock(floor($product->getStockLevel()->getStockLevel()))
+            ->setInStock(\floor($product->getStockLevel()->getStockLevel()))
             ->setStockMin($product->getMinimumQuantity())
-            ->setMinPurchase(floor($product->getMinimumOrderQuantity()))
+            ->setMinPurchase(\floor($product->getMinimumOrderQuantity()))
             ->setReleaseDate($product->getAvailableFrom())
             ->setPurchasePrice($product->getPurchasePrice())
             ->setEan($product->getEan());
@@ -811,22 +893,30 @@ class Product extends DataMapper
         $detailSW->setHeight($product->getHeight());
 
         // Delivery time
-        $exists = false;
-        $considerNextAvailableInflowDate = (bool)Application()->getConfig()->get('product.push.consider_supplier_inflow_date_for_shipping', true);
-        if ($considerNextAvailableInflowDate && $product->getStockLevel()->getStockLevel() <= 0 && !is_null($product->getNextAvailableInflowDate())) {
+        $exists                          = false;
+        $considerNextAvailableInflowDate = (bool)\Application()->getConfig()
+            ->get('product.push.consider_supplier_inflow_date_for_shipping', true);
+        if (
+            $considerNextAvailableInflowDate
+            && $product->getStockLevel()->getStockLevel() <= 0
+            && !\is_null($product->getNextAvailableInflowDate())
+        ) {
             $inflow = new \DateTime($product->getNextAvailableInflowDate()->format('Y-m-d'));
-            $today = new \DateTime((new \DateTime())->format('Y-m-d'));
+            $today  = new \DateTime((new \DateTime())->format('Y-m-d'));
             if ($inflow->getTimestamp() - $today->getTimestamp() > 0) {
                 $detailSW->setShippingTime(($product->getAdditionalHandlingTime() + (int)$inflow->diff($today)->days));
                 $exists = true;
             }
         }
 
-        $useHandlingTimeOnly = (bool)Application()->getConfig()->get('product.push.use_handling_time_for_shipping', false);
+        $useHandlingTimeOnly = (bool)\Application()->getConfig()
+            ->get('product.push.use_handling_time_for_shipping', false);
         if (!$exists && !$useHandlingTimeOnly) {
             foreach ($product->getI18ns() as $i18n) {
-                if ($i18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                    $deliveryStatus = trim(str_replace(['Tage', 'Days', 'Tag', 'Day'], '', $i18n->getDeliveryStatus()));
+                if ($i18n->getLanguageISO() === LanguageUtil::map(\Shopware()->Shop()->getLocale()->getLocale())) {
+                    $deliveryStatus = \trim(
+                        \str_replace(['Tage', 'Days', 'Tag', 'Day'], '', $i18n->getDeliveryStatus())
+                    );
                     if ($deliveryStatus !== '' && $deliveryStatus !== '0') {
                         $detailSW->setShippingTime($deliveryStatus);
                         $exists = true;
@@ -846,7 +936,7 @@ class Product extends DataMapper
             $inStock = $product->getPermitNegativeStock() ? 0 : 1;
         }
 
-        if (is_callable([$detailSW, 'setLastStock'])) {
+        if (\is_callable([$detailSW, 'setLastStock'])) {
             $detailSW->setLastStock($inStock);
         }
 
@@ -866,7 +956,7 @@ class Product extends DataMapper
 
     protected function prepareDetailVariationAssociatedData(JtlProduct &$product, SwDetail &$detailSW)
     {
-        $groupMapper = Mmc::getMapper('ConfiguratorGroup');
+        $groupMapper  = Mmc::getMapper('ConfiguratorGroup');
         $optionMapper = Mmc::getMapper('ConfiguratorOption');
         $detailSW->getConfiguratorOptions()->clear();
         foreach ($product->getVariations() as $variation) {
@@ -902,8 +992,13 @@ class Product extends DataMapper
         }
     }
 
-    protected function prepareAttributeAssociatedData(JtlProduct $product, SwArticle &$article, SwDetail &$detailSW, array &$attrMappings, $isChild = false)
-    {
+    protected function prepareAttributeAssociatedData(
+        JtlProduct $product,
+        SwArticle &$article,
+        SwDetail &$detailSW,
+        array &$attrMappings,
+        $isChild = false
+    ) {
         // Attribute
         $attributeSW = $detailSW->getAttribute();
         if ($attributeSW === null) {
@@ -918,11 +1013,11 @@ class Product extends DataMapper
             $productAttribute->delete();
         }
 
-        $attributes = [];
-        $mappings = [];
+        $attributes   = [];
+        $mappings     = [];
         $attrMappings = [];
 
-        $customPropertySupport = (bool)Application()->getConfig()->get('product.push.enable_custom_properties', false);
+        $customPropertySupport = (bool)\Application()->getConfig()->get('product.push.enable_custom_properties', false);
 
         $shopwareLocale = ShopUtil::locale()->getLocale();
         foreach ($product->getAttributes() as $attribute) {
@@ -931,18 +1026,18 @@ class Product extends DataMapper
             }
 
             $attributeI18n = I18n::findByLocale($shopwareLocale, ...$attribute->getI18ns());
-            if (is_null($attributeI18n)) {
+            if (\is_null($attributeI18n)) {
                 self::logNullTranslation($attribute, $shopwareLocale);
                 continue;
             }
 
-            $lcAttributeName = strtolower($attributeI18n->getName());
-            $attributeValue = $attributeI18n->getValue();
+            $lcAttributeName = \strtolower($attributeI18n->getName());
+            $attributeValue  = $attributeI18n->getValue();
 
             // active
-            if (in_array($lcAttributeName, [ProductAttr::IS_ACTIVE, 'isactive'])) {
-                $isActive = (strtolower($attributeValue) === 'false'
-                    || strtolower($attributeValue) === '0') ? 0 : 1;
+            if (\in_array($lcAttributeName, [ProductAttr::IS_ACTIVE, 'isactive'])) {
+                $isActive = (\strtolower($attributeValue) === 'false'
+                    || \strtolower($attributeValue) === '0') ? 0 : 1;
                 if ($isChild) {
                     $detailSW->setActive($isActive);
                 } else {
@@ -955,9 +1050,9 @@ class Product extends DataMapper
             }
 
             // Notification
-            if (in_array($lcAttributeName, [ProductAttr::SEND_NOTIFICATION, 'sw_send_notification'])) {
-                $notification = (strtolower($attributeValue) === 'false'
-                    || strtolower($attributeValue) === '0') ? 0 : 1;
+            if (\in_array($lcAttributeName, [ProductAttr::SEND_NOTIFICATION, 'sw_send_notification'])) {
+                $notification = (\strtolower($attributeValue) === 'false'
+                    || \strtolower($attributeValue) === '0') ? 0 : 1;
 
                 $article->setNotification($notification);
 
@@ -965,9 +1060,9 @@ class Product extends DataMapper
             }
 
             // Shipping free
-            if (in_array($lcAttributeName, [ProductAttr::SHIPPING_FREE, 'shippingfree'])) {
-                $shippingFree = (strtolower($attributeValue) === 'false'
-                    || strtolower($attributeValue) === '0') ? 0 : 1;
+            if (\in_array($lcAttributeName, [ProductAttr::SHIPPING_FREE, 'shippingfree'])) {
+                $shippingFree = (\strtolower($attributeValue) === 'false'
+                    || \strtolower($attributeValue) === '0') ? 0 : 1;
 
                 $detailSW->setShippingFree($shippingFree);
 
@@ -975,7 +1070,7 @@ class Product extends DataMapper
             }
 
             // Pseudo sales
-            if (in_array($lcAttributeName, [ProductAttr::PSEUDO_SALES, 'sw_pseudo_sales'])) {
+            if (\in_array($lcAttributeName, [ProductAttr::PSEUDO_SALES, 'sw_pseudo_sales'])) {
                 $article->setPseudoSales((int)$attributeValue);
 
                 continue;
@@ -987,7 +1082,7 @@ class Product extends DataMapper
                 } else {
                     $article->setPriceGroupActive(true);
                     $priceGroupId = (int)$attributeValue;
-                    $priceGroupSW = Shopware()->Models()->getRepository(SwGroup::class)->find($priceGroupId);
+                    $priceGroupSW = \Shopware()->Models()->getRepository(SwGroup::class)->find($priceGroupId);
                     if ($priceGroupSW instanceof SwGroup) {
                         $article->setPriceGroup($priceGroupSW);
                     }
@@ -996,8 +1091,10 @@ class Product extends DataMapper
             }
 
             // Image configuration ignores
-            if ($lcAttributeName === strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
-                && $this->isParent($product)) {
+            if (
+                $lcAttributeName === \strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
+                && $this->isParent($product)
+            ) {
                 try {
                     $oldAttributeValue = $productAttribute->getKey();
                     $productAttribute->setKey(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
@@ -1014,7 +1111,11 @@ class Product extends DataMapper
                 continue;
             }
 
-            if (in_array($lcAttributeName, [ProductAttr::IS_MAIN, 'is_main']) && $isChild && (bool)$attributeValue === true) {
+            if (
+                \in_array($lcAttributeName, [ProductAttr::IS_MAIN, 'is_main'])
+                && $isChild
+                && (bool)$attributeValue === true
+            ) {
                 /** @var SwDetail $detail */
                 ShopUtil::entityManager()->refresh($article);
                 $details = $article->getDetails();
@@ -1051,7 +1152,8 @@ class Product extends DataMapper
                         ->execute();
 
                     /** @var Template|null $template */
-                    $template = ShopUtil::entityManager()->getRepository(Template::class)->findOneByInternalName($attributeValue);
+                    $template = ShopUtil::entityManager()->getRepository(Template::class)
+                        ->findOneByInternalName($attributeValue);
                     if ($template instanceof Template) {
                         $template->getArticles()->add($article);
                         ShopUtil::entityManager()->persist($template);
@@ -1059,7 +1161,7 @@ class Product extends DataMapper
                 }
             }
 
-            $mappings[$attributeI18n->getName()] = $attribute->getId()->getHost();
+            $mappings[$attributeI18n->getName()]   = $attribute->getId()->getHost();
             $attributes[$attributeI18n->getName()] = $attributeValue;
         }
 
@@ -1069,17 +1171,25 @@ class Product extends DataMapper
         }
 
         /** @deprecated Will be removed in future connector releases $nullUndefinedAttributesOld */
-        $nullUndefinedAttributesOld = (bool)Application()->getConfig()->get('null_undefined_product_attributes_during_push', true);
-        $nullUndefinedAttributes = (bool)Application()->getConfig()->get('product.push.null_undefined_attributes', $nullUndefinedAttributesOld);
+        $nullUndefinedAttributesOld = (bool)\Application()->getConfig()
+            ->get('null_undefined_product_attributes_during_push', true);
+        $nullUndefinedAttributes    = (bool)\Application()->getConfig()
+            ->get('product.push.null_undefined_attributes', $nullUndefinedAttributesOld);
 
-        $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_articles_attributes');
+        $swAttributesList = \Shopware()->Container()->get('shopware_attribute.crud_service')
+            ->getList('s_articles_attributes');
 
         foreach ($swAttributesList as $tSwAttribute) {
             if ($tSwAttribute->getColumnName() === self::ATTRIBUTE_ARTICLE_SEARCH_KEYWORDS) {
                 $keywordAttribute[self::ATTRIBUTE_ARTICLE_SEARCH_KEYWORDS] = $product->getKeywords();
                 TranslatableAttributes::setAttribute($tSwAttribute, $attributeSW, $keywordAttribute, false);
             } else {
-                $result = TranslatableAttributes::setAttribute($tSwAttribute, $attributeSW, $attributes, $nullUndefinedAttributes);
+                $result = TranslatableAttributes::setAttribute(
+                    $tSwAttribute,
+                    $attributeSW,
+                    $attributes,
+                    $nullUndefinedAttributes
+                );
                 if ($result === true) {
                     $attrMappings[$tSwAttribute->getColumnName()] = $mappings[$tSwAttribute->getColumnName()];
                 }
@@ -1092,8 +1202,11 @@ class Product extends DataMapper
 
     protected function hasVariationChanges(JtlProduct &$product)
     {
-        if (count($product->getVariations()) > 0) {
-            if (strlen($product->getId()->getEndpoint()) > 0 && IdConcatenator::isProductId($product->getId()->getEndpoint())) {
+        if (\count($product->getVariations()) > 0) {
+            if (
+                \strlen($product->getId()->getEndpoint()) > 0
+                && IdConcatenator::isProductId($product->getId()->getEndpoint())
+            ) {
                 $checksum = ChecksumLinker::find($product, ProductChecksum::TYPE_VARIATION);
                 if ($checksum === null) {
                     return false;
@@ -1114,7 +1227,7 @@ class Product extends DataMapper
         if ($this->hasVariationChanges($product)) {
             $confiSet = $productSW->getConfiguratorSet();
 
-            $groups = array();
+            $groups  = array();
             $options = array();
 
             if (!$confiSet) {
@@ -1123,12 +1236,11 @@ class Product extends DataMapper
                 ShopUtil::entityManager()->persist($confiSet);
             }
 
-            $groupMapper = Mmc::getMapper('ConfiguratorGroup');
+            $groupMapper  = Mmc::getMapper('ConfiguratorGroup');
             $optionMapper = Mmc::getMapper('ConfiguratorOption');
-            $types = array();
+            $types        = array();
             foreach ($product->getVariations() as $variation) {
-
-                if (strlen(trim($variation->getType())) > 0) {
+                if (\strlen(\trim($variation->getType())) > 0) {
                     if (!isset($types[$variation->getType()])) {
                         $types[$variation->getType()] = 0;
                     }
@@ -1136,7 +1248,7 @@ class Product extends DataMapper
                     $types[$variation->getType()]++;
                 }
 
-                $variationName = null;
+                $variationName      = null;
                 $variationValueName = null;
                 foreach ($variation->getI18ns() as $variationI18n) {
                     if (ShopUtil::isShopwareDefaultLanguage($variationI18n->getLanguageISO())) {
@@ -1166,7 +1278,8 @@ class Product extends DataMapper
 
                     $optionSW = null;
                     if ($groupSW->getId() > 0) {
-                        $optionSW = $optionMapper->findOneBy(array('name' => $variationValueName, 'groupId' => $groupSW->getId()));
+                        $optionSW = $optionMapper
+                            ->findOneBy(array('name' => $variationValueName, 'groupId' => $groupSW->getId()));
                     }
 
                     if ($optionSW === null) {
@@ -1198,23 +1311,23 @@ class Product extends DataMapper
 
     protected function calcVariationType(array $types)
     {
-        if (count($types) == 0) {
+        if (\count($types) == 0) {
             return ProductVariation::TYPE_RADIO;
         }
 
-        arsort($types);
+        \arsort($types);
 
         $checkEven = function ($vTypes) {
-            if (count($vTypes) > 1) {
-                $arr = array_values($vTypes);
+            if (\count($vTypes) > 1) {
+                $arr = \array_values($vTypes);
                 return ($arr[0] == $arr[1]);
             }
 
             return false;
         };
 
-        reset($types);
-        $key = $checkEven($types) ? ProductVariation::TYPE_RADIO : key($types);
+        \reset($types);
+        $key = $checkEven($types) ? ProductVariation::TYPE_RADIO : \key($types);
 
         return VariationType::map($key);
     }
@@ -1249,7 +1362,7 @@ class Product extends DataMapper
             $product
         );
 
-        if (count($collection) > 0) {
+        if (\count($collection) > 0) {
             $detailSW->setPrices($collection);
         }
     }
@@ -1257,28 +1370,28 @@ class Product extends DataMapper
     protected function prepareSpecificAssociatedData(JtlProduct $product, SwArticle &$productSW, SwDetail $detailSW)
     {
         try {
-            $group = null;
+            $group  = null;
             $values = [];
-            if (count($product->getSpecifics()) > 0) {
-                $group = $productSW->getPropertyGroup();
+            if (\count($product->getSpecifics()) > 0) {
+                $group     = $productSW->getPropertyGroup();
                 $optionIds = $this->getFilterOptionIds($product);
-                if (is_null($group) || !$this->isSuitableFilterGroup($group, $optionIds)) {
+                if (\is_null($group) || !$this->isSuitableFilterGroup($group, $optionIds)) {
                     $group = null;
 
                     /** @var Group $fetchedGroup */
-                    foreach (Shopware()->Models()->getRepository(Group::class)->findAll() as $fetchedGroup) {
+                    foreach (\Shopware()->Models()->getRepository(Group::class)->findAll() as $fetchedGroup) {
                         if ($this->isSuitableFilterGroup($fetchedGroup, $optionIds)) {
                             $group = $fetchedGroup;
                             break;
                         }
                     }
 
-                    if (is_null($group)) {
-                        $options = Shopware()->Models()->getRepository(Option::class)->findById($optionIds);
-                        $groupName = implode('_', array_map(function (Option $option) {
+                    if (\is_null($group)) {
+                        $options   = \Shopware()->Models()->getRepository(Option::class)->findById($optionIds);
+                        $groupName = \implode('_', \array_map(function (Option $option) {
                             return $option->getName();
                         }, $options));
-                        $group = (new \Shopware\Models\Property\Group())
+                        $group     = (new \Shopware\Models\Property\Group())
                             ->setName($groupName)
                             ->setPosition(0)
                             ->setComparable(1)
@@ -1289,13 +1402,14 @@ class Product extends DataMapper
                     }
                 }
 
-                $values = Shopware()->Models()->getRepository(Value::class)->findById($this->getFilterValueIds($product));
+                $values = \Shopware()->Models()->getRepository(Value::class)
+                    ->findById($this->getFilterValueIds($product));
             }
 
             $productSW->setPropertyValues(new ArrayCollection($values));
             $productSW->setPropertyGroup($group);
         } catch (\Exception $e) {
-            Logger::write(sprintf(
+            Logger::write(\sprintf(
                 'Property group (s_articles <--> s_filter) not found! %s',
                 ExceptionFormatter::format($e)
             ), Logger::ERROR, 'database');
@@ -1308,11 +1422,11 @@ class Product extends DataMapper
      */
     protected function getFilterOptionIds(JtlProduct $product)
     {
-        $ids = array_map(function (\jtl\Connector\Model\ProductSpecific $specific) {
+        $ids = \array_map(function (\jtl\Connector\Model\ProductSpecific $specific) {
             return $specific->getId()->getEndpoint();
         }, $product->getSpecifics());
 
-        return array_values(array_unique(array_filter($ids, function ($id) {
+        return \array_values(\array_unique(\array_filter($ids, function ($id) {
             return !empty($id);
         })));
     }
@@ -1323,11 +1437,11 @@ class Product extends DataMapper
      */
     protected function getFilterValueIds(JtlProduct $product)
     {
-        $ids = array_map(function (\jtl\Connector\Model\ProductSpecific $specific) {
+        $ids = \array_map(function (\jtl\Connector\Model\ProductSpecific $specific) {
             return $specific->getSpecificValueId()->getEndpoint();
         }, $product->getSpecifics());
 
-        return array_values(array_filter($ids, function ($id) {
+        return \array_values(\array_filter($ids, function ($id) {
             return !empty($id);
         }));
     }
@@ -1340,12 +1454,12 @@ class Product extends DataMapper
     protected function isSuitableFilterGroup(Group $group, array $optionIds)
     {
         $options = $group->getOptions();
-        if (count($options) !== count($optionIds)) {
+        if (\count($options) !== \count($optionIds)) {
             return false;
         }
 
         foreach ($options as $option) {
-            if (!in_array($option->getId(), $optionIds)) {
+            if (!\in_array($option->getId(), $optionIds)) {
                 return false;
             }
         }
@@ -1362,13 +1476,13 @@ class Product extends DataMapper
      */
     protected function saveTranslations(JtlProduct $product, SwArticle $article, SwDetail $detail, array $attrMappings)
     {
-        $type = 'article';
-        $key = $article->getId();
+        $type  = 'article';
+        $key   = $article->getId();
         $merge = false;
         if ($this->isChild($product)) {
             if ($detail !== $article->getMainDetail()) {
                 $type = 'variant';
-                $key = $detail->getId();
+                $key  = $detail->getId();
             } else {
                 $merge = true;
             }
@@ -1391,17 +1505,16 @@ class Product extends DataMapper
 
             /** @var \Shopware\Models\Shop\Shop[] $shops */
             $shopMapper = Mmc::getMapper('Shop');
-            $shops = $shopMapper->findByLanguageIso($langIso1);
+            $shops      = $shopMapper->findByLanguageIso($langIso1);
 
             foreach ($shops as $shop) {
                 if ($merge) {
                     $savedTranslation = $translationService->read($shop->getId(), $type, $key);
-                    $translation = array_merge($savedTranslation, $translation);
+                    $translation      = \array_merge($savedTranslation, $translation);
                 }
                 $translationService->write($shop->getId(), $type, $key, $translation);
             }
         }
-
     }
 
     /**
@@ -1442,7 +1555,7 @@ class Product extends DataMapper
                 $data[$langIso] = [];
             }
 
-            $data[$langIso] = array_merge($data[$langIso], $translation);
+            $data[$langIso] = \array_merge($data[$langIso], $translation);
         }
 
         return $data;
@@ -1468,10 +1581,10 @@ class Product extends DataMapper
                     $data[$langIso] = $this->initVariantTranslation();
                 }
 
-                if (strtolower($attrI18n->getName()) === ProductAttr::ADDITIONAL_TEXT) {
+                if (\strtolower($attrI18n->getName()) === ProductAttr::ADDITIONAL_TEXT) {
                     $data[$langIso]['additionalText'] = $attrI18n->getValue();
-                } elseif (($index = array_search($attribute->getId()->getHost(), $attrMappings)) !== false) {
-                    $i = "__attribute_{$index}";
+                } elseif (($index = \array_search($attribute->getId()->getHost(), $attrMappings)) !== false) {
+                    $i                  = "__attribute_{$index}";
                     $data[$langIso][$i] = $attrI18n->getValue();
                 }
             }
@@ -1480,8 +1593,8 @@ class Product extends DataMapper
         // Unit
         if ($product->getUnitId()->getHost() != 0) {
             $unitMapper = Mmc::getMapper('Unit');
-            $unitSW = $unitMapper->findOneBy(array('hostId' => $product->getUnitId()->getHost()));
-            if (!is_null($unitSW)) {
+            $unitSW     = $unitMapper->findOneBy(array('hostId' => $product->getUnitId()->getHost()));
+            if (!\is_null($unitSW)) {
                 foreach ($unitSW->getI18ns() as $unitI18n) {
                     $langIso = $unitI18n->getLanguageIso();
                     if (ShopUtil::isShopwareDefaultLanguage($langIso)) {
@@ -1535,12 +1648,11 @@ class Product extends DataMapper
 
         /** @var ConfiguratorOption $optionMapper */
         $optionMapper = Mmc::getMapper('ConfiguratorOption');
-        $confiSetSW = $productSW->getConfiguratorSet();
-        if ($confiSetSW !== null && count($product->getVariations()) > 0) {
-
+        $confiSetSW   = $productSW->getConfiguratorSet();
+        if ($confiSetSW !== null && \count($product->getVariations()) > 0) {
             // Get default translation values
             $variations = array();
-            $values = array();
+            $values     = array();
 
             foreach ($product->getVariations() as $variation) {
                 foreach ($variation->getI18ns() as $variationI18n) {
@@ -1565,9 +1677,16 @@ class Product extends DataMapper
                 foreach ($variation->getI18ns() as $variationI18n) {
                     if (ShopUtil::isShopwareDefaultLanguage($variationI18n->getLanguageISO()) === false) {
                         foreach ($confiSetSW->getGroups() as $groupSW) {
-                            if (isset($variations[$groupSW->getName()]) && $variations[$groupSW->getName()] == $variation->getId()->getHost()) {
+                            if (
+                                isset($variations[$groupSW->getName()])
+                                && $variations[$groupSW->getName()] == $variation->getId()->getHost()
+                            ) {
                                 try {
-                                    $groupMapper->saveTranslatation($groupSW->getId(), $variationI18n->getLanguageISO(), $variationI18n->getName());
+                                    $groupMapper->saveTranslatation(
+                                        $groupSW->getId(),
+                                        $variationI18n->getLanguageISO(),
+                                        $variationI18n->getName()
+                                    );
                                 } catch (\Exception $e) {
                                     Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
                                 }
@@ -1580,11 +1699,17 @@ class Product extends DataMapper
                     foreach ($value->getI18ns() as $valueI18n) {
                         if (ShopUtil::isShopwareDefaultLanguage($valueI18n->getLanguageISO()) === false) {
                             foreach ($confiSetSW->getOptions() as $optionSW) {
-                                if (isset($values[$variation->getId()->getHost()][$optionSW->getName()])
-                                    && $values[$variation->getId()->getHost()][$optionSW->getName()] == $value->getId()->getHost()) {
-
+                                if (
+                                    isset($values[$variation->getId()->getHost()][$optionSW->getName()])
+                                    && $values[$variation->getId()->getHost()][$optionSW->getName()]
+                                    == $value->getId()->getHost()
+                                ) {
                                     try {
-                                        $optionMapper->saveTranslatation($optionSW->getId(), $valueI18n->getLanguageISO(), $valueI18n->getName());
+                                        $optionMapper->saveTranslatation(
+                                            $optionSW->getId(),
+                                            $valueI18n->getLanguageISO(),
+                                            $valueI18n->getName()
+                                        );
                                     } catch (\Exception $e) {
                                         Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'database');
                                     }
@@ -1606,21 +1731,21 @@ class Product extends DataMapper
         $confiSet = $productSW->getConfiguratorSet();
 
         $sql = "DELETE FROM s_article_configurator_set_group_relations WHERE set_id = ?";
-        Shopware()->Db()->query($sql, array($confiSet->getId()));
+        \Shopware()->Db()->query($sql, array($confiSet->getId()));
 
         $sql = "DELETE FROM s_article_configurator_set_option_relations WHERE set_id = ?";
-        Shopware()->Db()->query($sql, array($confiSet->getId()));
+        \Shopware()->Db()->query($sql, array($confiSet->getId()));
 
         // Groups
         foreach ($confiSet->getGroups() as $groupSW) {
             $sql = "INSERT INTO s_article_configurator_set_group_relations (set_id, group_id) VALUES (?,?)";
-            Shopware()->Db()->query($sql, array($confiSet->getId(), $groupSW->getId()));
+            \Shopware()->Db()->query($sql, array($confiSet->getId(), $groupSW->getId()));
         }
 
         // Options
         foreach ($confiSet->getOptions() as $optionSW) {
             $sql = "INSERT INTO s_article_configurator_set_option_relations (set_id, option_id) VALUES (?,?)";
-            Shopware()->Db()->query($sql, array($confiSet->getId(), $optionSW->getId()));
+            \Shopware()->Db()->query($sql, array($confiSet->getId(), $optionSW->getId()));
         }
     }
 
@@ -1628,10 +1753,12 @@ class Product extends DataMapper
     {
         if ($product->getUnitId()->getHost() > 0) {
             $unitMapper = Mmc::getMapper('Unit');
-            $unitSW = $unitMapper->findOneBy(array('hostId' => $product->getUnitId()->getHost()));
+            $unitSW     = $unitMapper->findOneBy(array('hostId' => $product->getUnitId()->getHost()));
             if ($unitSW !== null) {
                 foreach ($unitSW->getI18ns() as $unitI18n) {
-                    if ($unitI18n->getLanguageIso() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    if (
+                        $unitI18n->getLanguageIso() === LanguageUtil::map(\Shopware()->Shop()->getLocale()->getLocale())
+                    ) {
                         $detailSW->setPackUnit($unitI18n->getName());
                     }
                 }
@@ -1641,9 +1768,10 @@ class Product extends DataMapper
 
     protected function prepareMeasurementUnitAssociatedData(JtlProduct $product, SwDetail &$detailSW = null)
     {
-        if (strlen($product->getMeasurementUnitCode()) > 0) {
+        if (\strlen($product->getMeasurementUnitCode()) > 0) {
             $measurementUnitMapper = Mmc::getMapper('MeasurementUnit');
-            $measurementUnitSW = $measurementUnitMapper->findOneBy(array('unit' => $product->getMeasurementUnitCode()));
+            $measurementUnitSW     = $measurementUnitMapper
+                ->findOneBy(array('unit' => $product->getMeasurementUnitCode()));
             if ($measurementUnitSW !== null) {
                 $detailSW->setUnit($measurementUnitSW);
             }
@@ -1652,9 +1780,9 @@ class Product extends DataMapper
 
     protected function prepareMediaFileAssociatedData(JtlProduct $product, SwArticle &$swProduct)
     {
-        $linkCollection = [];
+        $linkCollection     = [];
         $downloadCollection = [];
-        $existingDownloads = [];
+        $existingDownloads  = [];
 
         /** @var SwDownload $download */
         foreach ($swProduct->getDownloads() as $download) {
@@ -1670,7 +1798,7 @@ class Product extends DataMapper
                 }
             }
 
-            if (preg_match('/^http|ftp{1}/i', $mediaFile->getUrl())) {
+            if (\preg_match('/^http|ftp{1}/i', $mediaFile->getUrl())) {
                 $swLink = new SwLink();
                 $swLink->setLink($mediaFile->getUrl())
                     ->setName($name);
@@ -1690,11 +1818,12 @@ class Product extends DataMapper
             }
         }
 
-        $deleteUnknownDownloadLinks = (bool)Application()->getConfig()->get('product.push.delete_unknown_download_links', true);
+        $deleteUnknownDownloadLinks = (bool)\Application()->getConfig()
+            ->get('product.push.delete_unknown_download_links', true);
         if ($deleteUnknownDownloadLinks === false) {
-            $downloadCollection = array_merge($existingDownloads, $downloadCollection);
+            $downloadCollection = \array_merge($existingDownloads, $downloadCollection);
         }
-        $downloadCollection = array_values($downloadCollection);
+        $downloadCollection = \array_values($downloadCollection);
 
         $swProduct->setLinks($linkCollection);
         $swProduct->setDownloads($downloadCollection);
@@ -1707,7 +1836,7 @@ class Product extends DataMapper
 
     protected function deleteProductData(JtlProduct $product)
     {
-        $productId = (strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
+        $productId = (\strlen($product->getId()->getEndpoint()) > 0) ? $product->getId()->getEndpoint() : null;
 
         /*
         Logger::write(sprintf('>>> Product with id (%s, %s), masterProductId (%s, %s), manufacturerId (%s, %s)',
@@ -1722,10 +1851,11 @@ class Product extends DataMapper
 
         if ($productId !== null) {
             list($detailId, $id) = IdConcatenator::unlink($productId);
-            $detailSW = $this->findDetail((int)$detailId);
+            $detailSW            = $this->findDetail((int)$detailId);
             if ($detailSW === null) {
                 //throw new DatabaseException(sprintf('Detail (%s) not found', $detailId));
-                Logger::write(sprintf('Detail with id (%s, %s) not found',
+                Logger::write(\sprintf(
+                    'Detail with id (%s, %s) not found',
                     $product->getId()->getEndpoint(),
                     $product->getId()->getHost()
                 ), Logger::ERROR, 'database');
@@ -1734,39 +1864,44 @@ class Product extends DataMapper
 
             $productSW = $this->find((int)$id);
             if ($productSW === null) {
-                Logger::write(sprintf('Product with id (%s, %s) not found',
+                Logger::write(\sprintf(
+                    'Product with id (%s, %s) not found',
                     $product->getId()->getEndpoint(),
                     $product->getId()->getHost()
                 ), Logger::ERROR, 'database');
                 return;
             }
 
-            $mainDetailId = Shopware()->Db()->fetchOne(
+            $mainDetailId = \Shopware()->Db()->fetchOne(
                 'SELECT main_detail_id FROM s_articles WHERE id = ?',
                 array($productSW->getId())
             );
 
             $sql = 'DELETE FROM s_article_configurator_option_relations WHERE article_id = ?';
-            Shopware()->Db()->query($sql, array($detailSW->getId()));
+            \Shopware()->Db()->query($sql, array($detailSW->getId()));
 
             if ($this->isChildSW($productSW, $detailSW)) {
-                //Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
+                //Shopware()->Db()->delete('s_articles_attributes',
+                // array('articledetailsID = ?' => $detailSW->getId()));
 
                 try {
-                    Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
-                    Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
-                    Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
+                    \Shopware()->Db()
+                        ->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
+                    \Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
+                    \Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
 
                     if ($mainDetailId == $detailSW->getId()) {
-                        $count = Shopware()->Db()->fetchOne(
+                        $count = \Shopware()->Db()->fetchOne(
                             'SELECT count(*) FROM s_articles_details WHERE articleID = ?',
                             array($productSW->getId())
                         );
 
                         $kindSql = ($count > 1) ? ' AND kind != ' . self::KIND_VALUE_PARENT . ' ' : '';
 
-                        Shopware()->Db()->query(
-                            'UPDATE s_articles SET main_detail_id = (SELECT id FROM s_articles_details WHERE articleID = ? ' . $kindSql . ' LIMIT 1) WHERE id = ?',
+                        \Shopware()->Db()->query(
+                            'UPDATE s_articles SET main_detail_id =
+                            (SELECT id FROM s_articles_details WHERE articleID = ? ' . $kindSql . ' LIMIT 1)
+                             WHERE id = ?',
                             array($productSW->getId(), $productSW->getId())
                         );
 
@@ -1830,17 +1965,18 @@ class Product extends DataMapper
                         ShopUtil::entityManager()->remove($set);
                     }
 
-                    Shopware()->Db()->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
-                    Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
-                    Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
-                    Shopware()->Db()->query(
+                    \Shopware()->Db()
+                        ->delete('s_articles_attributes', array('articledetailsID = ?' => $detailSW->getId()));
+                    \Shopware()->Db()->delete('s_articles_prices', array('articledetailsID = ?' => $detailSW->getId()));
+                    \Shopware()->Db()->delete('s_articles_details', array('id = ?' => $detailSW->getId()));
+                    \Shopware()->Db()->query(
                         'DELETE f, r
                             FROM s_filter f
                             LEFT JOIN s_filter_relations r ON r.groupID = f.id
                             WHERE f.name = ?',
                         array($detailSW->getNumber())
                     );
-                    Shopware()->Db()->delete('s_filter_articles', array('articleID = ?' => $productSW->getId()));
+                    \Shopware()->Db()->delete('s_filter_articles', array('articleID = ?' => $productSW->getId()));
 
                     ShopUtil::entityManager()->remove($productSW);
                     ShopUtil::entityManager()->flush($productSW);
@@ -1860,21 +1996,30 @@ class Product extends DataMapper
 
     public function isChild(JtlProduct $product)
     {
-        //return (strlen($product->getId()->getEndpoint()) > 0 && strpos($product->getId()->getEndpoint(), '_') !== false);
-        //return (!$product->getIsMasterProduct() && count($product->getVariations()) > 0 && $product->getMasterProductId()->getHost() > 0);
+        //return (strlen($product->getId()->getEndpoint()) > 0
+        //&& strpos($product->getId()->getEndpoint(), '_') !== false);
+        //return (!$product->getIsMasterProduct()
+        //&& count($product->getVariations()) > 0
+        //&& $product->getMasterProductId()->getHost() > 0);
         return (!$product->getIsMasterProduct() && $product->getMasterProductId()->getHost() > 0);
     }
 
     public function isParent(JtlProduct $product)
     {
-        //return ($product->getIsMasterProduct() && count($product->getVariations()) > 0 && $product->getMasterProductId()->getHost() == 0);
+        //return ($product->getIsMasterProduct()
+        //&& count($product->getVariations()) > 0
+        //&& $product->getMasterProductId()->getHost() == 0);
         return ($product->getIsMasterProduct() && $product->getMasterProductId()->getHost() == 0);
     }
 
     public function isChildSW(SwArticle $productSW = null, SwDetail $detailSW)
     {
         // If the parent is already deleted or a configurator set is present
-        if ($productSW === null || ($productSW->getConfiguratorSet() !== null && $productSW->getConfiguratorSet()->getId() > 0)) {
+        if (
+            $productSW === null
+            || ($productSW->getConfiguratorSet() !== null
+                && $productSW->getConfiguratorSet()->getId() > 0)
+        ) {
             return ((int)$detailSW->getKind() !== self::KIND_VALUE_PARENT);
         }
 
@@ -1890,7 +2035,7 @@ class Product extends DataMapper
     {
         return (
             isset($data['article']) &&
-            is_array($data['article']) &&
+            \is_array($data['article']) &&
             isset($data['article']['configuratorSetId']) &&
             (int)$data['article']['configuratorSetId'] > 0 &&
             isset($data['kind']) &&

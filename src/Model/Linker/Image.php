@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -22,8 +23,7 @@ class Image extends \Shopware\Models\Media\Media
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\ImageLinker", mappedBy="image")
      **/
     protected $linker;
-
-    /**
+/**
      * Gets the value of linker.
      *
      * @return mixed
@@ -43,7 +43,6 @@ class Image extends \Shopware\Models\Media\Media
     protected function setLinker(SpecificLinker $linker)
     {
         $this->linker = $linker;
-
         return $this;
     }
 }

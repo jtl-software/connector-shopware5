@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductVariation as ProductVariationModel;
+use jtl\Connector\Model\ProductVariation as ProductVariationModel;
 
 /**
  * ProductVariation Model
@@ -20,7 +21,7 @@ class ProductVariation extends ProductVariationModel
         'type' => '',
         'sort' => 'position'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
