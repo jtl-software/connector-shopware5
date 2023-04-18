@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
+use jtl\Connector\Model\ProductAttrI18n as ProductAttrI18nModel;
 
 /**
  * ProductAttrI18n Model
@@ -20,7 +21,7 @@ class ProductAttrI18n extends ProductAttrI18nModel
         "key" => '',
         "value" => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

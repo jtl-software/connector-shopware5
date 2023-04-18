@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductVarCombination as ProductVarCombinationModel;
+use jtl\Connector\Model\ProductVarCombination as ProductVarCombinationModel;
 
 /**
  * ProductVarCombination Model
@@ -19,7 +20,7 @@ class ProductVarCombination extends ProductVarCombinationModel
         'productVariationId' => '',
         'productVariationValueId' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

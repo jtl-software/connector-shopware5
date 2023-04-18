@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\DeliveryNoteTrackingList as DeliveryNoteTrackingListModel;
+use jtl\Connector\Model\DeliveryNoteTrackingList as DeliveryNoteTrackingListModel;
 
 /**
  * DeliveryNoteTrackingList Model
@@ -17,8 +18,7 @@ class DeliveryNoteTrackingList extends DeliveryNoteTrackingListModel
     protected $fields = array(
         'name' => 'name'
     );
-    
-    /**
+/**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
      */

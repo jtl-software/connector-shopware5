@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\SpecificValue as SpecificValueModel;
+use jtl\Connector\Model\SpecificValue as SpecificValueModel;
 
 /**
  * SpecificValue Model
@@ -19,7 +20,7 @@ class SpecificValue extends SpecificValueModel
         'specificId' => 'optionId',
         'sort' => 'position'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

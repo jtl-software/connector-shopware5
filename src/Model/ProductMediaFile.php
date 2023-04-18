@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductMediaFile as ProductMediaFileModel;
+use jtl\Connector\Model\ProductMediaFile as ProductMediaFileModel;
 
 /**
  * ProductMediaFile Model
@@ -23,7 +24,7 @@ class ProductMediaFile extends ProductMediaFileModel
         'type' => '',
         'sort' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

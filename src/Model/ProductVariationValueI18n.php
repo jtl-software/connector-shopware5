@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
+use jtl\Connector\Model\ProductVariationValueI18n as ProductVariationValueI18nModel;
 
 /**
  * ProductVariationValueI18n Model
@@ -19,7 +20,7 @@ class ProductVariationValueI18n extends ProductVariationValueI18nModel
         'productVariationValueId' => 'id',
         'name' => 'name'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

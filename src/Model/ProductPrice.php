@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductPrice as ProductPriceModel;
+use jtl\Connector\Model\ProductPrice as ProductPriceModel;
 
 /**
  * ProductPrice Model
@@ -22,9 +23,9 @@ class ProductPrice extends ProductPriceModel
     public function __clone()
     {
         $this->customerGroupId = clone $this->customerGroupId;
-        $this->customerId = clone $this->customerId;
-        $this->id = clone $this->id;
-        $this->productId = clone $this->productId;
+        $this->customerId      = clone $this->customerId;
+        $this->id              = clone $this->id;
+        $this->productId       = clone $this->productId;
 
         $items = array();
         foreach ($this->items as $item) {
@@ -33,7 +34,7 @@ class ProductPrice extends ProductPriceModel
 
         $this->items = $items;
     }
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

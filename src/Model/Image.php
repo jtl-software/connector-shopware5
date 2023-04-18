@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,8 +7,8 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\Image as ImageModel;
-use \jtl\Connector\Drawing\ImageRelationType;
+use jtl\Connector\Model\Image as ImageModel;
+use jtl\Connector\Drawing\ImageRelationType;
 
 /**
  * Image Model
@@ -15,10 +16,10 @@ use \jtl\Connector\Drawing\ImageRelationType;
  */
 class Image extends ImageModel
 {
-    const MEDIA_TYPE_PRODUCT = 'a';
-    const MEDIA_TYPE_CATEGORY = 'c';
-    const MEDIA_TYPE_MANUFACTURER = 's';
-    const MEDIA_TYPE_SPECIFIC_VALUE = 'pv';
+    public const MEDIA_TYPE_PRODUCT        = 'a';
+    public const MEDIA_TYPE_CATEGORY       = 'c';
+    public const MEDIA_TYPE_MANUFACTURER   = 's';
+    public const MEDIA_TYPE_SPECIFIC_VALUE = 'pv';
 
     protected $fields = array(
         'id' => 'id',
@@ -27,7 +28,7 @@ class Image extends ImageModel
         'foreignKey' => '',
         'filename' => 'path'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
@@ -41,13 +42,13 @@ class Image extends ImageModel
     {
         switch ($relationType) {
             case ImageRelationType::TYPE_PRODUCT:
-                return sprintf('%s_%s_%s', self::MEDIA_TYPE_PRODUCT, $id, $mediaId);
+                return \sprintf('%s_%s_%s', self::MEDIA_TYPE_PRODUCT, $id, $mediaId);
             case ImageRelationType::TYPE_CATEGORY:
-                return sprintf('%s_%s_%s', self::MEDIA_TYPE_CATEGORY, $id, $mediaId);
+                return \sprintf('%s_%s_%s', self::MEDIA_TYPE_CATEGORY, $id, $mediaId);
             case ImageRelationType::TYPE_MANUFACTURER:
-                return sprintf('%s_%s_%s', self::MEDIA_TYPE_MANUFACTURER, $id, $mediaId);
+                return \sprintf('%s_%s_%s', self::MEDIA_TYPE_MANUFACTURER, $id, $mediaId);
             case ImageRelationType::TYPE_SPECIFIC_VALUE:
-                return sprintf('%s_%s_%s', self::MEDIA_TYPE_SPECIFIC_VALUE, $id, $mediaId);
+                return \sprintf('%s_%s_%s', self::MEDIA_TYPE_SPECIFIC_VALUE, $id, $mediaId);
         }
     }
 }
