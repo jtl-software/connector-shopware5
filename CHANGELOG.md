@@ -1,6 +1,7 @@
 # Changelog 
 
 ## unreleased
+- CO-2218 - fix order status constants
 
 ## 2.18.0 _2023-03-14_
 - CO-2271 - fix language mapping

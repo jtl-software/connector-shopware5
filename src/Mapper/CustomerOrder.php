@@ -528,13 +528,13 @@ class CustomerOrder extends DataMapper
         // shopId
         $itemStatus = 0;
         switch ($orderSW->getOrderStatus()->getId()) {
-            case CustomerOrderModel::STATUS_PROCESSING:
+            case Status::ORDER_STATE_IN_PROCESS:
                 $itemStatus = 1;
                 break;
-            case CustomerOrderModel::STATUS_CANCELLED:
+            case Status::ORDER_STATE_CANCELLED:
                 $itemStatus = 2;
                 break;
-            case CustomerOrderModel::STATUS_COMPLETED:
+            case Status::ORDER_STATE_COMPLETED:
                 $itemStatus = 3;
                 break;
         }
