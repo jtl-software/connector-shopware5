@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,8 +7,8 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\CustomerOrderShippingAddress as CustomerOrderShippingAddressModel;
-use \jtl\Connector\Shopware\Utilities\Salutation;
+use jtl\Connector\Model\CustomerOrderShippingAddress as CustomerOrderShippingAddressModel;
+use jtl\Connector\Shopware\Utilities\Salutation;
 
 /**
  * CustomerOrderShippingAddress Model
@@ -34,7 +35,7 @@ class CustomerOrderShippingAddress extends CustomerOrderShippingAddressModel
         'fax' => '',
         'eMail' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
@@ -63,10 +64,10 @@ class CustomerOrderShippingAddress extends CustomerOrderShippingAddressModel
             $obj->additionalAddressLine2
         ];
 
-        $extraAddressLines = array_values(array_filter($extraAddressLines, function ($value) {
-            return strlen(trim($value)) > 0;
+        $extraAddressLines = \array_values(\array_filter($extraAddressLines, function ($value) {
+            return \strlen(\trim($value)) > 0;
         }));
 
-        return join("\r\n", $extraAddressLines);
+        return \join("\r\n", $extraAddressLines);
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Shopware\Utilities;
 
 use jtl\Connector\Core\Exception\LanguageException;
@@ -42,7 +43,7 @@ class TranslatableAttributes extends Attributes
         if (isset($this->attributes[$id])) {
             $attribute = $this->attributes[$id];
         } else {
-            $attribute = new $this->attributeClass;
+            $attribute = new $this->attributeClass();
             $attribute->setId(new Identity($id));
         }
 
@@ -61,7 +62,7 @@ class TranslatableAttributes extends Attributes
     public function addAttributeTranslation($id, $name, $value, $languageIso = "")
     {
         if ($attribute = $this->getAttributeByKey($id)) {
-            $attributeI18n = new $this->translatableClass;
+            $attributeI18n = new $this->translatableClass();
             $attributeI18n->setName($name);
             $attributeI18n->setValue((string)$value);
             $attributeI18n->setLanguageISO($languageIso);
@@ -80,7 +81,7 @@ class TranslatableAttributes extends Attributes
     {
         if (isset($translations)) {
             foreach ($translations as $localeName => $translation) {
-                $index = sprintf('__attribute_%s', Str::snake($attrName, '_'));
+                $index = \sprintf('__attribute_%s', Str::snake($attrName, '_'));
                 if (!isset($translation[$index])) {
                     continue;
                 }
@@ -103,13 +104,17 @@ class TranslatableAttributes extends Attributes
      * @param bool $nullUndefinedAttributes
      * @return bool
      */
-    public static function setAttribute(ConfigurationStruct $tSwAttribute, ModelEntity $swAttribute, array &$attributes, bool $nullUndefinedAttributes): bool
-    {
+    public static function setAttribute(
+        ConfigurationStruct $tSwAttribute,
+        ModelEntity $swAttribute,
+        array &$attributes,
+        bool $nullUndefinedAttributes
+    ): bool {
         if (!$tSwAttribute->isIdentifier()) {
-            $setter = sprintf('set%s', ucfirst(Str::camel($tSwAttribute->getColumnName())));
-            if (isset($attributes[$tSwAttribute->getColumnName()]) && method_exists($swAttribute, $setter)) {
+            $setter = \sprintf('set%s', \ucfirst(Str::camel($tSwAttribute->getColumnName())));
+            if (isset($attributes[$tSwAttribute->getColumnName()]) && \method_exists($swAttribute, $setter)) {
                 $value = $attributes[$tSwAttribute->getColumnName()];
-                if (in_array($tSwAttribute->getColumnType(), [TypeMapping::TYPE_DATE, TypeMapping::TYPE_DATETIME])) {
+                if (\in_array($tSwAttribute->getColumnType(), [TypeMapping::TYPE_DATE, TypeMapping::TYPE_DATETIME])) {
                     try {
                         $value = new \DateTime($value);
                     } catch (\Throwable $ex) {
@@ -121,7 +126,7 @@ class TranslatableAttributes extends Attributes
                 unset($attributes[$tSwAttribute->getColumnName()]);
 
                 return true;
-            } elseif ($nullUndefinedAttributes && method_exists($swAttribute, $setter)) {
+            } elseif ($nullUndefinedAttributes && \method_exists($swAttribute, $setter)) {
                 $swAttribute->{$setter}(null);
             }
         }

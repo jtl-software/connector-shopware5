@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\CrossSellingGroup as CrossSellingGroupModel;
+use jtl\Connector\Model\CrossSellingGroup as CrossSellingGroupModel;
 
 /**
  * CrossSellingGroup Model
@@ -14,8 +15,8 @@ use \jtl\Connector\Model\CrossSellingGroup as CrossSellingGroupModel;
  */
 class CrossSellingGroup extends CrossSellingGroupModel
 {
-    const RELATED = 'sw_related';
-    const SIMILAR = 'sw_similar';
+    public const RELATED = 'sw_related';
+    public const SIMILAR = 'sw_similar';
 
     protected $fields = array(
         'id' => 'id'
@@ -26,7 +27,7 @@ class CrossSellingGroup extends CrossSellingGroupModel
      */
     public function getTable()
     {
-        if (count($this->getI18ns()) > 0) {
+        if (\count($this->getI18ns()) > 0) {
             foreach ($this->getI18ns() as $i18n) {
                 if ($i18n->getName() === self::SIMILAR) {
                     return 's_articles_similar';
@@ -36,7 +37,7 @@ class CrossSellingGroup extends CrossSellingGroupModel
 
         return 's_articles_relationships';
     }
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

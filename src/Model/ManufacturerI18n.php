@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ManufacturerI18n as ManufacturerI18nModel;
+use jtl\Connector\Model\ManufacturerI18n as ManufacturerI18nModel;
 
 /**
  * ManufacturerI18n Model
@@ -22,7 +23,7 @@ class ManufacturerI18n extends ManufacturerI18nModel
         'metaKeywords' => 'metaKeywords',
         'titleTag' => 'metaTitle'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

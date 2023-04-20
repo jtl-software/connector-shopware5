@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Shopware\Utilities;
 
 /**
@@ -31,7 +32,7 @@ abstract class Attributes
      */
     public function getAttributes()
     {
-        return array_values($this->attributes);
+        return \array_values($this->attributes);
     }
 
     /**

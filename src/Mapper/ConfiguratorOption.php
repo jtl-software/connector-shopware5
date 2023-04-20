@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,20 +7,22 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
-use \Shopware\Components\Api\Exception as ApiException;
-use \Shopware\Models\Article\Configurator\Option as ConfiguratorOptionModel;
-use \jtl\Connector\ModelContainer\ProductContainer;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use Shopware\Components\Api\Exception as ApiException;
+use Shopware\Models\Article\Configurator\Option as ConfiguratorOptionModel;
+use jtl\Connector\ModelContainer\ProductContainer;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 
 class ConfiguratorOption extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Option')->find($id);
+        return (\intval($id) == 0)
+            ? null
+            : $this->Manager()->getRepository('Shopware\Models\Article\Configurator\Option')->find($id);
     }
 
     public function findOneBy(array $kv)
@@ -29,7 +32,7 @@ class ConfiguratorOption extends DataMapper
 
     public function findOneByName($name, $forceObject = false)
     {
-        $result = Shopware()->Db()->fetchOne(
+        $result = \Shopware()->Db()->fetchOne(
             'SELECT id FROM s_article_configurator_options WHERE name = ?',
             array($name)
         );
@@ -43,8 +46,8 @@ class ConfiguratorOption extends DataMapper
 
     public function save(array $data, $namespace = '\Shopware\Models\Article\Configurator\Option')
     {
-        Logger::write(print_r($data, 1), Logger::DEBUG, 'database');
-        
+        Logger::write(\print_r($data, 1), Logger::DEBUG, 'database');
+
         try {
             if (!$data['id']) {
                 return $this->create($data);
@@ -124,15 +127,15 @@ class ConfiguratorOption extends DataMapper
         $configuratorGroup = $this->find($id);
 
         if (!$configuratorGroup) {
-            throw new ApiException\NotFoundException(sprintf('Configurator Group by id (%s) not found', $id));
+            throw new ApiException\NotFoundException(\sprintf('Configurator Group by id (%s) not found', $id));
         }
 
-        $locale = LanguageUtil::map(null, null, $iso);
+        $locale   = LanguageUtil::map(null, null, $iso);
         $language = LocaleUtil::extractLanguageIsoFromLocale($locale);
 
         $translationService = ShopUtil::translationService();
-        $shopMapper = Mmc::getMapper('Shop');
-        $shops = $shopMapper->findByLanguageIso($language);
+        $shopMapper         = Mmc::getMapper('Shop');
+        $shops              = $shopMapper->findByLanguageIso($language);
 
         foreach ($shops as $shop) {
             $translationService->delete($shop->getId(), 'configuratoroption', $id);
@@ -148,7 +151,9 @@ class ConfiguratorOption extends DataMapper
     }
 
     /*
-    public function prepareData(ProductContainer $container, ProductVariation $productVariation, $productId, $groupId, array &$data)
+    public function prepareData(
+        ProductContainer $container, ProductVariation $productVariation, $productId, $groupId, array &$data
+    )
     {
         if ($data === null) {
             $data = array();
@@ -170,8 +175,12 @@ class ConfiguratorOption extends DataMapper
                 foreach ($container->getProductVariationValueI18ns() as $productVariationValueI18n) {
 
                     // find default shop language to create a base variation
-                    if ($productVariationValue->getId()->getHost() == $productVariationValueI18n->getProductVariationValueId()->getHost()
-                        && $productVariationValueI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    if (
+                        $productVariationValue->getId()->getHost()
+                            == $productVariationValueI18n->getProductVariationValueId()->getHost()
+                        && $productVariationValueI18n->getLanguageISO()
+                            === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())
+                    ) {
                         $params = DataConverter::toArray(DataModel::map(false, null, $productVariationValue));
                         $params['name'] = $productVariationValueI18n->getName();
                         $params['position'] = 1;
@@ -191,63 +200,103 @@ class ConfiguratorOption extends DataMapper
                 }
 
                 if (!$isAvailable) {
-                    Logger::write('Product variation value (Host: ' . $productVariationValue->getId()->getHost() . ') could not be created', Logger::WARNING, 'database');
-
+                    Logger::write(
+                        'Product variation value (Host: '
+                            . $productVariationValue->getId()->getHost() .
+                            ') could not be created',
+                        Logger::WARNING,
+                        'database'
+                    );
                     continue;
                 }
 
-                $data['configuratorSet']['options'][$optionId] = array_merge($data['configuratorSet']['options'][$optionId],
-                    DataConverter::toArray(DataModel::map(false, null, $productVariationValue)));
+                $data['configuratorSet']['options'][$optionId] = array_merge(
+                    $data['configuratorSet']['options'][$optionId],
+                    DataConverter::toArray(DataModel::map(false, null, $productVariationValue))
+                );
 
                 $data['configuratorSet']['options'][$optionId]['id'] = $optionId;
                 $data['configuratorSet']['options'][$optionId]['articleId'] = $productId;
 
                 // find all non defaut languages to create a translation model
                 foreach ($container->getProductVariationValueI18ns() as $productVariationValueI18n) {
-                    if ($productVariationValue->getId()->getHost() == $productVariationValueI18n->getProductVariationValueId()->getHost()
-                        && $productVariationValueI18n->getLanguageISO() !== LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
+                    if (
+                        $productVariationValue->getId()->getHost() == $productVariationValueI18n
+                            ->getProductVariationValueId()->getHost()
+                        && $productVariationValueI18n->getLanguageISO() !== LanguageUtil::map(
+                            Shopware()->Shop()->getLocale()->getLocale()
+                        )
+                    ) {
                         $localeId = null;
                         foreach ($shops as $shop) {
-                            if (LanguageUtil::map($shop['locale']['locale']) === $productVariationValueI18n->getLanguageISO()) {
+                            if (
+                                LanguageUtil::map($shop['locale']['locale'])
+                                === $productVariationValueI18n->getLanguageISO()
+                            ) {
                                 $localeId = $shop['locale']['id'];
                             }
                         }
 
                         if ($localeId === null) {
-                            Logger::write('Cannot find any shop localeId with locale (' . $productVariationI18n->getLanguageISO() . ')', Logger::WARNING, 'database');
+                            Logger::write('Cannot find any shop localeId with locale ('
+                                . $productVariationI18n->getLanguageISO() .
+                                ')',
+                                Logger::WARNING,
+                                'database'
+                            );
 
                             continue;
                         }
 
                         $this->createTranslatation($optionId, $localeId, $productVariationValueI18n->getName());
 
+                        //phpcs:ignore Generic.Files.LineLength.TooLong
                         $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()] = array();
+                        //phpcs:ignore Generic.Files.LineLength.TooLong
                         $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()]['name'] = $productVariationValueI18n->getName();
+                        //phpcs:ignore Generic.Files.LineLength.TooLong
                         $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()]['optionId'] = $optionId;
                     }
                 }
             } else { // Only update existing variation values
 
-                list($productId, $groupId, $optionId) = explode('_', $productVariationValue->getId()->getEndpoint());
+                list($productId, $groupId, $optionId) = explode(
+                    '_',
+                    $productVariationValue->getId()->getEndpoint()
+                );
 
-                $data['configuratorSet']['options'][$optionId] = DataConverter::toArray(DataModel::map(false, null, $productVariationValue));
+                $data['configuratorSet']['options'][$optionId] = DataConverter::toArray(DataModel::map(
+                    false,
+                    null,
+                    $productVariationValue
+                ));
                 $data['configuratorSet']['options'][$optionId]['id'] = $optionId;
                 $data['configuratorSet']['options'][$optionId]['articleId'] = $productId;
                 $data['configuratorSet']['options'][$optionId]['groupId'] = $groupId;
 
                 foreach ($container->getProductVariationValueI18ns() as $productVariationValueI18n) {
-                    if ($productVariationValue->getId()->getEndpoint() == $productVariationValueI18n->getProductVariationValueId()->getEndpoint()) {
+                    if (
+                        $productVariationValue->getId()->getEndpoint()
+                        == $productVariationValueI18n->getProductVariationValueId()->getEndpoint()
+                    ) {
 
                         // Update default language name on the current base variation
-                        if ($productVariationValueI18n->getLanguageISO() === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())) {
-                            $data['configuratorSet']['options'][$optionId]['name'] = $productVariationValueI18n->getName();
+                        if (
+                            $productVariationValueI18n->getLanguageISO()
+                            === LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale())
+                        ) {
+                            $data['configuratorSet']['options'][$optionId]['name']
+                                = $productVariationValueI18n->getName();
                         } else {
 
                             // New language translation value
                             if (empty($productVariationValueI18n->getProductVariationValueId()->getEndpoint())) {
                                 $localeId = null;
                                 foreach ($shops as $shop) {
-                                    if (LanguageUtil::map($shop['locale']['locale']) === $productVariationValueI18n->getLanguageISO()) {
+                                    if (
+                                        LanguageUtil::map($shop['locale']['locale'])
+                                        === $productVariationValueI18n->getLanguageISO()
+                                    ) {
                                         $localeId = $shop['locale']['id'];
                                     }
                                 }
@@ -255,8 +304,11 @@ class ConfiguratorOption extends DataMapper
                                 $this->createTranslatation($optionId, $localeId, $productVariationValueI18n->getName());
                             }
 
+                            //phpcs:ignore Generic.Files.LineLength.TooLong
                             $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()] = array();
+                            //phpcs:ignore Generic.Files.LineLength.TooLong
                             $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()]['name'] = $productVariationValueI18n->getName();
+                            //phpcs:ignore Generic.Files.LineLength.TooLong
                             $data['configuratorSet']['options'][$optionId]['translations'][$productVariationValueI18n->getLanguageISO()]['optionId'] = $optionId;
                         }
                     }

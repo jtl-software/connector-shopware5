@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\Product2Category as Product2CategoryModel;
+use jtl\Connector\Model\Product2Category as Product2CategoryModel;
 
 /**
  * Product2Category Model
@@ -19,7 +20,7 @@ class Product2Category extends Product2CategoryModel
         'categoryId' => 'id',
         'productId' => 'articleId'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

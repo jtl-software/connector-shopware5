@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
+use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 
 /**
  * CustomerOrder Model
@@ -35,7 +36,7 @@ class CustomerOrder extends CustomerOrderModel
         'totalSum' => 'invoiceAmountNet',
         'totalSumGross' => 'invoiceAmount'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

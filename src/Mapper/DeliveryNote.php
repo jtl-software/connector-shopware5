@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -9,23 +10,26 @@ namespace jtl\Connector\Shopware\Mapper;
 use Doctrine\ORM\EntityNotFoundException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Formatter\ExceptionFormatter;
-use \Shopware\Components\Api\Exception as ApiException;
-use \jtl\Connector\Model\DeliveryNote as DeliveryNoteModel;
-use \Shopware\Models\Order\Document\Document as DocumentSW;
-use \jtl\Connector\Model\Identity;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use Shopware\Components\Api\Exception as ApiException;
+use jtl\Connector\Model\DeliveryNote as DeliveryNoteModel;
+use Shopware\Models\Order\Document\Document as DocumentSW;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 
 class DeliveryNote extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Order\Document\Document')->find($id);
+        return (\intval($id) == 0)
+            ? null
+            : $this->Manager()->getRepository('Shopware\Models\Order\Document\Document')->find($id);
     }
 
     public function findType($name)
     {
-        return $this->Manager()->getRepository('Shopware\Models\Order\Document\Type')->findOneBy(array('name' => $name));
+        return $this->Manager()->getRepository('Shopware\Models\Order\Document\Type')
+            ->findOneBy(array('name' => $name));
     }
 
     public function findNewType($name)
@@ -39,7 +43,8 @@ class DeliveryNote extends DataMapper
             'documents'
         ))
             //->from('Shopware\Models\Order\Document\Document', 'documents')
-            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link', \Doctrine\ORM\Query\Expr\Join::WITH, 'documents.id = link.endpointId AND link.type = 29')
+            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink',
+            // 'link', \Doctrine\ORM\Query\Expr\Join::WITH, 'documents.id = link.endpointId AND link.type = 29')
             ->from('jtl\Connector\Shopware\Model\Linker\DeliveryNote', 'documents')
             ->leftJoin('documents.linker', 'linker')
             ->where('documents.type = 2')
@@ -56,7 +61,7 @@ class DeliveryNote extends DataMapper
 
         //return $count ? count($res) : $res;
 
-        return $count ? ($paginator->count()) : iterator_to_array($paginator);
+        return $count ? ($paginator->count()) : \iterator_to_array($paginator);
     }
 
     public function fetchCount($limit = 100)
@@ -83,12 +88,12 @@ class DeliveryNote extends DataMapper
 
         try {
             $endpointId = 0;
-            $hostId = $deliveryNote->getId()->getHost();
+            $hostId     = $deliveryNote->getId()->getHost();
             $this->prepareDeliveryNoteAssociatedData($deliveryNote, $endpointId);
 
             // Result
             $result->setId(new Identity($endpointId, $hostId));
-        } catch(EntityNotFoundException $ex){
+        } catch (EntityNotFoundException $ex) {
             if (ShopUtil::isCustomerNotFoundException($ex->getMessage())) {
                 Logger::write($ex->getMessage(), Logger::ERROR, Logger::CHANNEL_DATABASE);
             } else {
@@ -101,7 +106,9 @@ class DeliveryNote extends DataMapper
 
     protected function deleteDeliveryNoteData(DeliveryNoteModel $deliveryNote)
     {
-        $deliveryNoteId = (strlen($deliveryNote->getId()->getEndpoint()) > 0) ? (int)$deliveryNote->getId()->getEndpoint() : null;
+        $deliveryNoteId = (\strlen($deliveryNote->getId()->getEndpoint()) > 0)
+            ? (int)$deliveryNote->getId()->getEndpoint()
+            : null;
 
         if ($deliveryNoteId !== null && $deliveryNoteId > 0) {
             /*
@@ -110,7 +117,7 @@ class DeliveryNote extends DataMapper
             */
 
             /** @var \Doctrine\DBAL\Connection $connection */
-            $connection = Shopware()->Container()->get('dbal_connection');
+            $connection   = \Shopware()->Container()->get('dbal_connection');
             $queryBuilder = $connection->createQueryBuilder();
 
             $documentHash = $queryBuilder->select('hash')
@@ -126,26 +133,29 @@ class DeliveryNote extends DataMapper
                 ->setParameter('documentId', $deliveryNoteId)
                 ->execute();
 
-            $sw = Shopware();
+            $sw           = \Shopware();
             $documentPath = '';
-            if (version_compare(ShopUtil::version(), '5.3.0', '<')) {
-                $documentPath = $sw->DocPath() . 'files/documents' . DIRECTORY_SEPARATOR;
-            } elseif (version_compare(ShopUtil::version(), '5.4.0', '<')) {
-                $documentPath = rtrim($sw->DocPath('files_documents'), '/') . DIRECTORY_SEPARATOR;
+            if (\version_compare(ShopUtil::version(), '5.3.0', '<')) {
+                $documentPath = $sw->DocPath() . 'files/documents' . \DIRECTORY_SEPARATOR;
+            } elseif (\version_compare(ShopUtil::version(), '5.4.0', '<')) {
+                $documentPath = \rtrim($sw->DocPath('files_documents'), '/') . \DIRECTORY_SEPARATOR;
             } else {
                 try {
-                    $documentPath = rtrim($sw->Container()->getParameter('shopware.app.documentsdir'), '/') . DIRECTORY_SEPARATOR;
+                    $documentPath = \rtrim(
+                        $sw->Container()->getParameter('shopware.app.documentsdir'),
+                        '/'
+                    ) . \DIRECTORY_SEPARATOR;
                 } catch (\Exception $e) {
                     return;
                 }
             }
 
             $file = $documentPath . $documentHash . '.pdf';
-            if (!is_file($file)) {
+            if (!\is_file($file)) {
                 return;
             }
 
-            unlink($file);
+            \unlink($file);
 
             /*
             $this->Manager()->remove($deliveryNoteSW);
@@ -155,11 +165,13 @@ class DeliveryNote extends DataMapper
         }
     }
 
-    //protected function prepareDeliveryNoteAssociatedData(DeliveryNoteModel $deliveryNote, DocumentSW &$deliveryNoteSW = null)
+    //protected function prepareDeliveryNoteAssociatedData(
+    //DeliveryNoteModel $deliveryNote, DocumentSW &$deliveryNoteSW = null)
     protected function prepareDeliveryNoteAssociatedData(DeliveryNoteModel &$deliveryNote, &$endpointId)
     {
         /*
-        $deliveryNoteId = (strlen($deliveryNote->getId()->getEndpoint()) > 0) ? (int) $deliveryNote->getId()->getEndpoint() : null;
+        $deliveryNoteId = (strlen($deliveryNote->getId()->getEndpoint()) > 0)
+        ? (int) $deliveryNote->getId()->getEndpoint() : null;
 
         if ($deliveryNoteId !== null && $deliveryNoteId > 0) {
             $deliveryNoteSW = $this->find($deliveryNoteId);
@@ -171,37 +183,36 @@ class DeliveryNote extends DataMapper
         /** @var \Shopware\Models\Order\Order $orderSW */
         $orderSW = $orderMapper->find($deliveryNote->getCustomerOrderId()->getEndpoint());
 
-        if (is_null($orderSW)) {
+        if (\is_null($orderSW)) {
             return;
         }
 
         $deliveryNote->getCustomerOrderId()->setEndpoint($orderSW->getId());
 
-        $trackingCodes = explode(',', $orderSW->getTrackingCode());
+        $trackingCodes = \explode(',', $orderSW->getTrackingCode());
 
         foreach ($deliveryNote->getTrackingLists() as $trackingList) {
-            $trackingCodes = array_merge($trackingCodes, array_map(function (string $trackingCode) {
+            $trackingCodes = \array_merge($trackingCodes, \array_map(function (string $trackingCode) {
                 return $trackingCode;
             }, $trackingList->getCodes()));
         }
 
-        $trackingCodes = array_values(array_unique(array_filter($trackingCodes, function (string $trackingCode) {
-            return !empty(trim($trackingCode));
+        $trackingCodes = \array_values(\array_unique(\array_filter($trackingCodes, function (string $trackingCode) {
+            return !empty(\trim($trackingCode));
         })));
 
-        if (count($trackingCodes) > 0) {
-            $orderSW->setTrackingCode(join(',', $trackingCodes));
+        if (\count($trackingCodes) > 0) {
+            $orderSW->setTrackingCode(\join(',', $trackingCodes));
             $this->Manager()->persist($orderSW);
             $this->Manager()->flush($orderSW);
         }
 
-        $createDeliveryNote = Application()->getConfig()->get('delivery_note.push.create_document', true);
+        $createDeliveryNote = \Application()->getConfig()->get('delivery_note.push.create_document', true);
 
         if ($createDeliveryNote === true) {
             /** @var \Shopware\Models\Document\Document $document */
-            $document = Shopware()->Models()->getRepository(\Shopware\Models\Document\Document::class)->find(2);
-            if (!is_null($document)) {
-
+            $document = \Shopware()->Models()->getRepository(\Shopware\Models\Document\Document::class)->find(2);
+            if (!\is_null($document)) {
                 try {
                     // Create order document
                     $document = \Shopware_Components_Document::initDocument(
@@ -230,9 +241,9 @@ class DeliveryNote extends DataMapper
             }
         }
 
-        if (version_compare(ShopUtil::version(), '5.2.25', '<')) {
+        if (\version_compare(ShopUtil::version(), '5.2.25', '<')) {
             try {
-                $prop = new \ReflectionProperty(get_class($document), '_documentRowID');
+                $prop = new \ReflectionProperty(\get_class($document), '_documentRowID');
                 $prop->setAccessible(true);
                 $endpointId = $prop->getValue($document);
             } catch (\Exception $e) {

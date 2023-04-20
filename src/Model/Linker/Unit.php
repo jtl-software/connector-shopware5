@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -7,8 +8,8 @@
 namespace jtl\Connector\Shopware\Model\Linker;
 
 use Doctrine\ORM\Mapping as ORM,
-    Doctrine\Common\Collections\ArrayCollection;
 
+    Doctrine\Common\Collections\ArrayCollection;
 /**
  * Unit Model
  *
@@ -27,21 +28,23 @@ class Unit
      * @ORM\GeneratedValue(strategy="IDENTITY")
      */
     protected $id;
-
-    /**
+/**
      * @var integer $hostId
      *
      * @ORM\Column(name="host_id", type="integer", nullable=false)
      */
     protected $hostId;
-
-    /**
-     * @ORM\OneToMany(targetEntity="jtl\Connector\Shopware\Model\Linker\UnitI18n", mappedBy="unit", orphanRemoval=true, cascade={"persist"})
+/**
+     * @ORM\OneToMany(
+     *  targetEntity="jtl\Connector\Shopware\Model\Linker\UnitI18n",
+     *  mappedBy="unit",
+     *  orphanRemoval=true,
+     *  cascade={"persist"}
+     * )
      * @var ArrayCollection
      */
     protected $i18ns;
-
-    /**
+/**
      * Class constructor. Initials the array collections.
      */
     public function __construct()
@@ -79,7 +82,7 @@ class Unit
      */
     public function setHostId($hostId)
     {
-        $this->hostId = (int) $hostId;        
+        $this->hostId = (int) $hostId;
         return $this;
     }
 

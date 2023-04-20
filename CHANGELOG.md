@@ -3,6 +3,10 @@
 ## unreleased
 - CO-2218 - fix order status constants
 
+## 2.18.0 _2023-03-14_
+- CO-2271 - fix language mapping
+- CO-2161 - fix duplicate languages on product attributes
+
 ## 2.17.1 _2022-12-13_
 - CO-2076 - fix Customer creation date is null
 - CO-2237 - Fix Plugin Manager Guzzle Error with dev Version

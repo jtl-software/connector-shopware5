@@ -30,14 +30,14 @@ class HtmlTest extends TestCase
     {
         return [
             [
-                '<img id="111" src="{media path=\'media/image/Teaser-Banner.jpg\'}" srcThis="" thisSrc="" sRc="Bar" /> foo bar',
+                '<img id="111" src="{media path=\'media/image/Teaser-Banner.jpg\'}" srcThis="" thisSrc="" sRc="Bar" /> foo bar', //phpcs:ignore Generic.Files.LineLength.TooLong
                 "http://foobar.test/",
-                '<img id="111" src="http://foobar.test/media/image/Teaser-Banner.jpg" srcThis="" thisSrc="" sRc="Bar" /> foo bar',
+                '<img id="111" src="http://foobar.test/media/image/Teaser-Banner.jpg" srcThis="" thisSrc="" sRc="Bar" /> foo bar', //phpcs:ignore Generic.Files.LineLength.TooLong
             ],
             [
-                '<img id="111" src="{media path=\'media/image/Teaser-Banner.jpg\'}" srcThis="" thisSrc="" sRc="Bar" /> foo bar',
+                '<img id="111" src="{media path=\'media/image/Teaser-Banner.jpg\'}" srcThis="" thisSrc="" sRc="Bar" /> foo bar', //phpcs:ignore Generic.Files.LineLength.TooLong
                 "http://foobar.test/baseurl/",
-                '<img id="111" src="http://foobar.test/baseurl/media/image/Teaser-Banner.jpg" srcThis="" thisSrc="" sRc="Bar" /> foo bar',
+                '<img id="111" src="http://foobar.test/baseurl/media/image/Teaser-Banner.jpg" srcThis="" thisSrc="" sRc="Bar" /> foo bar', //phpcs:ignore Generic.Files.LineLength.TooLong
             ],
             [
                 '<div id="111" src="{media path=\'media/image/Teaser-Banner.jpg\'}"',
@@ -57,9 +57,9 @@ class HtmlTest extends TestCase
                  <img src="http://foo.test/media/image/Teaser-Banner.jpg" srcThis="" thisSrc="" sRc="Bar" />',
             ],
             [
-                "<img src='{media path='media/image/Teaser-Banner.jpg'}' srcThis=\"\" thisSrc=\"\" sRc='{Bar}' /> foo bar",
+                "<img src='{media path='media/image/Teaser-Banner.jpg'}' srcThis=\"\" thisSrc=\"\" sRc='{Bar}' /> foo bar", //phpcs:ignore Generic.Files.LineLength.TooLong
                 "http://foobar.test/",
-                '<img src=\'http://foobar.test/media/image/Teaser-Banner.jpg\' srcThis="" thisSrc="" sRc=\'{Bar}\' /> foo bar',
+                '<img src=\'http://foobar.test/media/image/Teaser-Banner.jpg\' srcThis="" thisSrc="" sRc=\'{Bar}\' /> foo bar', //phpcs:ignore Generic.Files.LineLength.TooLong
             ]
         ];
     }

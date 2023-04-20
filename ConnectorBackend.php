@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 /**
  * @ORM\Embedded
  */
+//phpcs:ignore
 class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Action implements CSRFWhitelistAware
 {
     /**
@@ -56,10 +57,10 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
     public function checkLogsAction(): void
     {
         $message = [];
-        $status = 200;
+        $status  = 200;
 
         if ($this->hasLogFiles() === false) {
-            $status = 404;
+            $status             = 404;
             $message['message'] = 'No log files found.';
         }
 
@@ -71,9 +72,12 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
      */
     public function downloadLogsAction(): void
     {
-        $zipFilepath = tempnam(sys_get_temp_dir(), 'jtl-connector-logs');
-        $noLogFilesMessage = sprintf('There are no log files in %s. Cannot create zip archive.', $this->getLogDir());
-        $response = new Response($noLogFilesMessage, 404);
+        $zipFilepath       = tempnam(sys_get_temp_dir(), 'jtl-connector-logs');
+        $noLogFilesMessage = sprintf(
+            'There are no log files in %s. Cannot create zip archive.',
+            $this->getLogDir()
+        );
+        $response          = new Response($noLogFilesMessage, 404);
 
         if ($this->hasLogFiles()) {
             $this->compressLogFiles($zipFilepath);
@@ -83,7 +87,7 @@ class Shopware_Controllers_Backend_Jtlconnector extends Enlight_Controller_Actio
 
         $response->send();
 
-        if(is_file($zipFilepath)) {
+        if (is_file($zipFilepath)) {
             unlink($zipFilepath);
         }
     }

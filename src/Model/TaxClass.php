@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\TaxClass as TaxClassModel;
+use jtl\Connector\Model\TaxClass as TaxClassModel;
 
 /**
  * TaxClass Model
@@ -19,7 +20,7 @@ class TaxClass extends TaxClassModel
         'name' => '',
         'isDefault' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()
