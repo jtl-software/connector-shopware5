@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductSpecialPriceItem as ProductSpecialPriceItemModel;
+use jtl\Connector\Model\ProductSpecialPriceItem as ProductSpecialPriceItemModel;
 
 /**
  * ProductSpecialPriceItem Model
@@ -19,7 +20,7 @@ class ProductSpecialPriceItem extends ProductSpecialPriceItemModel
         'productSpecialPriceId' => '',
         'priceNet' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

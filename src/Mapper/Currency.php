@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -18,11 +19,11 @@ class Currency extends DataMapper
         if ((int) $id == 0) {
             return null;
         }
-        
+
         if ($array_hydration) {
             return $this->Manager()->createQueryBuilder()->select(
-                    'currency'
-                )
+                'currency'
+            )
                 ->from('Shopware\Models\Shop\Currency', 'currency')
                 ->where('currency.id = :id')
                 ->setParameter('id', $id)
@@ -40,15 +41,15 @@ class Currency extends DataMapper
     public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
-                'currency'
-            )
+            'currency'
+        )
             ->from('Shopware\Models\Shop\Currency', 'currency')
             ->setMaxResults($limit)
             ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
         $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
-        return $count ? $paginator->count() : iterator_to_array($paginator);
+        return $count ? $paginator->count() : \iterator_to_array($paginator);
     }
 
     public function fetchCount($limit = 100)
@@ -71,7 +72,7 @@ class Currency extends DataMapper
     public function save(CurrencyModel $currency)
     {
         $currencySW = null;
-        $result = $currency;
+        $result     = $currency;
 
         $this->prepareCurrencyAssociatedData($currency, $currencySW);
 
@@ -86,8 +87,8 @@ class Currency extends DataMapper
 
     protected function deleteCurrencyData(CurrencyModel $currency)
     {
-        if (strlen($currency->getIso()) > 0) {
-            $currencySW = $this->findOneBy(array('currency' => strtoupper($currency->getIso())));
+        if (\strlen($currency->getIso()) > 0) {
+            $currencySW = $this->findOneBy(array('currency' => \strtoupper($currency->getIso())));
             if ($currencySW !== null) {
                 $this->Manager()->remove($currencySW);
                 $this->Manager()->flush($currencySW);
@@ -97,16 +98,16 @@ class Currency extends DataMapper
 
     protected function prepareCurrencyAssociatedData(CurrencyModel $currency, CurrencySW &$currencySW = null)
     {
-        if (strlen($currency->getIso()) > 0) {
-            $currencySW = $this->findOneBy(array('currency' => strtoupper($currency->getIso())));
+        if (\strlen($currency->getIso()) > 0) {
+            $currencySW = $this->findOneBy(array('currency' => \strtoupper($currency->getIso())));
         }
 
         if ($currencySW === null) {
-            $currencySW = new CurrencySW;
+            $currencySW = new CurrencySW();
         }
 
         $symPos = $currency->getHasCurrencySignBeforeValue() ? 32 : 16;
-        $currencySW->setCurrency(strtoupper($currency->getIso()))
+        $currencySW->setCurrency(\strtoupper($currency->getIso()))
             ->setName($currency->getName())
             ->setDefault((int) $currency->getIsDefault())
             ->setFactor($currency->getFactor())

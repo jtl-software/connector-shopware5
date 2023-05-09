@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ConfigItem as ConfigItemModel;
+use jtl\Connector\Model\ConfigItem as ConfigItemModel;
 
 /**
  * ConfigItem Model
@@ -32,7 +33,7 @@ class ConfigItem extends ConfigItemModel
         'sort' => '',
         'vat' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -24,15 +25,13 @@ class SpecificLinker
      * @ORM\Column(name="host_id", type="integer", nullable=false)
      */
     protected $hostId;
-
-    /**
+/**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\Specific", inversedBy="linker")
      * @ORM\JoinColumn(name="specific_id", referencedColumnName="id")
      * @ORM\Id
      */
     protected $specific;
-
-    /**
+/**
      * Gets the value of specific.
      *
      * @return string
@@ -52,7 +51,6 @@ class SpecificLinker
     public function setSpecific(Specific $specific)
     {
         $this->specific = $specific;
-
         return $this;
     }
 
@@ -76,7 +74,6 @@ class SpecificLinker
     public function setHostId($hostId)
     {
         $this->hostId = $hostId;
-
         return $this;
     }
 }

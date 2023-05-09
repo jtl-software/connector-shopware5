@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Immanuel Klinkenberg <immanuel.klinkenberg@jtl-software.com>
  * @copyright 2010-2018 JTL-Software GmbH
@@ -37,11 +38,11 @@ class I18n
      */
     public static function findByLanguageIso(string $languageIso, ...$i18ns)
     {
-        if (count($i18ns) > 0) {
+        if (\count($i18ns) > 0) {
             $isoGetter = 'getLanguageISO';
 
             foreach ($i18ns as $i18n) {
-                if (!method_exists($i18n, $isoGetter)) {
+                if (!\method_exists($i18n, $isoGetter)) {
                     throw new \RuntimeException('Method getLanguageISO does not exist!');
                 }
 
@@ -50,7 +51,7 @@ class I18n
                 }
             }
 
-            return reset($i18ns);
+            return \reset($i18ns);
         }
 
         return null;

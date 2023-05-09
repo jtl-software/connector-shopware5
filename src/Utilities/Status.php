@@ -1,12 +1,13 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Utilities
  */
+
 namespace jtl\Connector\Shopware\Utilities;
 
-use \jtl\Connector\Model\CustomerOrder;
-
+use jtl\Connector\Model\CustomerOrder;
 
 final class Status
 {

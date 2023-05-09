@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -24,15 +25,13 @@ class DeliveryNoteLinker
      * @ORM\Column(name="host_id", type="integer", nullable=false)
      */
     protected $hostId;
-
-    /**
+/**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\DeliveryNote", inversedBy="linker")
      * @ORM\JoinColumn(name="note_id", referencedColumnName="id")
      * @ORM\Id
      */
     protected $note;
-
-    /**
+/**
      * Gets the value of note.
      *
      * @return string
@@ -52,7 +51,6 @@ class DeliveryNoteLinker
     public function setNote(DeliveryNote $note)
     {
         $this->note = $note;
-
         return $this;
     }
 
@@ -76,7 +74,6 @@ class DeliveryNoteLinker
     public function setHostId($hostId)
     {
         $this->hostId = $hostId;
-
         return $this;
     }
 }

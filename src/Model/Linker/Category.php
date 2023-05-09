@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -18,19 +19,15 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Category extends \Shopware\Models\Category\Category
 {
-
     /**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\CategoryMapping", mappedBy="category")
      **/
     protected $categoryMapping;
-
-    /**
+/**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\CategoryLinker", mappedBy="category")
      **/
     protected $linker;
-
-
-    /**
+/**
      * Gets the value of categoryMapping.
      *
      * @return CategoryMapping
@@ -71,7 +68,6 @@ class Category extends \Shopware\Models\Category\Category
     protected function setLinker(CategoryLinker $linker)
     {
         $this->linker = $linker;
-
         return $this;
     }
 }

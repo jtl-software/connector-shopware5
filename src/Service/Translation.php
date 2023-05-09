@@ -1,4 +1,5 @@
-<?php
+<?php //phpcs:ignore PSR1.Files.SideEffects.FoundWithSymbols
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Utilities

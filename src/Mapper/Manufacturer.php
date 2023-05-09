@@ -1,33 +1,32 @@
 <?php
 
-/**
- * @copyright 2010-2013 JTL-Software GmbH
- * @package   jtl\Connector\Shopware\Controller
- */
+/** @noinspection ReturnTypeCanBeDeclaredInspection */
+
+/** @noinspection PhpMissingReturnTypeInspection */
+
+/** @noinspection PhpMissingParamTypeInspection */
+
+/** @noinspection PhpIllegalPsrClassPathInspection */
+
+declare(strict_types=1);
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use Doctrine\ORM\AbstractQuery;
-use Doctrine\ORM\Exception\ORMException;
-use Doctrine\ORM\OptimisticLockException;
-use Doctrine\ORM\Tools\Pagination\Paginator;
-use Doctrine\ORM\TransactionRequiredException;
-use jtl\Connector\Core\Exception\LanguageException;
-use jtl\Connector\Model\Manufacturer as ManufacturerModel;
-use Shopware\Components\Api\Exception as ApiException;
-use jtl\Connector\Model\Identity;
-use Shopware\Models\Article\Supplier as ManufacturerSW;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Model\Identity;
+use jtl\Connector\Model\Manufacturer as ManufacturerModel;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
+use Shopware\Components\Api\Exception as ApiException;
+use Shopware\Models\Article\Supplier as ManufacturerSW;
 
 class Manufacturer extends DataMapper
 {
     /**
      * @param array $kv
      *
-     * @return mixed|object|null
+     * @return object|\Shopware\Models\Article\Supplier|null
      */
     public function findOneBy(array $kv)
     {
@@ -37,10 +36,10 @@ class Manufacturer extends DataMapper
     /**
      * @param int $limit
      *
-     * @return int
+     * @return array|int
      * @throws \Exception
      */
-    public function fetchCount(int $limit = 100): int
+    public function fetchCount($limit = 100)
     {
         return $this->findAll($limit, true);
     }
@@ -52,19 +51,15 @@ class Manufacturer extends DataMapper
      * @return array|int
      * @throws \Exception
      */
-    public function findAll(int $limit = 100, bool $count = false)
+    public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
             'supplier',
             'attribute'
         )
             //->from('Shopware\Models\Article\Supplier', 'supplier')
-            /*->leftJoin(
-                'jtl\Connector\Shopware\Model\ConnectorLink',
-                'link',
-                \Doctrine\ORM\Query\Expr\Join::WITH,
-                'supplier.id = link.endpointId AND link.type = 41'
-            )*/
+            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link',
+            // \Doctrine\ORM\Query\Expr\Join::WITH, 'supplier.id = link.endpointId AND link.type = 41')
                       ->from(__CLASS__, 'supplier')
                       ->leftJoin('supplier.linker', 'linker')
                       ->leftJoin('supplier.attribute', 'attribute')
@@ -74,11 +69,11 @@ class Manufacturer extends DataMapper
                       ->setFirstResult(0)
                       ->setMaxResults($limit)
             //->getQuery();
-                      ->getQuery()->setHydrationMode(AbstractQuery::HYDRATE_ARRAY);
+                      ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
 
-        $paginator = new Paginator($query, true);
+        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
 
-        if ($count === true) {
+        if ($count) {
             return $paginator->count();
         }
 
@@ -104,29 +99,34 @@ class Manufacturer extends DataMapper
     /**
      * @return \Zend_Db_Statement_Pdo
      * @throws \Zend_Db_Statement_Exception
+     * @noinspection PhpUnused
      */
-    public function deleteSuperfluous(): \Zend_Db_Statement_Pdo
+    public function deleteSuperfluous()
     {
-        return \Shopware()->Db()->query(
-            'DELETE s
+        return \Shopware()->Db()->query('DELETE s
                                         FROM s_articles_supplier s
                                         LEFT JOIN s_articles a ON a.supplierID = s.id
-                                        WHERE a.id IS NULL'
-        );
+                                        WHERE a.id IS NULL');
     }
 
     /**
-     * @param ManufacturerModel $manufacturer
+     * @param \jtl\Connector\Model\Manufacturer $manufacturer
      *
-     * @return ManufacturerModel
-     * @throws ApiException\ValidationException|LanguageException|ORMException|\RuntimeException|\Exception
+     * @return \jtl\Connector\Model\Manufacturer
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws \Shopware\Components\Api\Exception\ValidationException
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \RuntimeException
+     * @throws \Exception
      */
-    public function save(ManufacturerModel $manufacturer): ManufacturerModel
+    public function save(ManufacturerModel $manufacturer)
     {
         $manufacturerSW = null;
         $result         = new ManufacturerModel();
 
-        $manufacturerSW = $this->prepareManufacturerAssociatedData($manufacturer, $manufacturerSW);
+        $this->prepareManufacturerAssociatedData($manufacturer, $manufacturerSW);
         $this->prepareI18nAssociatedData($manufacturer, $manufacturerSW);
 
         $violations = $this->Manager()->validate($manufacturerSW);
@@ -139,80 +139,60 @@ class Manufacturer extends DataMapper
 
         $this->saveTranslatation($manufacturer, $manufacturerSW);
 
+        $manufacturerIdentity = $manufacturer->getId();
+        if ($manufacturerIdentity === null) {
+            throw new \RuntimeException('Identity for manufacturer is missing.');
+        }
         // Result
-        $result->setId(new Identity($manufacturerSW->getId(), $this->checkNull($manufacturer->getId())->getHost()));
+        $result->setId(new Identity($manufacturerSW->getId(), $manufacturerIdentity->getHost()));
 
         return $result;
     }
 
     /**
-     * @param ManufacturerModel   $manufacturer
-     * @param ManufacturerSW|null $manufacturerSW
+     * @param \jtl\Connector\Model\Manufacturer      $manufacturer
+     * @param \Shopware\Models\Article\Supplier|null $manufacturerSW
      *
-     * @return ManufacturerSW
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws TransactionRequiredException
+     * @return void
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws \RuntimeException
+     * @noinspection ReferencingObjectsInspection
      */
     protected function prepareManufacturerAssociatedData(
-        ManufacturerModel $manufacturer,
-        ?ManufacturerSW   $manufacturerSW = null
-    ): ManufacturerSW {
-        $manufacturerId = ($this->checkNull($manufacturer->getId())->getEndpoint() !== '')
-            ? (int)$this->checkNull($manufacturer->getId())->getEndpoint()
+        ManufacturerModel &$manufacturer,
+        ManufacturerSW    &$manufacturerSW = null
+    ) {
+        $manufacturerIdentity = $manufacturer->getId();
+        if ($manufacturerIdentity === null) {
+            throw new \RuntimeException('Identity for manufacturer is missing.');
+        }
+        $manufacturerId = ($manufacturerIdentity->getEndpoint() !== '')
+            ? (int)$manufacturerIdentity->getEndpoint()
             : null;
 
         if ($manufacturerId !== null && $manufacturerId > 0) {
-            $foundManufacturer = $this->find($manufacturerId);
-            if ($foundManufacturer instanceof ManufacturerSW) {
-                $manufacturerSW = $foundManufacturer;
-            }
+            $manufacturerSW =  $this->find($manufacturerId);
         }
 
-        if ($manufacturerSW === null) {
+        if ($manufacturerSW  === null) {
             $manufacturerSW = new ManufacturerSW();
         }
 
         $manufacturerSW->setName($manufacturer->getName())
                        ->setLink($manufacturer->getWebsiteUrl());
-
-        return $manufacturerSW;
     }
 
     /**
-     * @param mixed|null $value
-     *
-     * @return mixed
-     * @throws \RuntimeException
-     */
-    private function checkNull($value)
-    {
-        if ($value === null) {
-            throw new \RuntimeException('Value must not be null.');
-        }
-
-        return $value;
-    }
-
-    /**
-     * @param mixed $id
-     *
-     * @return mixed|object|ManufacturerSW|null
-     * @throws ORMException|TransactionRequiredException|OptimisticLockException
-     */
-    public function find($id)
-    {
-        return ((int)$id === 0) ? null : $this->Manager()->find(ManufacturerSW::class, $id);
-    }
-
-    /**
-     * @param ManufacturerModel $manufacturer
-     * @param ManufacturerSW    $manufacturerSW
+     * @param \jtl\Connector\Model\Manufacturer $manufacturer
+     * @param \Shopware\Models\Article\Supplier $manufacturerSW
      *
      * @return void
-     * @throws LanguageException
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @noinspection ReferencingObjectsInspection
      */
-    protected function prepareI18nAssociatedData(ManufacturerModel $manufacturer, ManufacturerSW $manufacturerSW): void
+    protected function prepareI18nAssociatedData(ManufacturerModel &$manufacturer, ManufacturerSW &$manufacturerSW)
     {
         foreach ($manufacturer->getI18ns() as $i18n) {
             if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO())) {
@@ -225,13 +205,15 @@ class Manufacturer extends DataMapper
     }
 
     /**
-     * @param ManufacturerModel $manufacturer
-     * @param ManufacturerSW    $manufacturerSW
+     * @param \jtl\Connector\Model\Manufacturer $manufacturer
+     * @param \Shopware\Models\Article\Supplier $manufacturerSW
      *
      * @return void
-     * @throws LanguageException|\Exception
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \Exception
+     * @noinspection SpellCheckingInspection
      */
-    public function saveTranslatation(ManufacturerModel $manufacturer, ManufacturerSW $manufacturerSW): void
+    public function saveTranslatation(ManufacturerModel $manufacturer, ManufacturerSW $manufacturerSW)
     {
         foreach ($manufacturer->getI18ns() as $i18n) {
             if (ShopUtil::isShopwareDefaultLanguage($i18n->getLanguageISO()) === false) {
@@ -262,37 +244,47 @@ class Manufacturer extends DataMapper
     }
 
     /**
-     * @param ManufacturerModel $manufacturer
+     * @param \jtl\Connector\Model\Manufacturer $manufacturer
      *
-     * @return ManufacturerModel
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws TransactionRequiredException
+     * @return \jtl\Connector\Model\Manufacturer
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws \RuntimeException
      */
-    public function delete(ManufacturerModel $manufacturer): ManufacturerModel
+    public function delete(ManufacturerModel $manufacturer)
     {
         $result = new ManufacturerModel();
 
         $this->deleteManufacturerData($manufacturer);
 
+        $manufacturerIdentity = $manufacturer->getId();
+        if ($manufacturerIdentity === null) {
+            throw new \RuntimeException('Identity for manufacturer is missing.');
+        }
         // Result
-        $result->setId(new Identity('', $this->checkNull($manufacturer->getId())->getHost()));
+        $result->setId(new Identity('', $manufacturerIdentity->getHost()));
 
         return $result;
     }
 
     /**
-     * @param ManufacturerModel $manufacturer
+     * @param \jtl\Connector\Model\Manufacturer $manufacturer
      *
      * @return void
-     * @throws ORMException
-     * @throws OptimisticLockException
-     * @throws TransactionRequiredException
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     * @throws \RuntimeException
      */
-    protected function deleteManufacturerData(ManufacturerModel $manufacturer): void
+    protected function deleteManufacturerData(ManufacturerModel $manufacturer)
     {
-        $manufacturerId = ($this->checkNull($manufacturer->getId())->getEndpoint() !== '')
-            ? (int)$this->checkNull($manufacturer->getId())->getEndpoint()
+        $manufacturerIdentity = $manufacturer->getId();
+        if ($manufacturerIdentity === null) {
+            throw new \RuntimeException('Identity for manufacturer is missing.');
+        }
+        $manufacturerId = ($manufacturerIdentity->getEndpoint() !== '')
+            ? (int)$manufacturerIdentity->getEndpoint()
             : null;
 
         if ($manufacturerId !== null && $manufacturerId > 0) {
@@ -307,11 +299,24 @@ class Manufacturer extends DataMapper
     }
 
     /**
-     * @param ManufacturerSW $manufacturerSW
+     * @param scalar $id
+     *
+     * @return object|\Shopware\Models\Article\Supplier|null
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    public function find($id)
+    {
+        return ((int)$id === 0) ? null : $this->Manager()->find(ManufacturerSW::class, $id);
+    }
+
+    /**
+     * @param \Shopware\Models\Article\Supplier $manufacturerSW
      *
      * @return void
      */
-    public function deleteTranslation(ManufacturerSW $manufacturerSW): void
+    public function deleteTranslation(ManufacturerSW $manufacturerSW)
     {
         ShopUtil::translationService()->deleteAll('supplier', $manufacturerSW->getId());
     }

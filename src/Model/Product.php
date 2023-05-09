@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\Product as ProductModel;
+use jtl\Connector\Model\Product as ProductModel;
 
 /**
  * Product Model
@@ -23,7 +24,7 @@ class Product extends ProductModel
         'shippingClassId' => '',
         //'taxClassId' => array('tax', 'id'),
         'sku' => 'number',
-        'note' => '',        
+        'note' => '',
         'vat' => array('tax', 'tax'),
         'minimumOrderQuantity' => 'minPurchase',
         'ean' => 'ean',
@@ -79,7 +80,7 @@ class Product extends ProductModel
         'minBestBeforeDate' => '',
         'minimumQuantity' => 'stockMin'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

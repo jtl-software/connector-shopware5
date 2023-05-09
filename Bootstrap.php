@@ -19,16 +19,17 @@ use Symfony\Component\Yaml\Yaml;
 
 define('CONNECTOR_DIR', __DIR__);
 
+//phpcs:ignore
 class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Components_Plugin_Bootstrap
 {
     public const
-        DELETE_USER_DATA = 'delete_user_data',
-        CONNECTOR_URL = 'connector_url',
-        AUTH_TOKEN = 'auth_token',
+        DELETE_USER_DATA  = 'delete_user_data',
+        CONNECTOR_URL     = 'connector_url',
+        AUTH_TOKEN        = 'auth_token',
         DEVELOPER_LOGGING = 'developer_logging',
 
         DOWNLOAD_LOGS_BUTTON = 'download_logs',
-        DELETE_LOGS_BUTTON = 'delete_logs';
+        DELETE_LOGS_BUTTON   = 'delete_logs';
 
     /**
      * @var Config
@@ -67,7 +68,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'version' => $this->getVersion(),
             'label' => $this->getLabel(),
             'author' => 'JTL-Software GmbH',
-            'description' => 'Verbinden Sie Ihren Shop mit JTL-Wawi, der kostenlosen Multichannel-Warenwirtschaft für den Versandhandel.',
+            'description' => 'Verbinden Sie Ihren Shop mit JTL-Wawi,
+             der kostenlosen Multichannel-Warenwirtschaft für den Versandhandel.',
             'support' => 'JTL-Software Forum',
             'link' => 'http://www.jtl-software.de'
         );
@@ -110,11 +112,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ), JSON_PRETTY_PRINT));
         }
 
-        if(is_null($this->connectorConfig)) {
+        if (is_null($this->connectorConfig)) {
             $this->connectorConfig = new Config($configFile);
         }
     }
-    
+
     public function install()
     {
         Logger::write('Shopware plugin installer started...', Logger::INFO, 'install');
@@ -147,7 +149,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $this->registerController('Frontend', 'Jtlconnector', 'onGetControllerPathFrontend');
         $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
-        $this->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element','afterSaveConfigElement');
+        $this->subscribeEvent(
+            'Shopware_Controllers_Backend_Config_After_Save_Config_Element',
+            'afterSaveConfigElement'
+        );
 
         $this->subscribeTranslationService();
 
@@ -175,7 +180,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $url = 'Hauptshop nicht gefunden';
         if (!is_null($shop)) {
             $proto = $shop->getSecure() ? 'https' : 'http';
-            $url = sprintf('%s://%s%s/%s', $proto, $shop->getHost(), $shop->getBasePath(), 'jtlconnector/');
+            $url   = sprintf(
+                '%s://%s%s/%s',
+                $proto,
+                $shop->getHost(),
+                $shop->getBasePath(),
+                'jtlconnector/'
+            );
         }
 
         // Connector URL
@@ -186,7 +197,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'position' => 0
         ]);
 
-        $authToken = $this->createGuid();
+        $authToken    = $this->createGuid();
         $tokenElement = $this->form->getElement(self::AUTH_TOKEN);
         if (!is_null($tokenElement) && !empty($tokenElement->getValue())) {
             $authToken = $tokenElement->getValue();
@@ -216,12 +227,16 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         $router = Shopware()->Front()->Router();
 
-        $checkLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'check-logs']);
-        $downloadLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'download-logs']);
+        $checkLogsUrl    = $router->assemble(
+            ['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'check-logs']
+        );
+        $downloadLogsUrl = $router->assemble(
+            ['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'download-logs']
+        );
 
         $this->Form()->setElement('button', self::DOWNLOAD_LOGS_BUTTON, [
             'label' => 'Logs herunterladen',
-            'class'=>'foo',
+            'class' => 'foo',
             'handler' => sprintf('function() {
                 Ext.Ajax.request({
                     url: "%s",
@@ -237,7 +252,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             'position' => 4
         ]);
 
-        $deleteLogsUrl = $router->assemble(['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'delete-logs']);
+        $deleteLogsUrl = $router->assemble(
+            ['module' => 'backend', 'controller' => 'jtlconnector', 'action' => 'delete-logs']
+        );
 
         $this->Form()->setElement('button', self::DELETE_LOGS_BUTTON, [
             'label' => 'Logs löschen',
@@ -267,27 +284,42 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         switch ($oldVersion) {
             case '1.0.0':
-                Shopware()->Db()->query("UPDATE s_articles_details SET ordernumber = REPLACE(ordernumber, '.0', '.jtlcon.0') WHERE ordernumber LIKE '%.0' AND kind = 0");
+                Shopware()->Db()->query(
+                    "UPDATE s_articles_details
+                     SET ordernumber = REPLACE(ordernumber, '.0', '.jtlcon.0')
+                     WHERE ordernumber LIKE '%.0'
+                     AND kind = 0"
+                );
                 $this->createPaymentTable();
                 $this->createPaymentMappingTable();
+                //no break
             case '1.0.1':
                 Shopware()->Db()->query("UPDATE s_articles_details SET active = 0 WHERE ordernumber LIKE '%.jtlcon.0'");
+                //no break
             case '1.0.2':
                 $this->createCategoryTable();
                 $this->fillCategoryTable();
+                //no break
             case '1.0.3':
             case '1.0.4':
-                Shopware()->Db()->query("UPDATE s_articles_details SET ordernumber = REPLACE(ordernumber, '.jtlcon.0', ''), kind = 0 WHERE ordernumber LIKE '%.jtlcon.0'");
+                Shopware()->Db()->query(
+                    "UPDATE s_articles_details
+                     SET ordernumber = REPLACE(ordernumber, '.jtlcon.0', ''), kind = 0
+                     WHERE ordernumber LIKE '%.jtlcon.0'"
+                );
+                //no break
             case '1.0.5':
             case '1.0.6':
             case '1.0.7':
                 Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_image` ADD INDEX(`host_id`, `image_id`)');
+                //no break
             case '1.0.8':
                 Shopware()->Db()->query(
                     'UPDATE jtl_connector_payment p
                      JOIN s_order o ON o.id = p.customerOrderId
                      SET p.totalSum = o.invoice_amount'
                 );
+                //no break
             case '1.0.9':
             case '1.0.10':
             case '1.0.11':
@@ -296,8 +328,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.1.1':
             case '1.1.2':
             case '1.2.1':
-                Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_product_image` ADD `media_id` INT(10) UNSIGNED NOT NULL AFTER `image_id`');
-                Shopware()->Db()->query('ALTER TABLE `jtl_connector_link_product_image` ADD INDEX `id_media_id` (`id`, `media_id`)');
+                Shopware()->Db()->query(
+                    'ALTER TABLE `jtl_connector_link_product_image`
+                     ADD `media_id` INT(10) UNSIGNED NOT NULL
+                     AFTER `image_id`'
+                );
+                Shopware()->Db()->query(
+                    'ALTER TABLE `jtl_connector_link_product_image` ADD INDEX `id_media_id` (`id`, `media_id`)'
+                );
 
                 Shopware()->Db()->query(
                     'UPDATE jtl_connector_link_product_image l
@@ -305,6 +343,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     JOIN s_articles_img p ON p.id = i.parent_id
                     SET l.media_id = if (i.media_id > 0, i.media_id, p.media_id)'
                 );
+                //no break
             case '1.2.2':
             case '1.2.3':
             case '1.2.4':
@@ -314,20 +353,26 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '1.3.2':
                 $this->createCrossSellingGroupTable();
                 $this->fillCrossSellingGroupTable();
+                //no break
             case '1.4.0':
             case '1.4.1':
             case '1.4.2':
                 $this->createCrossSellingGroupTable();
-                $related = jtl\Connector\Shopware\Model\CrossSellingGroup::RELATED;
-                $similar = jtl\Connector\Shopware\Model\CrossSellingGroup::SIMILAR;
-                $relatedGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?',
-                    [$related]);
-                $similarGroupId = Shopware()->Db()->fetchOne('SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?',
-                    [$similar]);
+                $related        = jtl\Connector\Shopware\Model\CrossSellingGroup::RELATED;
+                $similar        = jtl\Connector\Shopware\Model\CrossSellingGroup::SIMILAR;
+                $relatedGroupId = Shopware()->Db()->fetchOne(
+                    'SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?',
+                    [$related]
+                );
+                $similarGroupId = Shopware()->Db()->fetchOne(
+                    'SELECT group_id FROM jtl_connector_crosssellinggroup_i18n WHERE name = ?',
+                    [$similar]
+                );
 
                 if ($relatedGroupId === null && $similarGroupId === null) {
                     $this->fillCrossSellingGroupTable();
                 }
+                //no break
             case '1.4.3':
             case '1.4.4':
             case '1.4.5':
@@ -352,6 +397,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.0.14':
             case '2.0.15':
                 $this->createSpecialProductAttributeTable();
+                //no break
             case '2.0.16':
             case '2.0.17':
             case '2.0.18':
@@ -371,9 +417,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.1.13':
             case '2.1.14':
                 Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = 3 WHERE sad.kind = 0");
+                //no break
             case '2.1.15':
             case '2.1.16':
-                Shopware()->Db()->query("UPDATE s_articles_details sad SET sad.kind = 3 WHERE sad.active = 0 AND sad.ordernumber LIKE '%.0'");
+                Shopware()->Db()->query(
+                    "UPDATE s_articles_details sad SET sad.kind = 3 WHERE sad.active = 0 AND sad.ordernumber LIKE '%.0'"
+                );
+                //no break
             case '2.1.17':
             case '2.1.18':
             case '2.1.19':
@@ -392,12 +442,14 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.2.3.1':
                 Shopware()->Db()->query("DROP TABLE IF EXISTS `jtl_connector_category_level`");
                 $this->setConfigFormElements();
+                //no break
             case '2.2.4':
             case '2.2.4.1':
             case '2.2.4.2':
             case '2.2.4.3':
             case '2.2.4.4':
                 $this->subscribeTranslationService();
+                //no break
             case '2.2.5':
             case '2.2.5.1':
             case '2.2.5.2':
@@ -407,6 +459,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.3.0.2':
             case '2.4.0':
                 $this->migratePaymentLinkTable();
+                //no break
             case '2.4.1':
             case '2.5.0':
             case '2.5.1':
@@ -433,12 +486,17 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.8.5.4':
             case '2.8.5.5':
             case '2.8.6':
-                $this->subscribeEvent('Shopware_Controllers_Backend_Config_After_Save_Config_Element','afterSaveConfigElement');
+                $this->subscribeEvent(
+                    'Shopware_Controllers_Backend_Config_After_Save_Config_Element',
+                    'afterSaveConfigElement'
+                );
                 $this->registerController('Backend', 'Jtlconnector', 'onGetControllerPathBackend');
                 $this->setConfigFormElements();
+                //no break
             case '2.9.0':
             case '2.9.1':
                 $this->createTaxClassMappingTable();
+                //no break
             case '2.10.0':
             case '2.10.1':
             case '2.10.2':
@@ -450,7 +508,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     ]
                 ]);
 
-                (new \Symfony\Component\Filesystem\Filesystem())->remove(sprintf('%s/vendor/monolog', CONNECTOR_DIR));
+                (new \Symfony\Component\Filesystem\Filesystem())
+                    ->remove(sprintf('%s/vendor/monolog', CONNECTOR_DIR));
+                //no break
             case '2.11.0':
             case '2.11.1':
             case '2.12.0':
@@ -460,7 +520,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             case '2.15.1':
             case '2.16.0':
             case '2.17.0':
-            break;
+            case '2.17.1':
+            case '2.18.0':
+                break;
         }
 
         return true;
@@ -531,7 +593,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         if (!isset($pluginConfig[self::DELETE_USER_DATA]) || $pluginConfig[self::DELETE_USER_DATA] === true) {
             $this->dropMappingTable();
-            Shopware()->Db()->query("DELETE FROM s_articles_details WHERE kind = ?", [ProductMapper::KIND_VALUE_PARENT]);
+            Shopware()->Db()->query(
+                "DELETE FROM s_articles_details WHERE kind = ?",
+                [ProductMapper::KIND_VALUE_PARENT]
+            );
         }
 
         return true;
@@ -543,8 +608,11 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
     public function afterSaveConfigElement(Enlight_Event_EventArgs $data)
     {
         $formElement = $data->get('element');
-        if ($formElement->getName() === self::DEVELOPER_LOGGING && $formElement->getForm()->getPlugin()->getName() === $this->name) {
-            $value = $formElement->getValue();
+        if (
+            $formElement->getName() === self::DEVELOPER_LOGGING
+            && $formElement->getForm()->getPlugin()->getName() === $this->name
+        ) {
+            $value  = $formElement->getValue();
             $values = $formElement->getValues();
             if (!empty($values->getValues()) && count($values->getValues()) === 1) {
                 $value = $values->getValues()[0]->getValue();
@@ -587,7 +655,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
      */
     public static function overrideTranslationService(Enlight_Event_EventArgs $args)
     {
-        $container = Shopware()->Container();
+        $container  = Shopware()->Container();
         $connection = $container->get('dbal_connection');
         return new Translation($connection, $container);
     }
@@ -614,7 +682,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             return trim(com_create_guid(), '{}');
         }
 
-        return sprintf('%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
+        return sprintf(
+            '%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
             mt_rand(0, 65535),
             mt_rand(0, 65535),
             mt_rand(0, 65535),
@@ -631,17 +700,19 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         Logger::write('create parent dummies...', Logger::INFO, 'install');
 
         // Dirty inject parent and insert in db work around
-        $res = Shopware()->Db()->query('SELECT d.*, a.configurator_set_id
-                                            FROM s_articles_details d
-                                            JOIN s_articles a ON a.id = d.articleID
-                                            LEFT JOIN s_articles_details dd ON d.articleID = dd.articleID AND dd.kind = ?
-                                            WHERE a.configurator_set_id > 0 AND d.kind = ? AND dd.articleID IS NULL',
-            [ProductMapper::KIND_VALUE_PARENT, ProductMapper::KIND_VALUE_MAIN]);
+        $res = Shopware()->Db()->query(
+            'SELECT d.*, a.configurator_set_id
+             FROM s_articles_details d
+             JOIN s_articles a ON a.id = d.articleID
+             LEFT JOIN s_articles_details dd ON d.articleID = dd.articleID AND dd.kind = ?
+             WHERE a.configurator_set_id > 0 AND d.kind = ? AND dd.articleID IS NULL',
+            [ProductMapper::KIND_VALUE_PARENT, ProductMapper::KIND_VALUE_MAIN]
+        );
 
         $i = 0;
         while ($product = $res->fetch()) {
             $productSW = Shopware()->Models()->find('Shopware\Models\Article\Article', (int)$product['articleID']);
-            $detailSW = Shopware()->Models()->find('Shopware\Models\Article\Detail', (int)$product['id']);
+            $detailSW  = Shopware()->Models()->find('Shopware\Models\Article\Detail', (int)$product['id']);
 
             if ($productSW === null || $detailSW === null) {
                 continue;
@@ -702,7 +773,6 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         }
 
         Shopware()->Models()->flush();
-
     }
 
     private function fillCategoryTable()
@@ -714,7 +784,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
 
         /** @var Category $rootCategory */
         $rootCategory = ShopUtil::entityManager()->getRepository(Category::class)->findOneBy(['parentId' => null]);
-        $l2cExists = false;
+        $l2cExists    = false;
         if ($rootCategory instanceof Category) {
             /** @var Category $cat */
             foreach ($rootCategory->getChildren()->toArray() as $cat) {
@@ -732,7 +802,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $this->connectorConfig->save('category.mapping', true);
         }
 
-        $mainShopId = (int)Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops WHERE `default` = 1');
+        $mainShopId     = (int)Shopware()->Db()->fetchOne('SELECT id FROM s_core_shops WHERE `default` = 1');
         $shopCategories = Shopware()->Db()->fetchAssoc(
             'SELECT s.id, s.category_id, l.locale
              FROM s_core_shops s
@@ -763,8 +833,10 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                     VALUES (?,?,?)
                 ';
 
-                Shopware()->Db()->query($sql,
-                    array($parentCategoryId, LanguageUtil::map($shopCategory['locale']), $categoryId));
+                Shopware()->Db()->query(
+                    $sql,
+                    array($parentCategoryId, LanguageUtil::map($shopCategory['locale']), $categoryId)
+                );
             }
         }
     }
@@ -820,7 +892,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 PRIMARY KEY (`id`)
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
             ALTER TABLE `jtl_connector_unit_i18n`
-            ADD CONSTRAINT `jtl_connector_unit_i18n_1` FOREIGN KEY (`unit_id`) REFERENCES `jtl_connector_unit` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_unit_i18n_1` FOREIGN KEY (`unit_id`) REFERENCES `jtl_connector_unit` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_unit_i18n` ADD INDEX( `unit_id`, `languageIso`);
         ';
 
@@ -839,9 +913,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`parent_id`, `lang`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_category`
-            ADD CONSTRAINT `jtl_connector_category_1` FOREIGN KEY (`parent_id`) REFERENCES `s_categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_category_1` FOREIGN KEY (`parent_id`) REFERENCES `s_categories` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_category`
-            ADD CONSTRAINT `jtl_connector_category_2` FOREIGN KEY (`category_id`) REFERENCES `s_categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_category_2` FOREIGN KEY (`category_id`) REFERENCES `s_categories` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_category` ADD INDEX(`category_id`);
         ';
 
@@ -873,7 +951,8 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 PRIMARY KEY (`id`)
             ) ENGINE = InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
             ALTER TABLE `jtl_connector_crosssellinggroup_i18n`
-            ADD CONSTRAINT `jtl_connector_crosssellinggroup_i18n_1` FOREIGN KEY (`group_id`) REFERENCES `jtl_connector_crosssellinggroup` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD CONSTRAINT `jtl_connector_crosssellinggroup_i18n_1` FOREIGN KEY (`group_id`)
+                REFERENCES `jtl_connector_crosssellinggroup` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_crosssellinggroup_i18n` ADD INDEX( `group_id`, `languageISO`);
         ';
 
@@ -893,9 +972,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`product_id`,`detail_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_product_checksum`
-            ADD CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_product_checksum1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_product_checksum`
-            ADD CONSTRAINT `jtl_connector_product_checksum2` FOREIGN KEY (`detail_id`) REFERENCES `s_articles_details` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD CONSTRAINT `jtl_connector_product_checksum2` FOREIGN KEY (`detail_id`)
+                REFERENCES `s_articles_details` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
         ';
 
         Shopware()->Db()->query($sql);
@@ -915,7 +997,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`category_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_category`
-            ADD CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`category_id`) REFERENCES `s_categories` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_category_1` FOREIGN KEY (`category_id`) REFERENCES `s_categories` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_category` ADD INDEX(`host_id`);
         ';
 
@@ -933,7 +1017,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`tax_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_tax_class`
-            ADD CONSTRAINT `jtl_connector_link_tax_class_1` FOREIGN KEY (`tax_id`) REFERENCES `s_core_tax` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_tax_class_1` FOREIGN KEY (`tax_id`) REFERENCES `s_core_tax` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_tax_class` ADD INDEX(`host_id`);
         ';
 
@@ -952,9 +1038,13 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`product_id`, `detail_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_detail`
-            ADD CONSTRAINT `jtl_connector_link_detail_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_detail_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_detail`
-            ADD CONSTRAINT `jtl_connector_link_detail_2` FOREIGN KEY (`detail_id`) REFERENCES `s_articles_details` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD 
+                CONSTRAINT `jtl_connector_link_detail_2` FOREIGN KEY (`detail_id`) 
+                REFERENCES `s_articles_details` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_detail` ADD INDEX(`host_id`);
         ';
 
@@ -972,7 +1062,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`customer_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_customer`
-            ADD CONSTRAINT `jtl_connector_link_customer_1` FOREIGN KEY (`customer_id`) REFERENCES `s_user` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_customer_1` FOREIGN KEY (`customer_id`) REFERENCES `s_user` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_customer` ADD INDEX(`host_id`);
         ';
 
@@ -990,7 +1082,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`order_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_order`
-            ADD CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`order_id`) REFERENCES `s_order` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_order_1` FOREIGN KEY (`order_id`) REFERENCES `s_order` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_order` ADD INDEX(`host_id`);
         ';
 
@@ -1008,7 +1102,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`note_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_note`
-            ADD CONSTRAINT `jtl_connector_link_note_1` FOREIGN KEY (`note_id`) REFERENCES `s_order_documents` (`ID`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_note_1` FOREIGN KEY (`note_id`) REFERENCES `s_order_documents` (`ID`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_note` ADD INDEX(`host_id`);
         ';
 
@@ -1027,7 +1123,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`image_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_image`
-            ADD CONSTRAINT `jtl_connector_link_image_1` FOREIGN KEY (`media_id`) REFERENCES `s_media` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_image_1` FOREIGN KEY (`media_id`) REFERENCES `s_media` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_image` ADD INDEX(`host_id`);
             ALTER TABLE `jtl_connector_link_image` ADD INDEX(`host_id`, `image_id`);
         ';
@@ -1048,7 +1146,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_product_image`
-            ADD CONSTRAINT `jtl_connector_link_product_image_1` FOREIGN KEY (`id`) REFERENCES `s_articles_img` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_product_image_1` FOREIGN KEY (`id`) REFERENCES `s_articles_img` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_product_image` ADD INDEX(`host_id`);
             ALTER TABLE `jtl_connector_link_product_image` ADD INDEX `id_media_id` (`id`, `media_id`);
         ';
@@ -1067,7 +1167,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`manufacturer_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_manufacturer`
-            ADD CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`manufacturer_id`) REFERENCES `s_articles_supplier` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_manufacturer_1` FOREIGN KEY (`manufacturer_id`)
+                REFERENCES `s_articles_supplier` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_manufacturer` ADD INDEX(`host_id`);
         ';
 
@@ -1085,7 +1187,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`specific_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_specific`
-            ADD CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`specific_id`) REFERENCES `s_filter_options` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_specific_1` FOREIGN KEY (`specific_id`)
+                REFERENCES `s_filter_options` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_specific` ADD INDEX(`host_id`);
         ';
 
@@ -1103,7 +1207,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`specific_value_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_specific_value`
-            ADD CONSTRAINT `jtl_connector_link_specific_value_1` FOREIGN KEY (`specific_value_id`) REFERENCES `s_filter_values` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_specific_value_1` FOREIGN KEY (`specific_value_id`)
+                REFERENCES `s_filter_values` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_specific_value` ADD INDEX(`host_id`);
         ';
 
@@ -1121,7 +1227,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`order_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_link_payment`
-            ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`order_id`) REFERENCES `s_order` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`order_id`) REFERENCES `s_order` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_link_payment` ADD INDEX(`host_id`);
         ';
 
@@ -1145,7 +1253,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_payment` ADD INDEX(`customerOrderId`);
             ALTER TABLE `jtl_connector_payment`
-            ADD CONSTRAINT `jtl_connector_payment_1` FOREIGN KEY (`customerOrderId`) REFERENCES `s_order` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_payment_1` FOREIGN KEY (`customerOrderId`) REFERENCES `s_order` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
         ';
 
         Shopware()->Db()->query($sql);
@@ -1162,7 +1272,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`product_id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_crossselling`
-            ADD CONSTRAINT `jtl_connector_crossselling_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_crossselling_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`)
+                ON DELETE CASCADE ON UPDATE NO ACTION;
             ALTER TABLE `jtl_connector_crossselling` ADD INDEX(`host_id`);
         ';
 
@@ -1181,7 +1293,9 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
               PRIMARY KEY (`product_id`, `key`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
             ALTER TABLE `jtl_connector_product_attributes`
-            ADD CONSTRAINT `jtl_connector_product_attributes_1` FOREIGN KEY (`product_id`) REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
+            ADD
+                CONSTRAINT `jtl_connector_product_attributes_1` FOREIGN KEY (`product_id`)
+                REFERENCES `s_articles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
         ';
 
         Shopware()->Db()->query($sql);
@@ -1192,7 +1306,7 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
         $db = Shopware()->Db();
 
         $existingColumnsInfo = $db->query('SHOW COLUMNS FROM `jtl_connector_link_payment`;')->fetchAll();
-        $existingColumns = array_map(function ($data) {
+        $existingColumns     = array_map(function ($data) {
             return $data['Field'];
         }, $existingColumnsInfo);
 
@@ -1207,20 +1321,24 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
                 LEFT JOIN `s_order` `so` ON `so`.`id` = `jcp`.`customerOrderId` 
                 WHERE `so`.id IS NULL OR `jcp`.id IS NULL');
 
-            $migratedOrdersCount = $db->fetchOne('SELECT COUNT(order_id) FROM `jtl_connector_link_payment` WHERE order_id IS NOT NULL');
+            $migratedOrdersCount = $db
+                ->fetchOne('SELECT COUNT(order_id) FROM `jtl_connector_link_payment` WHERE order_id IS NOT NULL');
 
             $limit = 15000;
-            $i = ceil($migratedOrdersCount / $limit);
+            $i     = ceil($migratedOrdersCount / $limit);
             do {
                 $offset = $i * $limit;
-                $sql = sprintf(
+                $sql    = sprintf(
                     'UPDATE `jtl_connector_link_payment`
                      JOIN 
                      (
                          (SELECT `id`, `customerOrderId` FROM `jtl_connector_payment` LIMIT %s OFFSET %s) `jcp`
                      ) ON `payment_id` = `jcp`.`id`
                      SET `order_id` = `jcp`.`customerOrderId`
-                     WHERE `order_id` IS NULL', $limit, $offset);
+                     WHERE `order_id` IS NULL',
+                    $limit,
+                    $offset
+                );
                 $i++;
             } while ($db->exec($sql) > 0);
 
@@ -1228,7 +1346,12 @@ class Shopware_Plugins_Frontend_jtlconnector_Bootstrap extends Shopware_Componen
             $db->query('ALTER TABLE `jtl_connector_link_payment` DROP FOREIGN KEY `jtl_connector_link_payment_1`;');
             $db->query('ALTER TABLE `jtl_connector_link_payment` DROP COLUMN `payment_id`;');
             $db->query('ALTER TABLE `jtl_connector_link_payment` ADD PRIMARY KEY (`order_id`)');
-            $db->query('ALTER TABLE `jtl_connector_link_payment` ADD CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`order_id`) REFERENCES `s_order` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION');
+            $db->query(
+                'ALTER TABLE `jtl_connector_link_payment`
+                 ADD
+                     CONSTRAINT `jtl_connector_link_payment_1` FOREIGN KEY (`order_id`) REFERENCES `s_order` (`id`)
+                     ON DELETE CASCADE ON UPDATE NO ACTION'
+            );
             $db->query('DROP TRIGGER IF EXISTS `jtl_connector_payment`;');
             $db->query('DROP TABLE IF EXISTS `jtl_connector_payment`');
             $db->query('SET FOREIGN_KEY_CHECKS=1;');

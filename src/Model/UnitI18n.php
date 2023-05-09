@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\UnitI18n as UnitI18nModel;
+use jtl\Connector\Model\UnitI18n as UnitI18nModel;
 
 /**
  * UnitI18n Model
@@ -19,7 +20,7 @@ class UnitI18n extends UnitI18nModel
         'languageISO' => 'localeName',
         'name' => 'name'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -7,7 +8,7 @@
 namespace jtl\Connector\Shopware\Model\Helper;
 
 use JMS\Serializer\Annotation as Serializer;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 /**
  * ProductName Model
@@ -68,7 +69,7 @@ class ProductNameHelper
      */
     public function isProductName()
     {
-        return (strlen($this->productName) > 0);
+        return (\strlen($this->productName) > 0);
     }
 
     /**
@@ -124,14 +125,14 @@ class ProductNameHelper
         $this->valueNames[] = $valueName;
 
         if ($this->isProductName()) {
-            $this->setAdditionalName(implode(' / ', $this->getValueNames()));
+            $this->setAdditionalName(\implode(' / ', $this->getValueNames()));
             //$this->setProductName(str_replace($this->getAdditionalName(), '', $this->getProductName()));
         }
     }
 
     public static function build(\jtl\Connector\Model\Product $product, $languageIso = null)
     {
-        $lang = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+        $lang = LanguageUtil::map(\Shopware()->Shop()->getLocale()->getLocale());
         if ($languageIso !== null) {
             $lang = $languageIso;
         }
@@ -158,7 +159,7 @@ class ProductNameHelper
             }
         }
 
-        if (!array_key_exists($index, self::$cache)) {
+        if (!\array_key_exists($index, self::$cache)) {
             self::$cache[$index] = array();
         }
 

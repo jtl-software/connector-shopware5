@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\CustomerOrderAttr as CustomerOrderAttrModel;
+use jtl\Connector\Model\CustomerOrderAttr as CustomerOrderAttrModel;
 
 /**
  * CustomerOrderAttr Model
@@ -20,7 +21,7 @@ class CustomerOrderAttr extends CustomerOrderAttrModel
         'key' => '',
         'value' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -24,15 +25,13 @@ class CustomerOrderLinker
      * @ORM\Column(name="host_id", type="integer", nullable=false)
      */
     protected $hostId;
-
-    /**
+/**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\CustomerOrder", inversedBy="linker")
      * @ORM\JoinColumn(name="order_id", referencedColumnName="id")
      * @ORM\Id
      */
     protected $order;
-
-    /**
+/**
      * Gets the value of order.
      *
      * @return string
@@ -52,7 +51,6 @@ class CustomerOrderLinker
     public function setOrder(CustomerOrder $order)
     {
         $this->order = $order;
-
         return $this;
     }
 
@@ -76,7 +74,6 @@ class CustomerOrderLinker
     public function setHostId($hostId)
     {
         $this->hostId = $hostId;
-
         return $this;
     }
 }

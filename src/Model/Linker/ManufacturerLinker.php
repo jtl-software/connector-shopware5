@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -24,15 +25,13 @@ class ManufacturerLinker
      * @ORM\Column(name="host_id", type="integer", nullable=false)
      */
     protected $hostId;
-
-    /**
+/**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\Manufacturer", inversedBy="linker")
      * @ORM\JoinColumn(name="manufacturer_id", referencedColumnName="id")
      * @ORM\Id
      */
     protected $manufacturer;
-
-    /**
+/**
      * Gets the value of manufacturer.
      *
      * @return string
@@ -52,7 +51,6 @@ class ManufacturerLinker
     public function setManufacturer(Manufacturer $manufacturer)
     {
         $this->manufacturer = $manufacturer;
-
         return $this;
     }
 
@@ -76,7 +74,6 @@ class ManufacturerLinker
     public function setHostId($hostId)
     {
         $this->hostId = $hostId;
-
         return $this;
     }
 }
