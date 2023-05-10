@@ -2,6 +2,9 @@
 
 ## unreleased
 
+## 2.18.1.1 _2023-05-10_
+- Hotfix Manufacturer Statistics
+
 ## 2.18.1 _2023-05-09_
 - CO-2218 - fix order status constants
 - CO-2197 - fix manufacturer translations 
