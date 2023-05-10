@@ -12,9 +12,12 @@ declare(strict_types=1);
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\ORM\AbstractQuery;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Model\Identity;
 use jtl\Connector\Model\Manufacturer as ManufacturerModel;
+use jtl\Connector\Shopware\Model\Linker\Manufacturer as ManufacturerLinkerModel;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Mmc;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
@@ -60,7 +63,7 @@ class Manufacturer extends DataMapper
             //->from('Shopware\Models\Article\Supplier', 'supplier')
             //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link',
             // \Doctrine\ORM\Query\Expr\Join::WITH, 'supplier.id = link.endpointId AND link.type = 41')
-                      ->from(__CLASS__, 'supplier')
+                      ->from(ManufacturerLinkerModel::class, 'supplier')
                       ->leftJoin('supplier.linker', 'linker')
                       ->leftJoin('supplier.attribute', 'attribute')
                       ->where('linker.hostId IS NULL')
@@ -69,9 +72,9 @@ class Manufacturer extends DataMapper
                       ->setFirstResult(0)
                       ->setMaxResults($limit)
             //->getQuery();
-                      ->getQuery()->setHydrationMode(\Doctrine\ORM\AbstractQuery::HYDRATE_ARRAY);
+                      ->getQuery()->setHydrationMode(AbstractQuery::HYDRATE_ARRAY);
 
-        $paginator = new \Doctrine\ORM\Tools\Pagination\Paginator($query, $fetchJoinCollection = true);
+        $paginator = new Paginator($query, $fetchJoinCollection = true);
 
         if ($count) {
             return $paginator->count();
@@ -173,10 +176,10 @@ class Manufacturer extends DataMapper
             : null;
 
         if ($manufacturerId !== null && $manufacturerId > 0) {
-            $manufacturerSW =  $this->find($manufacturerId);
+            $manufacturerSW = $this->find($manufacturerId);
         }
 
-        if ($manufacturerSW  === null) {
+        if ($manufacturerSW === null) {
             $manufacturerSW = new ManufacturerSW();
         }
 
