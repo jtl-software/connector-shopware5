@@ -248,42 +248,34 @@ class CustomerOrder extends DataMapper
 
         // net
         $prop = $ref->getProperty('net');
-        $prop->setAccessible(true);
         $orderSW->setNet($prop->getValue($orderSW) ?? 0);
 
         // tracking Code
         $prop = $ref->getProperty('trackingCode');
-        $prop->setAccessible(true);
         $orderSW->setTrackingCode($prop->getValue($orderSW) ?? '');
 
         // remoteAddress
         $prop = $ref->getProperty('remoteAddress');
-        $prop->setAccessible(true);
         $orderSW->setRemoteAddress($prop->getValue($orderSW) ?? '');
 
         // temporaryId
         $prop = $ref->getProperty('temporaryId');
-        $prop->setAccessible(true);
         $orderSW->setTemporaryId($prop->getValue($orderSW) ?? '');
 
         // transactionId
         $prop = $ref->getProperty('transactionId');
-        $prop->setAccessible(true);
         $orderSW->setTransactionId($prop->getValue($orderSW) ?? '');
 
         // comment
         $prop = $ref->getProperty('comment');
-        $prop->setAccessible(true);
         $orderSW->setComment($prop->getValue($orderSW) ?? '');
 
         // internalComment
         $prop = $ref->getProperty('internalComment');
-        $prop->setAccessible(true);
         $orderSW->setInternalComment($prop->getValue($orderSW) ?? '');
 
         // referer
         $prop = $ref->getProperty('referer');
-        $prop->setAccessible(true);
         $orderSW->setReferer($prop->getValue($orderSW) ?? '');
 
         // shopId
