@@ -1,19 +1,15 @@
 <?php
 
-/**
- * @copyright 2010-2013 JTL-Software GmbH
- * @package jtl\Connector\Shopware\Controller
- */
+/** @noinspection PhpIllegalPsrClassPathInspection */
+
+declare(strict_types=1);
 
 namespace jtl\Connector\Shopware\Mapper;
 
 use Doctrine\ORM\AbstractQuery;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Formatter\ExceptionFormatter;
-use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Shopware\Utilities\Plugin;
-use Shopware\Components\Api\Exception as ApiException;
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Model\CustomerOrderItem;
 use Shopware\Models\Order\Order as OrderSW;
@@ -187,49 +183,108 @@ class CustomerOrder extends DataMapper
         $this->Manager()->remove($orderSW->getShipping());
     }
 
-    protected function prepareOrderAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW = null)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order|null  $orderSW
+     *
+     * @return void
+     */
+    protected function prepareOrderAssociatedData(CustomerOrderModel $customerOrder, ?OrderSW &$orderSW = null): void
     {
-        $orderId = (\strlen($customerOrder->getId()->getEndpoint()) > 0)
-            ? (int)$customerOrder->getId()->getEndpoint()
-            : null;
+        $this->fillOrderSwWithDefaults($orderSW ?? $this->getOrderSw($customerOrder), $customerOrder);
+    }
+
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     *
+     * @return \Shopware\Models\Order\Order
+     */
+    private function getOrderSw(CustomerOrderModel $customerOrder): OrderSW
+    {
+        $customerOrderId = $customerOrder->getId();
+        $orderId         = $customerOrderId !== null ? $customerOrderId->getEndpoint() : null;
+        $orderId         = (\is_string($orderId) && $orderId !== '') ? (int)$orderId : null;
 
         if ($orderId !== null && $orderId > 0) {
             $orderSW = $this->find($orderId);
-        } elseif (\strlen($customerOrder->getOrderNumber()) > 0) {
-            $orderSW = \Shopware()->Models()->getRepository('Shopware\Models\Order\Order')
-                ->findOneBy(array('number' => $customerOrder->getOrderNumber()));
+        } elseif ($customerOrder->getOrderNumber() !== '') {
+            $orderSW = \Shopware()->Models()->getRepository(OrderSW::class)
+                                  ->findOneBy(['number' => $customerOrder->getOrderNumber()]);
         }
 
-        if ($orderSW === null) {
+        if (!isset($orderSW)) {
             $orderSW = new OrderSW();
         }
 
+        return $orderSW;
+    }
+
+    /**
+     * @param \Shopware\Models\Order\Order       $orderSW
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     *
+     * @return void
+     */
+    private function fillOrderSwWithDefaults(OrderSW $orderSW, CustomerOrderModel $customerOrder): void
+    {
         $orderSW->setNumber($customerOrder->getOrderNumber())
-            ->setInvoiceAmount(Money::AsGross(
-                $customerOrder->getTotalSum(),
-                \jtl\Connector\Shopware\Controller\CustomerOrder::calcShippingVat($customerOrder)
-            ))
-            ->setInvoiceAmountNet($customerOrder->getTotalSum())
-            ->setOrderTime($customerOrder->getCreationDate())
-            ->setCustomerComment($customerOrder->getNote())
-            ->setNet(0)
-            ->setTrackingCode('')
-            ->setCurrency($customerOrder->getCurrencyIso())
-            ->setRemoteAddress('')
-            ->setTemporaryId('')
-            ->setTransactionId('')
-            ->setComment('')
-            ->setInternalComment('')
-            ->setReferer('');
+                ->setInvoiceAmount(Money::AsGross(
+                    $customerOrder->getTotalSum(),
+                    \jtl\Connector\Shopware\Controller\CustomerOrder::calcShippingVat($customerOrder)
+                ))
+                ->setInvoiceAmountNet($customerOrder->getTotalSum())
+                ->setOrderTime($customerOrder->getCreationDate())
+                ->setCustomerComment($customerOrder->getNote())
+                ->setCurrency($customerOrder->getCurrencyIso());
 
         if (
             !\is_null($customerOrder->getPaymentDate()) &&
-            $customerOrder->getPaymentStatus() === \jtl\Connector\Model\CustomerOrder::PAYMENT_STATUS_COMPLETED
+            $customerOrder->getPaymentStatus() === CustomerOrderModel::PAYMENT_STATUS_COMPLETED
         ) {
             $orderSW->setClearedDate($customerOrder->getPaymentDate());
         }
 
         $ref = new \ReflectionClass($orderSW);
+
+        // net
+        $prop = $ref->getProperty('net');
+        $prop->setAccessible(true);
+        $orderSW->setNet($prop->getValue($orderSW) ?? 0);
+
+        // tracking Code
+        $prop = $ref->getProperty('trackingCode');
+        $prop->setAccessible(true);
+        $orderSW->setTrackingCode($prop->getValue($orderSW) ?? '');
+
+        // remoteAddress
+        $prop = $ref->getProperty('remoteAddress');
+        $prop->setAccessible(true);
+        $orderSW->setRemoteAddress($prop->getValue($orderSW) ?? '');
+
+        // temporaryId
+        $prop = $ref->getProperty('temporaryId');
+        $prop->setAccessible(true);
+        $orderSW->setTemporaryId($prop->getValue($orderSW) ?? '');
+
+        // transactionId
+        $prop = $ref->getProperty('transactionId');
+        $prop->setAccessible(true);
+        $orderSW->setTransactionId($prop->getValue($orderSW) ?? '');
+
+        // comment
+        $prop = $ref->getProperty('comment');
+        $prop->setAccessible(true);
+        $orderSW->setComment($prop->getValue($orderSW) ?? '');
+
+        // internalComment
+        $prop = $ref->getProperty('internalComment');
+        $prop->setAccessible(true);
+        $orderSW->setInternalComment($prop->getValue($orderSW) ?? '');
+
+        // referer
+        $prop = $ref->getProperty('referer');
+        $prop->setAccessible(true);
+        $orderSW->setReferer($prop->getValue($orderSW) ?? '');
 
         // shopId
         $prop = $ref->getProperty('shopId');
@@ -498,8 +553,8 @@ class CustomerOrder extends DataMapper
 
         $productId = (\strlen($item->getProductId()->getEndpoint()) > 0) ? $item->getProductId()->getEndpoint() : null;
         if ($this->isChild($item)) {
-            list($detailId, $articleId) = \explode('_', $productId);
-            $productId                  = $articleId;
+            [$detailId, $articleId] = \explode('_', $productId);
+            $productId              = $articleId;
         }
 
         $detailSW->setNumber($orderSW->getNumber())

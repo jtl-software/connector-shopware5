@@ -775,7 +775,12 @@ class CustomerOrder extends DataController
         $keyValueAttributes->addAttribute('dhl_wunschpaket_feeder_system', 'sw5');
     }
 
-    public static function calcShippingVat(CustomerOrderModel $order)
+    /**
+     * @param CustomerOrderModel|\jtl\Connector\Model\CustomerOrder $order
+     *
+     * @return mixed
+     */
+    public static function calcShippingVat($order)
     {
         return \max(\array_map(function ($item) {
             return $item->getVat();
