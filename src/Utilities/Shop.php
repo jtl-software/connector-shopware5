@@ -9,7 +9,7 @@ namespace jtl\Connector\Shopware\Utilities;
 use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use jtl\Connector\Shopware\Service\Translation;
-use Shopware\Bundle\MediaBundle\MediaService;
+use Shopware\Bundle\MediaBundle\MediaServiceInterface;
 use Shopware\Components\CacheManager;
 use Shopware\Components\Thumbnail\Manager;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
@@ -82,9 +82,9 @@ final class Shop
     }
 
     /**
-     * @return MediaService
+     * @return MediaServiceInterface
      */
-    public static function mediaService(): MediaService
+    public static function mediaService(): MediaServiceInterface
     {
         return static::get()->Container()->get('shopware_media.media_service');
     }
