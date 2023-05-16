@@ -1,5 +1,11 @@
 <?php
 
+/** @noinspection ReferencingObjectsInspection */
+
+/** @noinspection PhpIllegalPsrClassPathInspection */
+
+declare(strict_types=1);
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -7,12 +13,14 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Shopware\Utilities\Plugin;
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Model\CustomerOrderItem;
+use Monolog\Logger as LoggerMono;
 use Shopware\Models\Order\Order as OrderSW;
 use Shopware\Models\Order\Detail as OrderDetailSW;
 use jtl\Connector\Core\Logger\Logger;
@@ -26,6 +34,10 @@ use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Salutation;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 use Shopware\Models\Order\Status;
+use Shopware\Models\Dispatch\Dispatch;
+use Shopware\Models\Order\Shipping;
+use Shopware\Models\Country\Country;
+use Shopware\Models\Order\Billing;
 
 class CustomerOrder extends DataMapper
 {
@@ -48,7 +60,15 @@ class CustomerOrder extends DataMapper
         return $this->Manager()->getRepository(Status::class)->find($id);
     }
 
-    public function findAll($limit = 100, $count = false, $from = null, $until = null)
+    /**
+     * @param int  $limit
+     * @param bool $count
+     * @param      $from
+     * @param      $until
+     *
+     * @return array|int
+     */
+    public function findAll(int $limit = 100, bool $count = false, $from = null, $until = null)
     {
         $builder = $this->Manager()->createQueryBuilder()->select(array(
             'orders',
@@ -112,27 +132,52 @@ class CustomerOrder extends DataMapper
         return $count ? ($paginator->count()) : \iterator_to_array($paginator);
     }
 
-    public function fetchCount($limit = 100)
+    /**
+     * @param int $limit
+     *
+     * @return array|int
+     */
+    public function fetchCount(int $limit = 100)
     {
         return $this->findAll($limit, true);
     }
 
-    public function delete(CustomerOrderModel $customerOrder)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     *
+     * @return \jtl\Connector\Model\CustomerOrder
+     * @throws \RuntimeException
+     */
+    public function delete(CustomerOrderModel $customerOrder): CustomerOrderModel
     {
         $result = new CustomerOrderModel();
 
         $this->deleteOrderData($customerOrder);
 
+        $coId = $customerOrder->getId();
+        if ($coId === null) {
+            throw new \RuntimeException('CustomerOrder ID is missing');
+        }
         // Result
-        $result->setId(new Identity('', $customerOrder->getId()->getHost()));
+        $result->setId(new Identity('', $coId->getHost()));
 
         return $result;
     }
 
-    public function save(CustomerOrderModel $customerOrder)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     *
+     * @return \jtl\Connector\Model\CustomerOrder
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \RuntimeException
+     * @throws \Exception
+     */
+    public function save(CustomerOrderModel $customerOrder): CustomerOrderModel
     {
         $orderSW = null;
         $this->prepareOrderAssociatedData($customerOrder, $orderSW);
+        /** @var OrderSW $orderSW */
         $this->prepareCustomerAssociatedData($customerOrder, $orderSW);
         $this->prepareCurrencyFactorAssociatedData($customerOrder, $orderSW);
         $this->preparePaymentAssociatedData($customerOrder, $orderSW);
@@ -149,15 +194,31 @@ class CustomerOrder extends DataMapper
 
         // CustomerOrderAttr
 
-        $customerOrder->setId(new Identity($orderSW->getId(), $customerOrder->getId()->getHost()));
+        $coId = $customerOrder->getId();
+        if ($coId === null) {
+            throw new \RuntimeException('CustomerOrder ID is missing');
+        }
+        $customerOrder->setId(new Identity($orderSW->getId(), $coId->getHost()));
 
         return $customerOrder;
     }
 
-    protected function deleteOrderData(CustomerOrderModel &$customerOrder)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     *
+     * @return void
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \RuntimeException
+     */
+    protected function deleteOrderData(CustomerOrderModel &$customerOrder): void
     {
-        $orderId = (\strlen($customerOrder->getId()->getEndpoint()) > 0)
-            ? (int)$customerOrder->getId()->getEndpoint()
+        $coId = $customerOrder->getId();
+        if ($coId === null) {
+            throw new \RuntimeException('CustomerOrder ID is missing');
+        }
+        $orderId = ($coId->getEndpoint() !== '')
+            ? (int)$coId->getEndpoint()
             : null;
 
         if ($orderId !== null && $orderId > 0) {
@@ -173,33 +234,58 @@ class CustomerOrder extends DataMapper
         }
     }
 
-    protected function removeItems(OrderSW $orderSW)
+    /**
+     * @param \Shopware\Models\Order\Order $orderSW
+     *
+     * @return void
+     * @throws \Doctrine\ORM\Exception\ORMException
+     */
+    protected function removeItems(OrderSW $orderSW): void
     {
         foreach ($orderSW->getDetails() as $detailSW) {
             $this->Manager()->remove($detailSW);
         }
     }
 
-    protected function removeBilling(OrderSW $orderSW)
+    /**
+     * @param \Shopware\Models\Order\Order $orderSW
+     *
+     * @return void
+     * @throws \Doctrine\ORM\Exception\ORMException
+     */
+    protected function removeBilling(OrderSW $orderSW): void
     {
         $this->Manager()->remove($orderSW->getBilling());
     }
 
-    protected function removeShipping(OrderSW $orderSW)
+    /**
+     * @param \Shopware\Models\Order\Order $orderSW
+     *
+     * @return void
+     * @throws \Doctrine\ORM\Exception\ORMException
+     */
+    protected function removeShipping(OrderSW $orderSW): void
     {
         $this->Manager()->remove($orderSW->getShipping());
     }
 
-    protected function prepareOrderAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW = null)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order|null  $orderSW
+     *
+     * @return void
+     * @throws \ReflectionException
+     */
+    protected function prepareOrderAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW = null): void
     {
-        $orderId = (\strlen($customerOrder->getId()->getEndpoint()) > 0)
+        $orderId = ($customerOrder->getId()->getEndpoint() !== '')
             ? (int)$customerOrder->getId()->getEndpoint()
             : null;
 
         if ($orderId !== null && $orderId > 0) {
             $orderSW = $this->find($orderId);
-        } elseif (\strlen($customerOrder->getOrderNumber()) > 0) {
-            $orderSW = \Shopware()->Models()->getRepository('Shopware\Models\Order\Order')
+        } elseif ($customerOrder->getOrderNumber() !== '') {
+            $orderSW = \Shopware()->Models()->getRepository(OrderSW::class)
                 ->findOneBy(array('number' => $customerOrder->getOrderNumber()));
         }
 
@@ -254,13 +340,20 @@ class CustomerOrder extends DataMapper
         */
     }
 
-    protected function prepareCustomerAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     * @throws \Exception
+     */
+    protected function prepareCustomerAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
         // Customer
         $customerMapper = Mmc::getMapper('Customer');
         $customer       = $customerMapper->find($customerOrder->getCustomerId()->getEndpoint());
         if ($customer === null) {
-            throw new \Exception(
+            throw new \RuntimeException(
                 \sprintf('Customer with id (%s) not found', $customerOrder->getCustomerId()->getEndpoint())
             );
         }
@@ -268,45 +361,75 @@ class CustomerOrder extends DataMapper
         $orderSW->setCustomer($customer);
     }
 
-    protected function prepareCurrencyFactorAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     * @throws \Exception
+     */
+    protected function prepareCurrencyFactorAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
         // CurrencyFactor
         $currencySW = $this->Manager()->getRepository('Shopware\Models\Shop\Currency')
             ->findOneBy(array('currency' => $customerOrder->getCurrencyIso()));
         if ($currencySW === null) {
-            throw new \Exception(\sprintf('Currency with iso (%s) not found', $customerOrder->getCurrencyIso()));
+            throw new \RuntimeException(\sprintf('Currency with iso (%s) not found', $customerOrder->getCurrencyIso()));
         }
 
         $orderSW->setCurrencyFactor($currencySW->getFactor());
     }
 
-    protected function preparePaymentAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     * @throws \Exception
+     */
+    protected function preparePaymentAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
         // Payment
         $paymentName = PaymentUtil::map($customerOrder->getPaymentModuleCode());
         if ($paymentName === null) {
-            throw new \Exception(\sprintf('Payment with code (%s) not found', $customerOrder->getPaymentModuleCode()));
+            throw new \RuntimeException(
+                \sprintf('Payment with code (%s) not found', $customerOrder->getPaymentModuleCode())
+            );
         }
 
         $paymentSW = $this->Manager()->getRepository('Shopware\Models\Payment\Payment')
             ->findOneBy(array('name' => $paymentName));
         if ($paymentSW === null) {
-            throw new \Exception(\sprintf('Payment with name (%s) not found', $paymentName));
+            throw new \RuntimeException(\sprintf('Payment with name (%s) not found', $paymentName));
         }
 
         $orderSW->setPayment($paymentSW);
     }
 
-    protected function prepareDispatchAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     */
+    protected function prepareDispatchAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
-        $dispatchSW = $this->Manager()->getRepository('Shopware\Models\Dispatch\Dispatch')
+        $dispatchSW = $this->Manager()->getRepository(Dispatch::class)
             ->find($customerOrder->getShippingMethodName());
         if ($dispatchSW !== null) {
             $orderSW->setDispatch($dispatchSW);
         }
     }
 
-    protected function prepareLocaleAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     * @throws \jtl\Connector\Core\Exception\LanguageException
+     * @throws \Exception
+     */
+    protected function prepareLocaleAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
         // Locale
         $localesSW = LocaleUtil::getByKey(LanguageUtil::map(null, null, $customerOrder->getLanguageISO()));
@@ -318,68 +441,87 @@ class CustomerOrder extends DataMapper
             $language   = LocaleUtil::extractLanguageIsoFromLocale($localeSW->getLocale());
             $shopMapper = Mmc::getMapper('Shop');
             $shops      = $shopMapper->findByLanguageIso($language);
-            if ($shops === null || (\is_array($shops) && \count($shops) == 0)) {
+            if ($shops === null || (\is_array($shops) && \count($shops) === 0)) {
                 continue;
             }
 
             $orderSW->setLanguageIso($shops[0]->getId());
             return;
         }
-        throw new \Exception(\sprintf('Shop with language iso (%s) not found', $customerOrder->getLanguageISO()));
+        throw new \RuntimeException(
+            \sprintf('Shop with language iso (%s) not found', $customerOrder->getLanguageISO())
+        );
     }
 
-    protected function prepareStatusAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     * @throws \Exception
+     */
+    protected function prepareStatusAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
         // Order Status
         $statusId = StatusUtil::map($customerOrder->getStatus());
         if ($statusId === null) {
-            throw new \Exception(\sprintf('Order status with status (%s) not found', $customerOrder->getStatus()));
+            throw new \RuntimeException(
+                \sprintf('Order status with status (%s) not found', $customerOrder->getStatus())
+            );
         }
 
-        $statusSW = $this->Manager()->getRepository('Shopware\Models\Order\Status')
+        $statusSW = $this->Manager()->getRepository(Status::class)
             ->findOneBy(array('id' => $statusId));
         if ($statusSW === null) {
-            throw new \Exception(\sprintf('Order status with id (%s) not found', $statusId));
+            throw new \RuntimeException(\sprintf('Order status with id (%s) not found', $statusId));
         }
 
         // Payment Status
         $paymentStatus = PaymentStatusUtil::map($customerOrder->getPaymentStatus());
         if ($paymentStatus === null) {
-            throw new \Exception(
+            throw new \RuntimeException(
                 \sprintf('Payment status with status (%s) not found', $customerOrder->getPaymentStatus())
             );
         }
 
-        $paymentStatusSW = $this->Manager()->getRepository('Shopware\Models\Order\Status')
+        $paymentStatusSW = $this->Manager()->getRepository(Status::class)
             ->findOneBy(array('id' => $paymentStatus));
         if ($paymentStatusSW === null) {
-            throw new \Exception(\sprintf('Payment status with id (%s) not found', $paymentStatus));
+            throw new \RuntimeException(\sprintf('Payment status with id (%s) not found', $paymentStatus));
         }
 
         $orderSW->setPaymentStatus($paymentStatusSW);
         $orderSW->setOrderStatus($statusSW);
     }
 
-    protected function prepareShippingAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     */
+    protected function prepareShippingAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
         foreach ($customerOrder->getShippingAddress() as $shippingAddress) {
             $shippingSW = null;
-            $id         = (\strlen($shippingAddress->getId()->getEndpoint()) > 0)
+            $id         = ($shippingAddress->getId()->getEndpoint() != '')
                 ? (int)$shippingAddress->getId()->getEndpoint()
                 : null;
 
             if (\strlen($id) > 0) {
-                $shippingSW = $this->Manager()->getRepository('Shopware\Models\Order\Shipping')->find((int)$id);
+                $shippingSW = $this->Manager()->getRepository(Shipping::class)->find((int)$id);
             }
 
             if ($shippingSW === null) {
-                $shippingSW = new \Shopware\Models\Order\Shipping();
+                $shippingSW = new Shipping();
             }
 
-            $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')
+            $countrySW = $this->Manager()->getRepository(Country::class)
                 ->findOneBy(array('iso' => $shippingAddress->getCountryIso()));
             if ($countrySW === null) {
-                throw new \Exception(\sprintf('Country with iso (%s) not found', $shippingAddress->getCountryIso()));
+                throw new \RuntimeException(
+                    \sprintf('Country with iso (%s) not found', $shippingAddress->getCountryIso())
+                );
             }
 
             $shippingSW->setCompany($shippingAddress->getCompany())
@@ -400,7 +542,14 @@ class CustomerOrder extends DataMapper
         }
     }
 
-    protected function prepareBillingAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     * @throws \Exception
+     */
+    protected function prepareBillingAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
         foreach ($customerOrder->getBillingAddress() as $billingAddress) {
             $billingSW = null;
@@ -409,17 +558,19 @@ class CustomerOrder extends DataMapper
                 : null;
 
             if (\strlen($id) > 0) {
-                $billingSW = $this->Manager()->getRepository('Shopware\Models\Order\Billing')->find((int)$id);
+                $billingSW = $this->Manager()->getRepository(Billing::class)->find((int)$id);
             }
 
             if ($billingSW === null) {
-                $billingSW = new \Shopware\Models\Order\Billing();
+                $billingSW = new Billing();
             }
 
-            $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')
+            $countrySW = $this->Manager()->getRepository(Country::class)
                 ->findOneBy(array('iso' => $billingAddress->getCountryIso()));
             if ($countrySW === null) {
-                throw new \Exception(\sprintf('Country with iso (%s) not found', $billingAddress->getCountryIso()));
+                throw new \RuntimeException(
+                    \sprintf('Country with iso (%s) not found', $billingAddress->getCountryIso())
+                );
             }
 
             $billingSW->setCompany($billingAddress->getCompany())
@@ -440,7 +591,15 @@ class CustomerOrder extends DataMapper
         }
     }
 
-    protected function prepareItemsAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrder $customerOrder
+     * @param \Shopware\Models\Order\Order       $orderSW
+     *
+     * @return void
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \Exception
+     */
+    protected function prepareItemsAssociatedData(CustomerOrderModel $customerOrder, OrderSW &$orderSW): void
     {
         foreach ($orderSW->getDetails() as $detailSW) {
             $this->Manager()->remove($detailSW);
@@ -449,7 +608,7 @@ class CustomerOrder extends DataMapper
         $taxFree            = 1;
         $invoiceShipping    = 0.0;
         $invoiceShippingNet = 0.0;
-        $detailsSW          = new \Doctrine\Common\Collections\ArrayCollection();
+        $detailsSW          = new ArrayCollection();
         foreach ($customerOrder->getItems() as $item) {
             switch ($item->getType()) {
                 case CustomerOrderItem::TYPE_PRODUCT:
@@ -474,17 +633,27 @@ class CustomerOrder extends DataMapper
             ->setDetails($detailsSW);
     }
 
+    /**
+     * @param \jtl\Connector\Model\CustomerOrderItem       $item
+     * @param \Shopware\Models\Order\Order                 $orderSW
+     * @param \Doctrine\Common\Collections\ArrayCollection $detailsSW
+     *
+     * @return void
+     * @throws \Doctrine\ORM\Exception\ORMException
+     * @throws \ReflectionException
+     * @throws \Exception
+     */
     protected function prepareItemAssociatedData(
         CustomerOrderItem &$item,
         OrderSW &$orderSW,
-        \Doctrine\Common\Collections\ArrayCollection &$detailsSW
-    ) {
+        ArrayCollection &$detailsSW
+    ): void {
         $detailSW = null;
 
         $id = (\strlen($item->getId()->getEndpoint()) > 0) ? (int)$item->getId()->getEndpoint() : null;
 
         if ($id !== null) {
-            $detailSW = $this->Manager()->getRepository('Shopware\Models\Order\Detail')->find($id);
+            $detailSW = $this->Manager()->getRepository(OrderDetailSW::class)->find($id);
         }
 
         if ($detailSW === null) {
@@ -494,7 +663,7 @@ class CustomerOrder extends DataMapper
         $taxRateMapper = Mmc::getMapper('TaxRate');
         $taxRateSW     = $taxRateMapper->findOneBy(array('tax' => $item->getVat()));
         if ($taxRateSW === null) {
-            throw new \Exception(\sprintf('Tax with rate (%s) not found', $item->getVat()));
+            throw new \RuntimeException(\sprintf('Tax with rate (%s) not found', $item->getVat()));
         }
 
         $price = ($item->getVat() > 0) ? Money::AsGross($item->getPrice(), $item->getVat()) : $item->getPrice();
@@ -502,7 +671,7 @@ class CustomerOrder extends DataMapper
         $productId = (\strlen($item->getProductId()->getEndpoint()) > 0) ? $item->getProductId()->getEndpoint() : null;
         if ($this->isChild($item)) {
             [$detailId, $articleId] = \explode('_', $productId);
-            $productId                  = $articleId;
+            $productId              = $articleId;
         }
 
         $detailSW->setNumber($orderSW->getNumber())
@@ -551,10 +720,15 @@ class CustomerOrder extends DataMapper
         $detailsSW->add($detailSW);
     }
 
-    public function isChild(CustomerOrderItem &$customerOrderItem)
+    /**
+     * @param \jtl\Connector\Model\CustomerOrderItem $customerOrderItem
+     *
+     * @return bool
+     */
+    public function isChild(CustomerOrderItem &$customerOrderItem): bool
     {
         return (
-            \strlen($customerOrderItem->getProductId()->getEndpoint()) > 0
+            $customerOrderItem->getProductId()->getEndpoint() !== ''
             && \strpos($customerOrderItem->getProductId()->getEndpoint(), '_') !== false
         );
     }
@@ -574,7 +748,7 @@ class CustomerOrder extends DataMapper
                 $where    = \sprintf('orders.orderTime >= \'%s\'', $dateTime->format('Y-m-d H:i:s'));
             }
         } catch (\Exception $e) {
-            Logger::write(ExceptionFormatter::format($e), Logger::ERROR, 'config');
+            Logger::write(ExceptionFormatter::format($e), LoggerMono::ERROR, 'config');
         }
 
         return $where;

@@ -6,7 +6,7 @@ declare(strict_types=1);
 
 /**
  * @copyright 2010-2013 JTL-Software GmbH
- * @package jtl\Connector\Shopware\Controller
+ * @package   jtl\Connector\Shopware\Controller
  */
 
 namespace jtl\Connector\Shopware\Mapper;
@@ -14,12 +14,12 @@ namespace jtl\Connector\Shopware\Mapper;
 use Doctrine\ORM\EntityNotFoundException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Linker\IdentityLinker;
-use jtl\Connector\Shopware\Utilities\Shop;
 use jtl\Connector\Model\StatusChange as StatusChangeModel;
-use jtl\Connector\Shopware\Utilities\Mmc;
-use jtl\Connector\Shopware\Utilities\Status as StatusUtil;
-use jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
 use jtl\Connector\Shopware\Model\CustomerOrder as CustomerOrderModel;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
+use jtl\Connector\Shopware\Utilities\Shop;
+use jtl\Connector\Shopware\Utilities\Status as StatusUtil;
 use sOrder;
 
 class StatusChange extends DataMapper
@@ -106,13 +106,20 @@ class StatusChange extends DataMapper
     }
 
     /**
-     * @param StatusChangeModel $statusChange
-     * @throws \Exception
+     * @param \jtl\Connector\Model\StatusChange $statusChange
+     *
+     * @return void
+     * @throws \RuntimeException|\Exception
      */
-    protected function createMappingIfNotLinked(StatusChangeModel $statusChange)
+    protected function createMappingIfNotLinked(StatusChangeModel $statusChange): void
     {
         $primaryKeyMapper = new PrimaryKeyMapper();
-        $endpointId       = $statusChange->getCustomerOrderId()->getEndpoint();
+        $coId             = $statusChange->getCustomerOrderId();
+        if ($coId === null) {
+            throw new \RuntimeException('CustomerOrderId is null');
+        }
+
+        $endpointId = $coId->getEndpoint();
 
         $paymentLink = $primaryKeyMapper->getHostId($endpointId, IdentityLinker::TYPE_PAYMENT);
         if (\is_null($paymentLink)) {

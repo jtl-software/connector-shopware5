@@ -34,13 +34,13 @@ final class Payment
      * @param string|null $jtlModuleCode
      * @param string|null $swModuleCode
      * @param string|null $paymentName
-     * @return string
+     * @return string|null
      */
     public static function map(
         string $jtlModuleCode = null,
         string $swModuleCode = null,
         string $paymentName = null
-    ): string {
+    ): ?string {
         if (\is_null($jtlModuleCode) && \is_null($swModuleCode) && \is_null($paymentName)) {
             return 'unknown';
         }
