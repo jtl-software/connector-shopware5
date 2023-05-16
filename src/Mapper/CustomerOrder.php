@@ -8,12 +8,9 @@
 namespace jtl\Connector\Shopware\Mapper;
 
 use Doctrine\ORM\AbstractQuery;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use jtl\Connector\Formatter\ExceptionFormatter;
-use jtl\Connector\Payment\PaymentTypes;
 use jtl\Connector\Shopware\Utilities\Plugin;
-use Shopware\Components\Api\Exception as ApiException;
 use jtl\Connector\Model\CustomerOrder as CustomerOrderModel;
 use jtl\Connector\Model\CustomerOrderItem;
 use Shopware\Models\Order\Order as OrderSW;
@@ -28,6 +25,7 @@ use jtl\Connector\Shopware\Utilities\PaymentStatus as PaymentStatusUtil;
 use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Shopware\Utilities\Salutation;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use Shopware\Models\Order\Status;
 
 class CustomerOrder extends DataMapper
 {
@@ -35,14 +33,19 @@ class CustomerOrder extends DataMapper
      * @param $id
      * @return OrderSW|null
      */
-    public function find($id)
+    public function find($id): ?OrderSW
     {
-        return (\intval($id) == 0) ? null : $this->Manager()->getRepository('Shopware\Models\Order\Order')->find($id);
+        return ((int)$id === 0) ? null : $this->Manager()->getRepository(OrderSW::class)->find($id);
     }
 
-    public function findStatus($id)
+    /**
+     * @param $id
+     *
+     * @return Status|null
+     */
+    public function findStatus($id): ?Status
     {
-        return $this->Manager()->getRepository('Shopware\Models\Order\Status')->find($id);
+        return $this->Manager()->getRepository(Status::class)->find($id);
     }
 
     public function findAll($limit = 100, $count = false, $from = null, $until = null)
@@ -498,7 +501,7 @@ class CustomerOrder extends DataMapper
 
         $productId = (\strlen($item->getProductId()->getEndpoint()) > 0) ? $item->getProductId()->getEndpoint() : null;
         if ($this->isChild($item)) {
-            list($detailId, $articleId) = \explode('_', $productId);
+            [$detailId, $articleId] = \explode('_', $productId);
             $productId                  = $articleId;
         }
 
