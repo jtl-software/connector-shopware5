@@ -1,6 +1,7 @@
 # Changelog 
 
 ## unreleased
+- CO-2350 - fix order status mail
 
 ## 2.18.1.1 _2023-05-10_
 - Hotfix Manufacturer Statistics
