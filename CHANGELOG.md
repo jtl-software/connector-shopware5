@@ -1,6 +1,7 @@
 # Changelog 
 
 ## unreleased
+- CO-2342 - add main_category_id attribute
 
 ## 2.18.1.1 _2023-05-10_
 - Hotfix Manufacturer Statistics

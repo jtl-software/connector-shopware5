@@ -7,6 +7,9 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
+use Doctrine\DBAL\Exception;
+use Doctrine\ORM\Exception\ORMException;
+use jtl\Connector\Core\Exception\LanguageException;
 use jtl\Connector\Model\TaxRate;
 use jtl\Connector\Shopware\Utilities\I18n;
 use jtl\Connector\Shopware\Utilities\ProductAttribute;
@@ -34,6 +37,9 @@ use jtl\Connector\Linker\ChecksumLinker;
 use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
+use Shopware\Models\Article\SeoCategory;
+use Shopware\Models\Shop\Shop as Shop;
+use Shopware\Models\Category\Category as SwCategory;
 use Shopware\Models\Attribute\Article;
 use Shopware\Models\Price\Group as SwGroup;
 use Shopware\Models\Plugin\Plugin;
@@ -992,6 +998,12 @@ class Product extends DataMapper
         }
     }
 
+    /**
+     * @throws ORMException
+     * @throws LanguageException
+     * @throws \Zend_Db_Adapter_Exception
+     * @throws Exception
+     */
     protected function prepareAttributeAssociatedData(
         JtlProduct $product,
         SwArticle &$article,
@@ -1087,6 +1099,30 @@ class Product extends DataMapper
                         $article->setPriceGroup($priceGroupSW);
                     }
                 }
+                continue;
+            }
+
+            // Main category id
+            if ($lcAttributeName === ProductAttr::MAIN_CATEGORY_ID) {
+                $values = \explode(',', $attributeI18n->getValue());
+                $shop = ShopUtil::entityManager()->find('Shopware\Models\Shop\Shop', $values[0]);
+                $category = ShopUtil::entityManager()->find('Shopware\Models\Category\Category', $values[1]);
+
+                if (!$category || !$shop) {
+                    Logger::write(
+                        \sprintf(
+                            'Unable to find shop with id (%s) or category with id (%s)',
+                            $values[0],
+                            $values[1]
+                        ),
+                        Logger::WARNING,
+                        'controller'
+                    );
+                    continue;
+                }
+
+                $this->buildSwSeoCategory($article, $category, $shop);
+
                 continue;
             }
 
@@ -2055,5 +2091,23 @@ class Product extends DataMapper
             isset($data['kind']) &&
             (int)$data['kind'] == self::KIND_VALUE_PARENT
         );
+    }
+
+    /**
+     * @param SwArticle $article
+     * @param SwCategory $category
+     * @param Shop $shop
+     * @return SwArticle
+     */
+    protected function buildSwSeoCategory(SwArticle $article, SwCategory $category, Shop $shop): SwArticle
+    {
+        $seoCategory = new SeoCategory();
+        $seoCategory->setArticle($article);
+        $seoCategory->setCategory($category);
+        $seoCategory->setShop($shop);
+
+        $article->setSeoCategories([$seoCategory]);
+
+        return $article;
     }
 }

@@ -27,6 +27,7 @@ class ProductAttr extends ProductAttrModel
     public const MAX_PURCHASE                = 'max_purchase';
     public const DEFAULT_REGULATION_PRICE_ID = 'regulation_price';
     public const SUFFIX_REGULATION_PRICE_ID  = '_regulation_price';
+    public const MAIN_CATEGORY_ID            = 'main_category_id';
 
     protected $fields = array(
         'id' => 'id',
