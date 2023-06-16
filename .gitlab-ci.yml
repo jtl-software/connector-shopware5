@@ -13,7 +13,6 @@ default:
     paths:
       - vendor
       - .composer-cache
-      - composer.lock
 
 include:
   - project: 'connector/connector-utils/CI-Templates'
