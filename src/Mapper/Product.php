@@ -38,7 +38,7 @@ use jtl\Connector\Shopware\Mapper\ProductPrice as ProductPriceMapper;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\CategoryMapping as CategoryMappingUtil;
 use Shopware\Models\Article\SeoCategory;
-use Shopware\Models\Shop\Shop as Shop;
+use Shopware\Models\Shop\Shop;
 use Shopware\Models\Category\Category as SwCategory;
 use Shopware\Models\Attribute\Article;
 use Shopware\Models\Price\Group as SwGroup;
