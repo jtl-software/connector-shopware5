@@ -1091,10 +1091,9 @@ class Product extends DataMapper
             }
 
             // Image configuration ignores
-            if (
-                $lcAttributeName === \strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES)
-                && $this->isParent($product)
-            ) {
+            if (($lcAttributeName === strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES) ||
+                $lcAttributeName === strtolower(ProductAttr::IMAGE_CONFIGURATION_IGNORES_OLD))
+                && $this->isParent($product)) {
                 try {
                     $oldAttributeValue = $productAttribute->getKey();
                     $productAttribute->setKey(ProductAttr::IMAGE_CONFIGURATION_IGNORES)

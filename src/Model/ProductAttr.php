@@ -15,18 +15,19 @@ use jtl\Connector\Model\ProductAttr as ProductAttrModel;
  */
 class ProductAttr extends ProductAttrModel
 {
-    public const ADDITIONAL_TEXT             = 'additional_text';
-    public const IMAGE_CONFIGURATION_IGNORES = 'sw_image_config_ignores';
-    public const IS_ACTIVE                   = 'active';
-    public const IS_MAIN                     = 'main';
-    public const PSEUDO_SALES                = 'pseudo_sales';
-    public const SEND_NOTIFICATION           = 'send_notification';
-    public const SHIPPING_FREE               = 'shipping_free';
-    public const CUSTOM_PRODUCTS_TEMPLATE    = 'custom_products_template';
-    public const PRICE_GROUP_ID              = 'price_group_id';
-    public const MAX_PURCHASE                = 'max_purchase';
-    public const DEFAULT_REGULATION_PRICE_ID = 'regulation_price';
-    public const SUFFIX_REGULATION_PRICE_ID  = '_regulation_price';
+    const ADDITIONAL_TEXT = 'additional_text';
+    const IMAGE_CONFIGURATION_IGNORES = 'image_config_ignores';
+    const IMAGE_CONFIGURATION_IGNORES_OLD = 'sw_image_config_ignores';
+    const IS_ACTIVE = 'active';
+    const IS_MAIN = 'main';
+    const PSEUDO_SALES = 'pseudo_sales';
+    const SEND_NOTIFICATION = 'send_notification';
+    const SHIPPING_FREE = 'shipping_free';
+    const CUSTOM_PRODUCTS_TEMPLATE = 'custom_products_template';
+    const PRICE_GROUP_ID = 'price_group_id';
+    const MAX_PURCHASE = 'max_purchase';
+    const DEFAULT_REGULATION_PRICE_ID = 'regulation_price';
+    const SUFFIX_REGULATION_PRICE_ID = '_regulation_price';
 
     protected $fields = array(
         'id' => 'id',
@@ -52,6 +53,7 @@ class ProductAttr extends ProductAttrModel
         return [
             self::ADDITIONAL_TEXT,
             self::IMAGE_CONFIGURATION_IGNORES,
+            self::IMAGE_CONFIGURATION_IGNORES_OLD,
             self::IS_ACTIVE,
             'isactive',
             self::IS_MAIN,
