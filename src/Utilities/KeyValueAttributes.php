@@ -1,4 +1,5 @@
 <?php
+
 namespace jtl\Connector\Shopware\Utilities;
 
 /**
@@ -16,8 +17,8 @@ class KeyValueAttributes extends Attributes
         if (isset($this->attributes[$key])) {
             $attribute = $this->attributes[$key];
         } else {
-            $class = $this->attributeClass;
-            $attribute = new $class;
+            $class     = $this->attributeClass;
+            $attribute = new $class();
             $attribute->setKey($key);
         }
 

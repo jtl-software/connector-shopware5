@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\TaxZone as TaxZoneModel;
+use jtl\Connector\Model\TaxZone as TaxZoneModel;
 
 /**
  * TaxZone Model
@@ -18,7 +19,7 @@ class TaxZone extends TaxZoneModel
         'id' => '',
         'name' => ''
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

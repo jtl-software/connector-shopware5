@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
+use jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
 
 /**
  * CategoryAttr Model
@@ -14,11 +15,11 @@ use \jtl\Connector\Model\CategoryAttr as CategoryAttrModel;
  */
 class CategoryAttr extends CategoryAttrModel
 {
-    const IS_ACTIVE = 'active';
-    const CMS_HEADLINE = 'cms_headline';
-    const IS_BLOG = 'is_blog';
-    const LIMIT_TO_SHOPS = 'limit_to_shops';
-    const LINK_TARGET = 'link_target';
+    public const IS_ACTIVE      = 'active';
+    public const CMS_HEADLINE   = 'cms_headline';
+    public const IS_BLOG        = 'is_blog';
+    public const LIMIT_TO_SHOPS = 'limit_to_shops';
+    public const LINK_TARGET    = 'link_target';
 
     protected $fields = array(
         'id' => 'id',
@@ -58,6 +59,6 @@ class CategoryAttr extends CategoryAttrModel
      */
     public static function isSpecialAttribute($attributeName)
     {
-        return in_array(strtolower($attributeName), self::getSpecialAttributes());
+        return \in_array(\strtolower($attributeName), self::getSpecialAttributes());
     }
 }

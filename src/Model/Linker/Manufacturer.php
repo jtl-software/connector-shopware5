@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -22,8 +23,7 @@ class Manufacturer extends \Shopware\Models\Article\Supplier
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\ManufacturerLinker", mappedBy="manufacturer")
      **/
     protected $linker;
-
-    /**
+/**
      * Gets the value of linker.
      *
      * @return mixed
@@ -43,7 +43,6 @@ class Manufacturer extends \Shopware\Models\Article\Supplier
     protected function setLinker(ManufacturerLinker $linker)
     {
         $this->linker = $linker;
-
         return $this;
     }
 }

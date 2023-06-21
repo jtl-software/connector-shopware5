@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -11,13 +12,13 @@ use jtl\Connector\Model\Product as JTLProduct;
 use jtl\Connector\Model\ProductPriceItem;
 use jtl\Connector\Shopware\Model\ProductAttr;
 use jtl\Connector\Shopware\Utilities\I18n;
-use \jtl\Connector\Shopware\Utilities\IdConcatenator;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Shopware\Controller\ProductPrice as ProductPriceController;
-use \Shopware\Models\Article\Article as ArticleSW;
-use \Shopware\Models\Article\Detail as DetailSW;
+use jtl\Connector\Shopware\Utilities\IdConcatenator;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\CustomerGroup as CustomerGroupUtil;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Shopware\Controller\ProductPrice as ProductPriceController;
+use Shopware\Models\Article\Article as ArticleSW;
+use Shopware\Models\Article\Detail as DetailSW;
 use jtl\Connector\Shopware\Utilities\Shop as ShopUtil;
 use Shopware\Models\Article\Price;
 
@@ -39,9 +40,9 @@ class ProductPrice extends DataMapper
             $sortedPrices[$price->getProductId()->getHost()][] = $price;
         }
 
-        foreach (array_values($sortedPrices) as $i => $productPrices) {
+        foreach (\array_values($sortedPrices) as $i => $productPrices) {
             $collection = self::buildCollection($productPrices);
-            if (count($collection) > 0) {
+            if (\count($collection) > 0) {
                 /** @var ArticleSW $article */
                 $article = $collection[0]->getArticle();
                 $article->setChanged();
@@ -75,10 +76,9 @@ class ProductPrice extends DataMapper
         DetailSW                     &$detail = null,
         ?float                       $recommendedRetailPrice = null,
         ?JTLProduct $product = null
-    )
-    {
+    ) {
         // Price
-        $collection = [];
+        $collection     = [];
         $pricesPerGroup = [];
 
         // build prices per customer group
@@ -86,13 +86,17 @@ class ProductPrice extends DataMapper
             $groupId = (int)$productPrice->getCustomerGroupId()->getEndpoint();
 
             $priceItems = $productPrice->getItems();
-            usort($priceItems, function (ProductPriceItem $a, ProductPriceItem $b) {
+            \usort($priceItems, function (ProductPriceItem $a, ProductPriceItem $b) {
                 return $a->getQuantity() - $b->getQuantity();
             });
 
             $productPrice->setItems($priceItems);
-            Logger::write(sprintf('prices (group id: %s): %s', $groupId, $productPrice->toJson()), Logger::DEBUG, 'prices');
-            if (!array_key_exists($groupId, $pricesPerGroup)) {
+            Logger::write(
+                \sprintf('prices (group id: %s): %s', $groupId, $productPrice->toJson()),
+                Logger::DEBUG,
+                'prices'
+            );
+            if (!\array_key_exists($groupId, $pricesPerGroup)) {
                 $pricesPerGroup[$groupId] = null;
             }
 
@@ -101,10 +105,10 @@ class ProductPrice extends DataMapper
 
         // Search default Vk price
         $defaultPrice = null;
-        if (array_key_exists(0, $pricesPerGroup)) {
+        if (\array_key_exists(0, $pricesPerGroup)) {
             //$price = $pricesPerGroup[0][0];
             $price = $pricesPerGroup[0];
-            if (count($price->getItems()) == 1) {
+            if (\count($price->getItems()) == 1) {
                 // Set default quantity
                 $items = $price->getItems();
                 $items[0]->setQuantity(1);
@@ -112,7 +116,8 @@ class ProductPrice extends DataMapper
 
                 $defaultPrice = $price;
             } else {
-                Logger::write(sprintf('Default Price for product (%s, %s) != 1 item',
+                Logger::write(\sprintf(
+                    'Default Price for product (%s, %s) != 1 item',
                     $price->getProductId()->getEndpoint(),
                     $price->getProductId()->getHost()
                 ), Logger::WARNING, 'controller');
@@ -126,7 +131,7 @@ class ProductPrice extends DataMapper
         }
 
         $tmpItems = $defaultPrice->getItems();
-        Logger::write(sprintf(
+        Logger::write(\sprintf(
             'default Vk price ... net price: %s - json: %s',
             $tmpItems[0]->getNetPrice(),
             $defaultPrice->toJson()
@@ -134,7 +139,7 @@ class ProductPrice extends DataMapper
 
         // Only default?
         $defaultCGId = ShopUtil::get()->Shop()->getCustomerGroup()->getId();
-        if (count($pricesPerGroup) == 1 && isset($pricesPerGroup[0])) {
+        if (\count($pricesPerGroup) == 1 && isset($pricesPerGroup[0])) {
             $pricesPerGroup[$defaultCGId] = $pricesPerGroup[0];
         }
 
@@ -147,21 +152,35 @@ class ProductPrice extends DataMapper
         }
 
         // find sw product and detail
-        if (is_null($article) || is_null($detail)) {
-            if (strlen($defaultPrice->getProductId()->getEndpoint()) > 0) {
+        if (\is_null($article) || \is_null($detail)) {
+            if (\strlen($defaultPrice->getProductId()->getEndpoint()) > 0) {
                 list ($detailId, $productId) = IdConcatenator::unlink($defaultPrice->getProductId()->getEndpoint());
 
                 $productMapper = Mmc::getMapper('Product');
-                $article = $productMapper->find($productId);
-                if (is_null($article)) {
-                    Logger::write(sprintf('Could not find any product for endpoint (%s)', $defaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
+                $article       = $productMapper->find($productId);
+                if (\is_null($article)) {
+                    Logger::write(
+                        \sprintf(
+                            'Could not find any product for endpoint (%s)',
+                            $defaultPrice->getProductId()->getEndpoint()
+                        ),
+                        Logger::WARNING,
+                        'database'
+                    );
 
                     return $collection;
                 }
 
                 $detail = $productMapper->findDetail($detailId);
-                if (is_null($detail)) {
-                    Logger::write(sprintf('Could not find any detail for endpoint (%s)', $defaultPrice->getProductId()->getEndpoint()), Logger::WARNING, 'database');
+                if (\is_null($detail)) {
+                    Logger::write(
+                        \sprintf(
+                            'Could not find any detail for endpoint (%s)',
+                            $defaultPrice->getProductId()->getEndpoint()
+                        ),
+                        Logger::WARNING,
+                        'database'
+                    );
 
                     return $collection;
                 }
@@ -173,9 +192,10 @@ class ProductPrice extends DataMapper
         }
 
         // Find pseudoprice
-        if ($article->getId() > 0 && $detail->getId() > 0 && is_null($recommendedRetailPrice)) {
+        if ($article->getId() > 0 && $detail->getId() > 0 && \is_null($recommendedRetailPrice)) {
             $recommendedRetailPrice = ShopUtil::get()->Db()->fetchOne(
-                'SELECT if(pseudoprice, pseudoprice, 0.0) FROM s_articles_prices WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
+                'SELECT if(pseudoprice, pseudoprice, 0.0) FROM s_articles_prices
+                                         WHERE articleID = ? AND articledetailsID = ? AND `from` = 1',
                 array($article->getId(), $detail->getId())
             );
         }
@@ -192,8 +212,12 @@ class ProductPrice extends DataMapper
             //foreach ($prices as $price) {
             $customerGroupSW = CustomerGroupUtil::get((int)$groupId);
 
-            if (is_null($customerGroupSW)) {
-                Logger::write(sprintf('Could not find any customer group with id (%s)', $groupId), Logger::WARNING, 'database');
+            if (\is_null($customerGroupSW)) {
+                Logger::write(
+                    \sprintf('Could not find any customer group with id (%s)', $groupId),
+                    Logger::WARNING,
+                    'database'
+                );
 
                 continue;
             }
@@ -206,16 +230,16 @@ class ProductPrice extends DataMapper
             // If not, insert default Vk
             if (!$isPresent) {
                 $defaultPriceItems = $defaultPrice->getItems();
-                array_unshift($priceItems, $defaultPriceItems[0]);
+                \array_unshift($priceItems, $defaultPriceItems[0]);
             }
 
-            $itemCount = count($priceItems);
+            $itemCount  = \count($priceItems);
             $firstPrice = null;
             foreach ($priceItems as $i => $priceItem) {
-                $priceSW = null;
+                $priceSW        = null;
                 $firstPriceItem = null;
-                $quantity = ($priceItem->getQuantity() > 0) ? $priceItem->getQuantity() : 1;
-                if (strlen($price->getProductId()->getEndpoint()) > 0) {
+                $quantity       = ($priceItem->getQuantity() > 0) ? $priceItem->getQuantity() : 1;
+                if (\strlen($price->getProductId()->getEndpoint()) > 0) {
                     list ($detailId, $productId) = IdConcatenator::unlink($price->getProductId()->getEndpoint());
 
                     $priceSW = ShopUtil::entityManager()->getRepository(Price::class)->findOneBy(array(
@@ -225,12 +249,12 @@ class ProductPrice extends DataMapper
                     ));
                 }
 
-                if (is_null($priceSW)) {
-                    $priceSW = new \Shopware\Models\Article\Price;
+                if (\is_null($priceSW)) {
+                    $priceSW = new \Shopware\Models\Article\Price();
                 }
 
                 $pseudoPrice = 0.;
-                if (!is_null($recommendedRetailPrice) && $recommendedRetailPrice >= $priceItem->getNetPrice()) {
+                if (!\is_null($recommendedRetailPrice) && $recommendedRetailPrice >= $priceItem->getNetPrice()) {
                     $pseudoPrice = $recommendedRetailPrice;
                 }
 
@@ -247,19 +271,24 @@ class ProductPrice extends DataMapper
                 }
 
                 // percent
-                if ($i > 0 && !is_null($firstPriceItem)) {
-                    $priceSW->setPercent(number_format(abs((1 - $priceItem->getNetPrice() / $firstPriceItem->getNetPrice()) * 100), 2));
+                if ($i > 0 && !\is_null($firstPriceItem)) {
+                    $priceSW->setPercent(
+                        \number_format(
+                            \abs((1 - $priceItem->getNetPrice() / $firstPriceItem->getNetPrice()) * 100),
+                            2
+                        )
+                    );
                 }
 
                 if ($itemCount > 0 && ($i + 1) < $itemCount && $priceItems[($i + 1)]->getQuantity() > 0) {
                     $priceSW->setTo($priceItems[($i + 1)]->getQuantity() - 1);
                 }
 
-                if (!is_null($product)) {
+                if (!\is_null($product)) {
                     self::applyRegulationPrice($priceSW, $product);
                 }
 
-                Logger::write(sprintf(
+                Logger::write(\sprintf(
                     'group: %s - quantity: %s, net price: %s, (a %s/d %s)',
                     $customerGroupSW->getKey(),
                     $quantity,
@@ -284,7 +313,7 @@ class ProductPrice extends DataMapper
      */
     private static function applyRegulationPrice(Price $swPrice, JTLProduct $product)
     {
-        if (!method_exists($swPrice, 'setRegulationPrice')) {
+        if (!\method_exists($swPrice, 'setRegulationPrice')) {
             Logger::write('Regulation price not supported, skipping', Logger::DEBUG, 'prices');
 
             return;
@@ -293,49 +322,51 @@ class ProductPrice extends DataMapper
         $attributes = $product->getAttributes();
 
         $shopwareLocale = ShopUtil::locale()->getLocale();
-        $groupName = strtolower($swPrice->getCustomerGroup()->getName());
-        $groupKey = strtolower($swPrice->getCustomerGroup()->getKey());
+        $groupName      = \strtolower($swPrice->getCustomerGroup()->getName());
+        $groupKey       = \strtolower($swPrice->getCustomerGroup()->getKey());
 
         $fallbackPrice = null;
-        $groupPrice = null;
+        $groupPrice    = null;
 
         foreach ($attributes as $attribute) {
             $attributeI18n = I18n::findByLocale($shopwareLocale, ...$attribute->getI18ns());
-            if(is_null($attributeI18n)){
-                self::logNullTranslation($attribute,$shopwareLocale);
+            if (\is_null($attributeI18n)) {
+                self::logNullTranslation($attribute, $shopwareLocale);
                 continue;
             }
 
-            $lcAttributeName = strtolower($attributeI18n->getName());
-            $attributeValue = floatval($attributeI18n->getValue());
+            $lcAttributeName = \strtolower($attributeI18n->getName());
+            $attributeValue  = \floatval($attributeI18n->getValue());
 
             if ($lcAttributeName === ProductAttr::DEFAULT_REGULATION_PRICE_ID) {
                 $fallbackPrice = $attributeValue;
-            } else if ($lcAttributeName === $groupName . ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
+            } elseif ($lcAttributeName === $groupName . ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
                 $groupPrice = $attributeValue;
-            } else if ($lcAttributeName === $groupKey . ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
+            } elseif ($lcAttributeName === $groupKey . ProductAttr::SUFFIX_REGULATION_PRICE_ID) {
                 $groupPrice = $attributeValue;
             }
-
         }
-        if (!is_null($groupPrice)) {
+        if (!\is_null($groupPrice)) {
             $swPrice->setRegulationPrice($groupPrice);
 
-            Logger::write(sprintf(
+            Logger::write(\sprintf(
                 'regulation price: %f for group: %s',
                 $groupPrice,
                 $groupName
             ), Logger::DEBUG, 'prices');
-        } else if (!is_null($fallbackPrice)) {
+        } elseif (!\is_null($fallbackPrice)) {
             $swPrice->setRegulationPrice($fallbackPrice);
 
-            Logger::write(sprintf(
+            Logger::write(\sprintf(
                 'default regulation price: %f',
                 $groupPrice
             ), Logger::DEBUG, 'prices');
         } else {
-            Logger::write(sprintf('No regulation price for group %s and no default found!', $groupName), Logger::INFO, 'prices');
+            Logger::write(
+                \sprintf('No regulation price for group %s and no default found!', $groupName),
+                Logger::INFO,
+                'prices'
+            );
         }
-
     }
 }

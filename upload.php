@@ -5,7 +5,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $username = $argv[1];
 $password = $argv[2];
-$version = $argv[3];
+$version  = $argv[3];
 
 if (empty($username) || empty($password) || empty($version)) {
     echo "Usage: php upload.php <username> <password> <version>";
@@ -67,7 +67,7 @@ try {
     }
     if (count($binaries) === 1) {
         echo 'Version ' . $version . ' already exists. Updating... ';
-        $binary = array_shift($binaries);
+        $binary   = array_shift($binaries);
         $response = $client->request('POST', sprintf('plugins/%d/binaries/%d/file', $pluginId, $binary->id), [
             'multipart' => [
                 [
@@ -138,9 +138,3 @@ try {
 } catch (\GuzzleHttp\Exception\ClientException $e) {
     die('API Error ' . $e->getResponse()->getStatusCode() . ': ' . $e->getResponse()->getBody());
 }
-
-
-
-
-
-

@@ -1,11 +1,13 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
  */
+
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ProductAttr as ProductAttrModel;
+use jtl\Connector\Model\ProductAttr as ProductAttrModel;
 
 /**
  * ProductAttr Model
@@ -74,6 +76,6 @@ class ProductAttr extends ProductAttrModel
      */
     public static function isSpecialAttribute($attributeName)
     {
-        return in_array(strtolower($attributeName), self::getSpecialAttributes());
+        return \in_array(\strtolower($attributeName), self::getSpecialAttributes());
     }
 }

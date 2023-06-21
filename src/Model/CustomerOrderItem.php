@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,8 +7,8 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\CustomerOrderItem as CustomerOrderItemModel;
-use \jtl\Connector\Core\Utilities\Money;
+use jtl\Connector\Model\CustomerOrderItem as CustomerOrderItemModel;
+use jtl\Connector\Core\Utilities\Money;
 use jtl\Connector\Shopware\Utilities\Plugin;
 use SwagCustomProducts\Components\Services\BasketManagerInterface;
 

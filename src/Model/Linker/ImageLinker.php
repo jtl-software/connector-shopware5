@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -24,15 +25,13 @@ class ImageLinker
      * @ORM\Column(name="host_id", type="integer", nullable=false)
      */
     protected $hostId;
-
-    /**
+/**
      * @ORM\OneToOne(targetEntity="jtl\Connector\Shopware\Model\Linker\Image", inversedBy="linker")
      * @ORM\JoinColumn(name="media_id", referencedColumnName="id")
      * @ORM\Id
      */
     protected $image;
-
-    /**
+/**
      * Gets the value of image.
      *
      * @return string
@@ -52,7 +51,6 @@ class ImageLinker
     public function setImage(Image $image)
     {
         $this->image = $image;
-
         return $this;
     }
 
@@ -76,7 +74,6 @@ class ImageLinker
     public function setHostId($hostId)
     {
         $this->hostId = $hostId;
-
         return $this;
     }
 }

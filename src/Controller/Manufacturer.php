@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -7,14 +8,14 @@
 namespace jtl\Connector\Shopware\Controller;
 
 use jtl\Connector\Model\Identity;
-use \jtl\Connector\Result\Action;
-use \jtl\Connector\Core\Rpc\Error;
-use \jtl\Connector\Core\Model\QueryFilter;
-use \jtl\Connector\Core\Utilities\DataConverter;
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Core\Logger\Logger;
-use \jtl\Connector\Formatter\ExceptionFormatter;
-use \jtl\Connector\Core\Utilities\Language as LanguageUtil;
+use jtl\Connector\Result\Action;
+use jtl\Connector\Core\Rpc\Error;
+use jtl\Connector\Core\Model\QueryFilter;
+use jtl\Connector\Core\Utilities\DataConverter;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Formatter\ExceptionFormatter;
+use jtl\Connector\Core\Utilities\Language as LanguageUtil;
 
 /**
  * Manufacturer Controller
@@ -35,9 +36,9 @@ class Manufacturer extends DataController
 
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit  = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
-            $mapper = Mmc::getMapper('Manufacturer');
+            $mapper        = Mmc::getMapper('Manufacturer');
             $manufacturers = $mapper->findAll($limit);
             foreach ($manufacturers as $manufacturerSW) {
                 try {

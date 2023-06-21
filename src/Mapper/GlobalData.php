@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,14 +7,14 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Shopware\Utilities\Mmc;
-use \jtl\Connector\Shopware\Model\GlobalData as GlobalDataModel;
+use jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Model\GlobalData as GlobalDataModel;
 
 class GlobalData extends DataMapper
 {
     public function save(GlobalDataModel $globalData)
     {
-        $result = new GlobalDataModel;
+        $result = new GlobalDataModel();
 
         // Companies
         /*
@@ -23,7 +24,8 @@ class GlobalData extends DataMapper
             $configMapper->update(array('name', 'address'), $company->getStreet(), Shopware()->Shop()->getId());
             $configMapper->update(array('name', 'mail'), $company->getEMail(), Shopware()->Shop()->getId());
             $configMapper->update(array('name', 'taxNumber'), $company->getTaxIdNumber(), Shopware()->Shop()->getId());
-            $configMapper->update(array('name', 'vatcheckadvancednumber'), $company->getVatNumber(), Shopware()->Shop()->getId());
+            $configMapper->update(array('name', 'vatcheckadvancednumber'),
+        $company->getVatNumber(), Shopware()->Shop()->getId());
         }
         */
 
@@ -54,7 +56,7 @@ class GlobalData extends DataMapper
             $measurementUnitResult = $measurementUnitMapper->save($measurementUnit);
             $result->addMeasurementUnit($measurementUnitResult);
         }
-        
+
         // TaxRates
         $taxRateMapper = Mmc::getMapper('TaxRate');
         foreach ($globalData->getTaxRates() as $taxRate) {
@@ -68,7 +70,7 @@ class GlobalData extends DataMapper
             $crossSellingGroupResult = $crossSellingGroupMapper->save($crossSellingGroup);
             $result->addCrossSellingGroup($crossSellingGroupResult);
         }
-        
+
         return $result->getPublic();
     }
 }

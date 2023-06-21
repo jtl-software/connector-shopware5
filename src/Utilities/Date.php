@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Utilities
@@ -6,19 +7,19 @@
 
 namespace jtl\Connector\Shopware\Utilities;
 
-use \jtl\Connector\Core\Utilities\Date as CoreDate;
+use jtl\Connector\Core\Utilities\Date as CoreDate;
 
 final class Date
 {
     private function __construct()
     {
     }
-    
+
     public static function check($platformValue)
     {
-        return (($platformValue instanceof DateTime) || (is_object($platformValue) && isset($platformValue->date)));
+        return (($platformValue instanceof DateTime) || (\is_object($platformValue) && isset($platformValue->date)));
     }
-    
+
     public static function map($platformValue = null, $connectorValue = null)
     {
         if ($platformValue !== null) {
@@ -33,7 +34,7 @@ final class Date
 
             return CoreDate::map($value, $targetformat);
         }
-        
+
         if ($connectorValue !== null) {
             return \DateTime::createFromFormat(\DateTime::ISO8601, $connectorValue);
         }

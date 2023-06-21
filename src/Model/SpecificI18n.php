@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\SpecificI18n as SpecificI18nModel;
+use jtl\Connector\Model\SpecificI18n as SpecificI18nModel;
 
 /**
  * SpecificI18n Model
@@ -19,7 +20,7 @@ class SpecificI18n extends SpecificI18nModel
         'specificId' => 'specificId',
         'name' => 'name'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

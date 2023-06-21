@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Utilities
@@ -35,9 +36,12 @@ final class Payment
      * @param string|null $paymentName
      * @return string
      */
-    public static function map(string $jtlModuleCode = null, string $swModuleCode = null, string $paymentName = null): string
-    {
-        if (is_null($jtlModuleCode) && is_null($swModuleCode) && is_null($paymentName)) {
+    public static function map(
+        string $jtlModuleCode = null,
+        string $swModuleCode = null,
+        string $paymentName = null
+    ): string {
+        if (\is_null($jtlModuleCode) && \is_null($swModuleCode) && \is_null($paymentName)) {
             return 'unknown';
         }
 
@@ -47,8 +51,8 @@ final class Payment
             return $paymentTypeMappings[$jtlModuleCode];
         } elseif ($swModuleCode !== null) {
             foreach ($paymentTypeMappings as $key => $value) {
-                if (is_array($value)) {
-                    if (array_search($swModuleCode, $value, true) !== false) {
+                if (\is_array($value)) {
+                    if (\array_search($swModuleCode, $value, true) !== false) {
                         return $key;
                     }
                 }
@@ -104,9 +108,9 @@ final class Payment
      */
     public static function usePPPInvoice()
     {
-        $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_payment_paypal_plus_payment_instruction\'');
+        $mysql_result = \Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_payment_paypal_plus_payment_instruction\'');
 
-        return is_array($mysql_result) && count($mysql_result) > 0;
+        return \is_array($mysql_result) && \count($mysql_result) > 0;
     }
 
     /**
@@ -115,9 +119,9 @@ final class Payment
      */
     public static function usePaypalUnified()
     {
-        $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'swag_payment_paypal_unified_%\'');
+        $mysql_result = \Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'swag_payment_paypal_unified_%\'');
 
-        return is_array($mysql_result) && count($mysql_result) > 0;
+        return \is_array($mysql_result) && \count($mysql_result) > 0;
     }
 
     /**
@@ -126,9 +130,9 @@ final class Payment
      */
     public static function usePPPInstallment()
     {
-        $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_paypal_installments_financing\'');
+        $mysql_result = \Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_paypal_installments_financing\'');
 
-        return is_array($mysql_result) && count($mysql_result) > 0;
+        return \is_array($mysql_result) && \count($mysql_result) > 0;
     }
 
     /**
@@ -137,9 +141,9 @@ final class Payment
      */
     public static function useHeidelpayInvoice()
     {
-        $mysql_result = Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_hgw_transactions\'');
+        $mysql_result = \Shopware()->Db()->fetchAll('SHOW TABLES LIKE \'s_plugin_hgw_transactions\'');
 
-        return is_array($mysql_result) && count($mysql_result) > 0;
+        return \is_array($mysql_result) && \count($mysql_result) > 0;
     }
 
     /**
@@ -152,12 +156,12 @@ final class Payment
             Status::PAYMENT_STATE_COMPLETELY_PAID
         ];
 
-        $allowedClearedStates = array_unique(array_merge(
-            Application()->getConfig()->get('payment.pull.allowed_cleared_states', []),
+        $allowedClearedStates = \array_unique(\array_merge(
+            \Application()->getConfig()->get('payment.pull.allowed_cleared_states', []),
             $defaultState
         ));
 
-        return $asString === true ? join(',', $allowedClearedStates) : $allowedClearedStates;
+        return $asString === true ? \join(',', $allowedClearedStates) : $allowedClearedStates;
     }
 
     /**
@@ -165,9 +169,9 @@ final class Payment
      */
     public static function getPaymentTypeMappings(): array
     {
-        return array_replace_recursive(
+        return \array_replace_recursive(
             self::$paymentTypeMappings,
-            Application()->getConfig()->get('payment_type_mappings', [])
+            \Application()->getConfig()->get('payment_type_mappings', [])
         );
     }
 }

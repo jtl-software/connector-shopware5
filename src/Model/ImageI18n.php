@@ -1,7 +1,8 @@
 <?php
+
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\ImageI18n as CoreImageI18n;
+use jtl\Connector\Model\ImageI18n as CoreImageI18n;
 use jtl\Connector\Shopware\Model\DataModel;
 
 /**

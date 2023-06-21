@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Utilities
@@ -6,12 +7,11 @@
 
 namespace jtl\Connector\Shopware\Utilities;
 
-use \jtl\Connector\Shopware\Utilities\Mmc;
+use jtl\Connector\Shopware\Utilities\Mmc;
 
 final class CrossSellingGroup
 {
-    private static $_groups;
-
+    private static $groups;
     /**
      * @param int $id
      * @param bool $useCache
@@ -19,16 +19,15 @@ final class CrossSellingGroup
      */
     public static function get($id, $useCache = true)
     {
-        if (self::$_groups === null) {
-            self::$_groups = [];
+        if (self::$groups === null) {
+            self::$groups = [];
         }
 
-        if (!$useCache || !isset(self::$_groups[$id])) {
-            $mapper = Mmc::getMapper('CrossSellingGroup');
-
-            self::$_groups[$id] = $mapper->find($id, true);
+        if (!$useCache || !isset(self::$groups[$id])) {
+            $mapper            = Mmc::getMapper('CrossSellingGroup');
+            self::$groups[$id] = $mapper->find($id, true);
         }
 
-        return self::$_groups[$id];
+        return self::$groups[$id];
     }
 }

@@ -1,6 +1,20 @@
 # Changelog 
 
 ## unreleased
+
+## 2.18.1.1 _2023-05-10_
+- Hotfix Manufacturer Statistics
+
+## 2.18.1 _2023-05-09_
+- CO-2218 - fix order status constants
+- CO-2197 - fix manufacturer translations 
+
+## 2.18.0 _2023-03-14_
+- CO-2271 - fix language mapping
+- CO-2161 - fix duplicate languages on product attributes
+
+## 2.17.1 _2022-12-13_
+- CO-2076 - fix Customer creation date is null
 - CO-2237 - Fix Plugin Manager Guzzle Error with dev Version
 
 ## 2.17.0 _2022-11-08_

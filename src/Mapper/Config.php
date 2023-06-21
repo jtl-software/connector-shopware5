@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Mapper;
 
-use \jtl\Connector\Core\Logger\Logger;
+use jtl\Connector\Core\Logger\Logger;
 
 class Config extends DataMapper
 {
@@ -17,7 +18,7 @@ class Config extends DataMapper
 
     public function get($key)
     {
-        return Shopware()->Config()->get($key);
+        return \Shopware()->Config()->get($key);
     }
 
     public function update(array $kv, $data, $shopId)
@@ -26,7 +27,7 @@ class Config extends DataMapper
         if ($element) {
             foreach ($element->getValues() as $value) {
                 if ($value->getShop()->getId() == $shopId) {
-                    $value->setValue(serialize($data));
+                    $value->setValue(\serialize($data));
 
                     $this->Manager()->persist($value);
                     $this->Manager()->flush();

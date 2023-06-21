@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -45,23 +46,23 @@ class Category extends DataController
 
         try {
             $result = array();
-            $limit = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
+            $limit  = $queryFilter->isLimit() ? $queryFilter->getLimit() : 100;
 
-            $mapper = Mmc::getMapper('Category');
+            $mapper     = Mmc::getMapper('Category');
             $categories = $mapper->findAll($limit);
 
             $shopMapper = Mmc::getMapper('Shop');
-            $shops = $shopMapper->findAll(null);
+            $shops      = $shopMapper->findAll(null);
 
-            $rootCategories = array();
+            $rootCategories  = array();
             $rootCategoryIds = array();
             foreach ($shops as $shop) {
-                $rootCategory = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
+                $rootCategory = \Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
                     ->findOneById($shop['category']['id']);
 
                 if ($rootCategory !== null) {
                     $rootCategories[$shop['locale']['locale']] = $rootCategory;
-                    $rootCategoryIds[] = $rootCategory->getId();
+                    $rootCategoryIds[]                         = $rootCategory->getId();
                 }
             }
 
@@ -86,24 +87,25 @@ class Category extends DataController
                     // Attribute Translation
                     if (isset($categorySW['translations'])) {
                         foreach ($categorySW['translations'] as $localeName => $translation) {
-                            $category->addI18n($this->createI18nFromTranslation($translation, LanguageUtil::map($localeName)));
+                            $category->addI18n(
+                                $this->createI18nFromTranslation($translation, LanguageUtil::map($localeName))
+                            );
                         }
                     }
 
                     /** @var \Shopware\Models\Category\Category $categoryObj */
-                    $categoryObj = Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
+                    $categoryObj = \Shopware()->Models()->getRepository('Shopware\Models\Category\Category')
                         ->findOneById($categorySW['id']);
 
                     // Attributes
                     $translatableAttributes = new TranslatableAttributes(CategoryAttr::class, CategoryAttrI18n::class);
 
-                    $languageIso = LanguageUtil::map(Shopware()->Shop()->getLocale()->getLocale());
+                    $languageIso = LanguageUtil::map(\Shopware()->Shop()->getLocale()->getLocale());
 
-                    if (isset($categorySW['attribute']) && is_array($categorySW['attribute'])) {
+                    if (isset($categorySW['attribute']) && \is_array($categorySW['attribute'])) {
                         $ignoreAttributes = ['id', 'categoryId'];
-                        foreach ($categorySW['attribute'] AS $name => $value) {
-
-                            if (empty($value) || in_array($name, $ignoreAttributes)) {
+                        foreach ($categorySW['attribute'] as $name => $value) {
+                            if (empty($value) || \in_array($name, $ignoreAttributes)) {
                                 continue;
                             }
 
@@ -111,10 +113,9 @@ class Category extends DataController
 
                             $translatableAttributes->addAttribute($attrId);
                             $translatableAttributes->addAttributeTranslation($attrId, $name, $value, $languageIso);
-                            if(is_array($categorySW['translations'])) {
+                            if (\is_array($categorySW['translations'])) {
                                 $translatableAttributes->addTranslations($attrId, $name, $categorySW['translations']);
                             }
-
                         }
                     }
                     $category->setAttributes($translatableAttributes->getAttributes());
@@ -140,7 +141,7 @@ class Category extends DataController
                             )
                     );
 
-                    if(isset($categorySW['externalTarget']) && !empty($categorySW['externalTarget'])) {
+                    if (isset($categorySW['externalTarget']) && !empty($categorySW['externalTarget'])) {
                         $category->addAttribute(
                             (new CategoryAttr())
                                 ->setId(new Identity(CategoryAttr::LINK_TARGET))
@@ -154,7 +155,7 @@ class Category extends DataController
                     }
 
                     // Invisibility
-                    if (isset($categorySW['customerGroups']) && is_array($categorySW['customerGroups'])) {
+                    if (isset($categorySW['customerGroups']) && \is_array($categorySW['customerGroups'])) {
                         foreach ($categorySW['customerGroups'] as $customerGroup) {
                             $categoryInvisibility = Mmc::getModel('CategoryInvisibility');
                             $categoryInvisibility->setCustomerGroupId(new Identity($customerGroup['id']))
@@ -166,8 +167,8 @@ class Category extends DataController
 
                     // CategoryI18n
                     if ($categoryObj->getParent() === null) {
-                        $categorySW['localeName'] = Shopware()->Locale()->toString();
-                    } elseif (in_array($categoryObj->getId(), $rootCategoryIds)) {
+                        $categorySW['localeName'] = \Shopware()->Locale()->toString();
+                    } elseif (\in_array($categoryObj->getId(), $rootCategoryIds)) {
                         foreach ($rootCategories as $localeName => $rootCategory) {
                             if ($categoryObj->getId() == $rootCategory->getId()) {
                                 $categorySW['localeName'] = $localeName;
@@ -183,8 +184,8 @@ class Category extends DataController
                     }
 
                     // Fallback
-                    if (!isset($categorySW['localeName']) || strlen($categorySW['localeName']) == 0) {
-                        $categorySW['localeName'] = Shopware()->Shop()->getLocale()->getLocale();
+                    if (!isset($categorySW['localeName']) || \strlen($categorySW['localeName']) == 0) {
+                        $categorySW['localeName'] = \Shopware()->Shop()->getLocale()->getLocale();
                     }
                     if (isset($categorySW['cmsText'])) {
                         $categorySW['cmsText'] = Html::replacePathsWithFullUrl($categorySW['cmsText'], Shop::getUrl());
@@ -193,19 +194,21 @@ class Category extends DataController
 
                     // Other languages
                     /** @deprecated Will be removed in a future connector release  $mappingOld */
-                    $mappingOld = Application()->getConfig()->get('category_mapping', false);
-                    if (Application()->getConfig()->get('category.mapping', $mappingOld)) {
-                        $mappings = CategoryMappingUtil::findAllCategoryMappingByParent($category->getId()->getEndpoint());
+                    $mappingOld = \Application()->getConfig()->get('category_mapping', false);
+                    if (\Application()->getConfig()->get('category.mapping', $mappingOld)) {
+                        $mappings = CategoryMappingUtil::findAllCategoryMappingByParent(
+                            $category->getId()->getEndpoint()
+                        );
                         foreach ($mappings as $mapping) {
-                            $mapping['category']['id'] = $category->getId()->getEndpoint();
+                            $mapping['category']['id']         = $category->getId()->getEndpoint();
                             $mapping['category']['localeName'] = LanguageUtil::map(null, null, $mapping['lang']);
                             $this->addPos($category, 'addI18n', 'CategoryI18n', $mapping['category']);
                         }
                     }
 
                     // Default locale hack
-                    if ($categorySW['localeName'] != Shopware()->Shop()->getLocale()->getLocale()) {
-                        $categorySW['localeName'] = Shopware()->Shop()->getLocale()->getLocale();
+                    if ($categorySW['localeName'] != \Shopware()->Shop()->getLocale()->getLocale()) {
+                        $categorySW['localeName'] = \Shopware()->Shop()->getLocale()->getLocale();
                         $this->addPos($category, 'addI18n', 'CategoryI18n', $categorySW);
                     }
 
@@ -248,9 +251,9 @@ class Category extends DataController
         $i18n = (new CategoryI18n())->setLanguageISO($langIso);
         foreach ($propertyMappings as $swProp => $jtlProp) {
             if (isset($data[$swProp])) {
-                $setter = 'set' . ucfirst($jtlProp);
-                $value = $data[$swProp];
-                if($jtlProp === 'description'){
+                $setter = 'set' . \ucfirst($jtlProp);
+                $value  = $data[$swProp];
+                if ($jtlProp === 'description') {
                     $value = Html::replacePathsWithFullUrl($value, Shop::getUrl());
                 }
 

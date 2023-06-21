@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Model
@@ -6,7 +7,7 @@
 
 namespace jtl\Connector\Shopware\Model;
 
-use \jtl\Connector\Model\TaxRate as TaxRateModel;
+use jtl\Connector\Model\TaxRate as TaxRateModel;
 
 /**
  * TaxRate Model
@@ -18,7 +19,7 @@ class TaxRate extends TaxRateModel
         'id' => 'id',
         'rate' => 'tax'
     );
-    
+
     /**
      * (non-PHPdoc)
      * @see \jtl\Connector\Shopware\Model\DataModel::map()

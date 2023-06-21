@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright 2010-2013 JTL-Software GmbH
  * @package jtl\Connector\Shopware\Controller
@@ -9,7 +10,7 @@ namespace jtl\Connector\Shopware\Mapper;
 use Doctrine\ORM\ORMException;
 use jtl\Connector\Core\Logger\Logger;
 use jtl\Connector\Core\Utilities\Language as LanguageUtil;
-use \jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
+use jtl\Connector\Shopware\Utilities\Locale as LocaleUtil;
 use jtl\Connector\Formatter\ExceptionFormatter;
 use jtl\Connector\Model\Customer as CustomerModel;
 use jtl\Connector\Model\CustomerAttr;
@@ -28,23 +29,24 @@ class Customer extends DataMapper
 {
     public function find($id)
     {
-        return (intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Customer\Customer', $id);
+        return (\intval($id) == 0) ? null : $this->Manager()->find('Shopware\Models\Customer\Customer', $id);
     }
 
     public function findAll($limit = 100, $count = false)
     {
         $query = $this->Manager()->createQueryBuilder()->select(
-                'customer',
-                'billing',
-                'shipping',
-                'customerAttributes',
-                'customergroup',
-                'attribute',
-                'shop',
-                'locale'
-            )
+            'customer',
+            'billing',
+            'shipping',
+            'customerAttributes',
+            'customergroup',
+            'attribute',
+            'shop',
+            'locale'
+        )
             //->from('Shopware\Models\Customer\Customer', 'customer')
-            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link', \Doctrine\ORM\Query\Expr\Join::WITH, 'customer.id = link.endpointId AND link.type = 16')
+            //->leftJoin('jtl\Connector\Shopware\Model\ConnectorLink', 'link',
+            // \Doctrine\ORM\Query\Expr\Join::WITH, 'customer.id = link.endpointId AND link.type = 16')
             ->from('jtl\Connector\Shopware\Model\Linker\Customer', 'customer')
             ->leftJoin('customer.linker', 'linker')
             ->leftJoin('customer.defaultBillingAddress', 'billing')
@@ -67,7 +69,7 @@ class Customer extends DataMapper
 
         //return $count ? count($res) : $res;
 
-        return $count ? ($paginator->count()) : iterator_to_array($paginator);
+        return $count ? ($paginator->count()) : \iterator_to_array($paginator);
     }
 
     public function fetchCount($limit = 100)
@@ -77,7 +79,7 @@ class Customer extends DataMapper
 
     public function delete(CustomerModel $customer)
     {
-        $result = new CustomerModel;
+        $result = new CustomerModel();
 
         $this->deleteCustomerData($customer);
 
@@ -90,8 +92,8 @@ class Customer extends DataMapper
     public function save(CustomerModel $customer)
     {
         $customerSW = null;
-        $addressSW = null;
-        $result = new CustomerModel;
+        $addressSW  = null;
+        $result     = new CustomerModel();
 
         try {
             $this->prepareCustomerAssociatedData($customer, $customerSW, $addressSW);
@@ -102,9 +104,9 @@ class Customer extends DataMapper
             if ($violations->count() > 0) {
                 throw new ApiException\ValidationException($violations);
             }
-    
+
             $this->prepareBillingAssociatedData($customer, $customerSW, $addressSW);
-    
+
             $this->Manager()->persist($customerSW);
             $this->Manager()->persist($addressSW);
             $this->flush();
@@ -115,16 +117,16 @@ class Customer extends DataMapper
         // Result
         $result->setId(new Identity('', $customer->getId()->getHost()));
 
-        if (!is_null($customerSW)) {
+        if (!\is_null($customerSW)) {
             $result->getId()->setEndpoint($customerSW->getId());
         }
-        
+
         return $result;
     }
 
     protected function deleteCustomerData(CustomerModel &$customer)
     {
-        $customerId = (strlen($customer->getId()->getEndpoint()) > 0) ? (int)$customer->getId()->getEndpoint() : null;
+        $customerId = (\strlen($customer->getId()->getEndpoint()) > 0) ? (int)$customer->getId()->getEndpoint() : null;
 
         if ($customerId !== null && $customerId > 0) {
             $customerSW = $this->find((int) $customerId);
@@ -152,21 +154,27 @@ class Customer extends DataMapper
 
         $jtlAttributes = [];
         /** @var CustomerAttr $attribute */
-        foreach($jtlCustomer->getAttributes() as $attribute){
+        foreach ($jtlCustomer->getAttributes() as $attribute) {
             if ($attribute->getKey() !== "") {
                 $jtlAttributes[$attribute->getKey()] = $attribute->getValue();
             }
         }
 
         if (!empty($jtlAttributes)) {
-
-            $nullUndefinedAttributes = (bool)Application()->getConfig()->get('customer.push.null_undefined_attributes',
-                true);
-            $swAttributesList = Shopware()->Container()->get('shopware_attribute.crud_service')->getList('s_user_attributes');
+            $nullUndefinedAttributes = (bool)\Application()->getConfig()->get(
+                'customer.push.null_undefined_attributes',
+                true
+            );
+            $swAttributesList        = \Shopware()->Container()->get('shopware_attribute.crud_service')
+                ->getList('s_user_attributes');
 
             foreach ($swAttributesList as $attribute) {
-                TranslatableAttributes::setAttribute($attribute, $swAttribute, $jtlAttributes,
-                    $nullUndefinedAttributes);
+                TranslatableAttributes::setAttribute(
+                    $attribute,
+                    $swAttribute,
+                    $jtlAttributes,
+                    $nullUndefinedAttributes
+                );
             }
 
             ShopUtil::entityManager()->persist($swAttribute);
@@ -176,33 +184,34 @@ class Customer extends DataMapper
     protected function prepareCustomerAssociatedData(
         CustomerModel &$customer,
         CustomerSW &$customerSW = null,
-        AddressSW &$addressSW = null)
-    {
-        $customerId = (strlen($customer->getId()->getEndpoint()) > 0) ? (int)$customer->getId()->getEndpoint() : null;
-    
-        if (!is_null($customerId) && $customerId > 0) {
+        AddressSW &$addressSW = null
+    ) {
+        $customerId = (\strlen($customer->getId()->getEndpoint()) > 0) ? (int)$customer->getId()->getEndpoint() : null;
+
+        if (!\is_null($customerId) && $customerId > 0) {
             $customerSW = $this->find($customerId);
         }
-    
+
         // Try to find customer with email
-        if (is_null($customerSW)) {
-            $customerSW = $this->Manager()->getRepository('Shopware\Models\Customer\Customer')->findOneBy(array('email' => $customer->getEMail()));
+        if (\is_null($customerSW)) {
+            $customerSW = $this->Manager()->getRepository('Shopware\Models\Customer\Customer')
+                ->findOneBy(array('email' => $customer->getEMail()));
         }
-        
-        if (!is_null($customerSW)) {
+
+        if (!\is_null($customerSW)) {
             $addressSW = $customerSW->getDefaultBillingAddress();
         }
-        
-        if (is_null($customerSW)) {
-            throw new \Exception(sprintf(
+
+        if (\is_null($customerSW)) {
+            throw new \Exception(\sprintf(
                 'Customer (E-Mail: %s | HostId: %s) could not be found',
                 $customer->getEMail(),
                 $customer->getId()->getHost()
             ));
         }
-    
-        if (is_null($addressSW)) {
-            $addressSW = new AddressSW;
+
+        if (\is_null($addressSW)) {
+            $addressSW = new AddressSW();
             $customerSW->setDefaultBillingAddress($addressSW);
         }
 
@@ -214,11 +223,11 @@ class Customer extends DataMapper
 
         $customerSW->setEmail($customer->getEMail())
             ->setActive($customer->getIsActive())
-            ->setNewsletter(intval($customer->getHasNewsletterSubscription()))
+            ->setNewsletter(\intval($customer->getHasNewsletterSubscription()))
             ->setFirstLogin($customer->getCreationDate())
             ->setAccountMode($accountmode)
             ->setTitle($customer->getTitle());
-            
+
         $customerSW->setFirstname($customer->getFirstName());
         $customerSW->setLastname($customer->getLastName());
         $customerSW->setSalutation(SalutationUtil::toEndpoint($customer->getSalutation()));
@@ -229,19 +238,22 @@ class Customer extends DataMapper
     {
         // CustomerGroup
         $customerGroupMapper = Mmc::getMapper('CustomerGroup');
-        $customerGroupSW = $customerGroupMapper->find($customer->getCustomerGroupId()->getEndpoint());
+        $customerGroupSW     = $customerGroupMapper->find($customer->getCustomerGroupId()->getEndpoint());
         if ($customerGroupSW) {
             $customerSW->setGroup($customerGroupSW);
         }
     }
 
-    protected function prepareBillingAssociatedData(CustomerModel &$customer, CustomerSW &$customerSW, AddressSW &$addressSW)
-    {
+    protected function prepareBillingAssociatedData(
+        CustomerModel &$customer,
+        CustomerSW &$customerSW,
+        AddressSW &$addressSW
+    ) {
         // Billing
         if (!$addressSW) {
-            $addressSW = new AddressSW;
+            $addressSW = new AddressSW();
         }
-    
+
         $addressSW->setCompany($customer->getCompany());
         $addressSW->setDepartment($customer->getDeliveryInstruction());
         $addressSW->setSalutation(SalutationUtil::toEndpoint($customer->getSalutation()));
@@ -267,13 +279,14 @@ class Customer extends DataMapper
             'name' => $customer->getState(),
             'active' => true
         ]);
-        
+
         if ($stateSW) {
             $addressSW->setState($stateSW);
         }
-        
+
         /** @var \Shopware\Models\Country\Country $countrySW */
-        $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')->findOneBy(['iso' => $customer->getCountryIso()]);
+        $countrySW = $this->Manager()->getRepository('Shopware\Models\Country\Country')
+            ->findOneBy(['iso' => $customer->getCountryIso()]);
         if ($countrySW) {
             $addressSW->setCountry($countrySW);
         }
