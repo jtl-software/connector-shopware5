@@ -1,6 +1,8 @@
 # Changelog 
 
 ## unreleased
+
+## 2.18.2 _2023-08-08_
 - CO-2212 - fix image_config_ignores attribute 
 
 ## 2.18.1.1 _2023-05-10_
