@@ -1,0 +1,14 @@
+diff --git a/vendor/jtl/connector/src/Application/Application.php b/vendor/jtl/connector/src/Application/Application.php
+index c3e6501..008357e 100755
+--- a/vendor/jtl/connector/src/Application/Application.php
++++ b/vendor/jtl/connector/src/Application/Application.php
+@@ -133,9 +133,6 @@ class Application extends CoreApplication
+      */
+     public function run()
+     {
+-        if(!version_compare(phpversion(),'8.1','<')) {
+-            throw new ApplicationException('PHP Version 8.1 or higher not supported!');
+-        }
+ 
+         AnnotationRegistry::registerLoader('class_exists');
+ 
