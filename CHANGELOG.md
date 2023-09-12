@@ -2,6 +2,9 @@
 
 ## unreleased
 
+## 2.19.0 _2023-09-12_
+- add PHP 8.1+ Support
+
 ## 2.18.2 _2023-08-08_
 - CO-2212 - fix image_config_ignores attribute 
 
